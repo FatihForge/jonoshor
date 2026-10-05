@@ -1,0 +1,100 @@
+# JonoShor — .gitignore
+
+# ============================================================
+# Environment & Secrets
+# ============================================================
+.env
+.env.local
+.env.*.local
+*.env
+
+# ============================================================
+# Node.js
+# ============================================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+
+# ============================================================
+# Package manager lock files (keep one — npm by convention)
+# yarn.lock         # Uncomment to ignore if using npm only
+# pnpm-lock.yaml    # Uncomment to ignore if using npm only
+# ============================================================
+
+# ============================================================
+# Build Output
+# ============================================================
+dist/
+build/
+.output/
+.vite/
+*.tsbuildinfo
+
+# ============================================================
+# Logs
+# ============================================================
+logs/
+*.log
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# ============================================================
+# OS & Editor Files
+# ============================================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+desktop.ini
+
+# VSCode
+.vscode/
+!.vscode/extensions.json
+
+# JetBrains IDEs
+.idea/
+*.iml
+
+# ============================================================
+# Testing & Coverage
+# ============================================================
+coverage/
+.nyc_output/
+test-results/
+
+# ============================================================
+# Uploads & Temporary Files
+# ============================================================
+uploads/
+tmp/
+temp/
+
+# ============================================================
+# Google Cloud
+# ============================================================
+# GCS service account key — NEVER commit credentials
+*.json
+!package.json
+!package-lock.json
+# Re-allow known safe JSON files explicitly
+!.eslintrc.json
+!.prettierrc.json
+!tsconfig.json
+
+# ============================================================
+# Misc
+# ============================================================
+.cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+*.swp
+*.swo
+*~

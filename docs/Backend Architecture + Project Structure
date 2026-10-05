@@ -1,0 +1,2016 @@
+# JonoShor
+
+## Backend Architecture + Project Structure
+
+### Frozen Architecture — v1.0
+
+> **Source of Truth:**
+> PRD v1.0 + DATABASE-SCHEMA.md v1.0 + API-SPECIFICATION.md v1.0 + approved subsequent corrections.
+
+---
+
+# PART A — ARCHITECTURE PRINCIPLES
+
+## 1. Technology Rules
+
+### Frontend
+
+* HTML5
+* Tailwind CSS
+* Vanilla JavaScript
+* Vite
+* ESLint
+* Prettier
+
+### Backend
+
+* Node.js
+* Express.js
+* JavaScript
+
+### Database
+
+* MongoDB
+* MongoDB Atlas
+
+### Object Storage
+
+* Google Cloud Storage
+
+### Hosting
+
+Frontend:
+
+**Cloudflare Pages**
+
+Backend:
+
+**Render**
+
+### Explicitly Not Allowed
+
+এই project-এর current architecture-এ নিজের থেকে introduce করা যাবে না:
+
+* Python
+* Django
+* Flask
+* Next.js
+* Nuxt
+* Laravel
+* অন্য backend framework
+* React, যদি না পরবর্তীতে explicitly approved হয়
+* Google Sheets as database
+
+---
+
+# 2. Architecture Pattern
+
+Backend flow:
+
+```text
+Request
+   ↓
+Route
+   ↓
+Security Middleware
+   ↓
+Authentication
+   ↓
+Authorization
+   ↓
+Validation
+   ↓
+Controller
+   ↓
+Service
+   ↓
+Repository
+   ↓
+Model
+   ↓
+MongoDB / External Service
+```
+
+প্রতিটি layer-এর নির্দিষ্ট responsibility থাকবে।
+
+---
+
+# 3. Layer Responsibilities
+
+## Routes
+
+Route শুধু request কোথায় যাবে এবং কোন middleware প্রযোজ্য তা define করবে।
+
+Route-এর মধ্যে business logic থাকবে না।
+
+---
+
+## Middleware
+
+Middleware handle করবে:
+
+* Authentication
+* Authorization
+* Permission check
+* Request ID
+* Rate limiting
+* Security checks
+* CSRF-related protection
+* Validation trigger
+* Error handling
+
+---
+
+## Controllers
+
+Controller:
+
+* request গ্রহণ করবে
+* validated input service-এ পাঠাবে
+* service result response-এ convert করবে
+
+Controller-এর মধ্যে বড় business logic থাকবে না।
+
+---
+
+## Services
+
+Business rules এখানে থাকবে।
+
+যেমন:
+
+* complaint submission rules
+* non-user 5-complaint limit
+* verification logic
+* publication decision workflow
+* correction limit
+* withdrawal workflow
+* reporter/account linking
+* evidence publication rules
+* Join Us processing
+* notification generation
+
+---
+
+## Repositories
+
+Database access-এর abstraction।
+
+Repository:
+
+* query
+* create
+* update
+* find
+* aggregation
+
+ইত্যাদি handle করবে।
+
+Business policy repository-এর মধ্যে থাকবে না।
+
+---
+
+## Models
+
+MongoDB/Mongoose schema definition।
+
+Models শুধু data structure, relationships, validation এবং database-level constraints-এর সঙ্গে সম্পর্কিত হবে।
+
+---
+
+# 4. Authentication Architecture
+
+Authentication services:
+
+```text
+auth/
+├── password authentication
+├── Google authentication
+├── Facebook authentication
+├── email verification
+├── password reset
+└── session management
+```
+
+Password:
+
+**Argon2id**
+
+Session/token:
+
+* secure HttpOnly cookie-based mechanism
+* short-lived access authentication
+* rotating refresh tokens
+
+Raw password/token database-এ রাখা যাবে না।
+
+---
+
+# 5. Account Separation
+
+Database:
+
+```text
+users
+admins
+superAdmins
+```
+
+এগুলো আলাদা collections।
+
+এক collection-এর role field দিয়ে তিনটি account system মিশিয়ে দেওয়া হবে না।
+
+---
+
+# 6. Reporter Separation
+
+Reporter একটি আলাদা identity layer:
+
+```text
+users
+   │
+   └── reporters
+
+non-user
+   │
+   └── reporters
+```
+
+User থাকতেই হবে এমন নয়।
+
+একজন non-user পরে User হলে existing Reporter record account-এর সঙ্গে link হবে।
+
+---
+
+# 7. Complaint Architecture
+
+Complaint:
+
+```text
+Reporter
+   ↓
+Complaint
+   ├── Victims
+   ├── Accused
+   ├── Evidence
+   ├── Review
+   ├── Authority Actions
+   ├── Legal Cases
+   └── Public Report
+```
+
+Complaint-এর internal MongoDB `_id` primary database identity হিসেবে ব্যবহার হবে।
+
+Unnecessary duplicate complaint identifier তৈরি করা যাবে না।
+
+---
+
+# 8. Public Data Architecture
+
+Public information:
+
+```text
+complaint
+    ↓
+review
+    ↓
+publication approval
+    ↓
+publicReports
+```
+
+Public website এবং logged-in User website **একই approved `publicReports` data source ব্যবহার করবে।**
+
+দুই interface-এর জন্য আলাদা duplicate public report database রাখা হবে না।
+
+---
+
+# 9. Private/Internal Data Rule
+
+Internal database record কখনো সরাসরি public response হিসেবে return করা যাবে না।
+
+Flow:
+
+```text
+MongoDB
+   ↓
+Service
+   ↓
+Sanitization / DTO
+   ↓
+API Response
+```
+
+Public response শুধুমাত্র approved fields ব্যবহার করবে।
+
+---
+
+# 10. Evidence Architecture
+
+Evidence:
+
+```text
+Client
+  ↓
+Upload Session
+  ↓
+Google Cloud Storage
+  ↓
+Quarantine
+  ↓
+Malware Scan
+  ↓
+Private Storage
+  ↓
+Admin/Reviewer Review
+  ↓
+Public Approval
+  ↓
+Public Safe Version
+```
+
+Evidence default private।
+
+Sensitive evidence public করার আগে redaction করা যাবে।
+
+Public-approved evidence viewer tracking থাকবে না।
+
+---
+
+# 11. Legal Architecture
+
+এক complaint:
+
+```text
+Complaint
+   ├── Legal Case A
+   ├── Legal Case B
+   └── Legal Case C
+```
+
+প্রতিটি case-এর:
+
+* authority
+* court
+* case number
+* legal status
+* timeline
+* outcome
+* official reference
+
+থাকতে পারে।
+
+Legal information public করার আগে public-safe disclosure review হবে।
+
+---
+
+# 12. Join Us Architecture
+
+Join Us completely separate:
+
+```text
+joinUsSubmissions
+```
+
+এটি:
+
+* users collection নয়
+* membership directory নয়
+* public profile নয়
+* Google Sheets নয়
+
+শুধু authorized Admin/Super Admin access করবে।
+
+---
+
+# PART B — PROJECT STRUCTURE
+
+# 13. Root Folder
+
+```text
+human-rights-platform/
+│
+├── frontend/
+├── backend/
+│
+├── docs/
+│   ├── PRD.md
+│   ├── DATABASE-SCHEMA.md
+│   ├── API-SPECIFICATION.md
+│   ├── BACKEND-ARCHITECTURE.md
+│   ├── PROJECT-STRUCTURE.md
+│   ├── SECURITY.md
+│   └── DEVELOPMENT-ROADMAP.md
+│
+├── .env.example
+├── .gitignore
+├── README.md
+├── package.json
+└── LICENSE
+```
+
+---
+
+# 14. Frontend Structure
+
+```text
+frontend/
+│
+├── public/
+│   ├── assets/
+│   ├── images/
+│   └── icons/
+│
+├── src/
+│   │
+│   ├── pages/
+│   │   ├── public/
+│   │   ├── user/
+│   │   ├── admin/
+│   │   └── superAdmin/
+│   │
+│   ├── components/
+│   │   ├── common/
+│   │   ├── public/
+│   │   ├── user/
+│   │   ├── admin/
+│   │   └── superAdmin/
+│   │
+│   ├── services/
+│   │   ├── api/
+│   │   ├── auth/
+│   │   └── upload/
+│   │
+│   ├── utils/
+│   ├── validators/
+│   ├── constants/
+│   ├── config/
+│   └── main.js
+│
+├── package.json
+├── vite.config.js
+└── ...
+```
+
+---
+
+# 15. Frontend Page Separation
+
+## Public
+
+```text
+pages/public/
+├── home/
+├── about/
+├── mission/
+├── how-it-works/
+├── reports/
+├── statistics/
+├── districts/
+├── join-us/
+├── donate/
+├── faq/
+├── contact/
+├── legal/
+└── auth/
+```
+
+---
+
+## User
+
+```text
+pages/user/
+├── dashboard/
+├── complaints/
+├── profile/
+├── settings/
+├── notifications/
+└── messages/
+```
+
+---
+
+## Admin
+
+```text
+pages/admin/
+├── dashboard/
+├── complaints/
+├── evidence/
+├── users/
+├── join-us/
+├── reports/
+├── corrections/
+├── withdrawals/
+├── messages/
+├── notifications/
+└── audit-logs/
+```
+
+---
+
+## Super Admin
+
+```text
+pages/superAdmin/
+├── dashboard/
+├── admins/
+├── security/
+├── system-settings/
+├── financial-settings/
+└── audit-logs/
+```
+
+---
+
+# 16. Frontend Service Principle
+
+Frontend কোনো business rule-এর authority নয়।
+
+উদাহরণ:
+
+```text
+Frontend:
+"User is Admin?"
+```
+
+এটি শুধু UX/route behavior-এর জন্য।
+
+Security authority:
+
+```text
+Backend:
+Is authenticated?
+Is Admin?
+Has permission?
+Can access this resource?
+```
+
+---
+
+# PART C — BACKEND STRUCTURE
+
+# 17. Backend Root
+
+```text
+backend/
+│
+├── src/
+│   │
+│   ├── config/
+│   ├── routes/
+│   ├── controllers/
+│   ├── services/
+│   ├── repositories/
+│   ├── models/
+│   ├── middlewares/
+│   ├── validators/
+│   ├── utils/
+│   ├── integrations/
+│   ├── jobs/
+│   ├── constants/
+│   ├── types/
+│   ├── app.js
+│   └── server.js
+│
+├── tests/
+│
+├── package.json
+└── ...
+```
+
+---
+
+# 18. `config/`
+
+```text
+config/
+├── env.js
+├── database.js
+├── auth.js
+├── cors.js
+├── storage.js
+├── security.js
+└── logging.js
+```
+
+Environment এবং infrastructure configuration এখানে থাকবে।
+
+Secrets source code-এ থাকবে না।
+
+---
+
+# 19. `routes/`
+
+Strict role separation:
+
+```text
+routes/
+├── public/
+├── auth/
+├── user/
+├── admin/
+└── superAdmin/
+```
+
+Example:
+
+```text
+routes/
+├── public/
+│   ├── reports.routes.js
+│   ├── evidence.routes.js
+│   ├── statistics.routes.js
+│   ├── locations.routes.js
+│   └── content.routes.js
+│
+├── auth/
+│   ├── auth.routes.js
+│   ├── socialAuth.routes.js
+│   ├── verification.routes.js
+│   └── password.routes.js
+│
+├── user/
+│   ├── profile.routes.js
+│   ├── complaints.routes.js
+│   ├── evidence.routes.js
+│   ├── corrections.routes.js
+│   ├── notifications.routes.js
+│   └── messages.routes.js
+│
+├── admin/
+│   ├── dashboard.routes.js
+│   ├── complaints.routes.js
+│   ├── evidence.routes.js
+│   ├── reports.routes.js
+│   ├── corrections.routes.js
+│   ├── withdrawals.routes.js
+│   ├── users.routes.js
+│   ├── joinUs.routes.js
+│   ├── messages.routes.js
+│   └── auditLogs.routes.js
+│
+└── superAdmin/
+    ├── dashboard.routes.js
+    ├── admins.routes.js
+    ├── security.routes.js
+    ├── systemSettings.routes.js
+    ├── financialSettings.routes.js
+    └── auditLogs.routes.js
+```
+
+---
+
+# 20. `controllers/`
+
+Controllers route অনুযায়ী grouped থাকবে।
+
+```text
+controllers/
+├── public/
+├── auth/
+├── user/
+├── admin/
+└── superAdmin/
+```
+
+Controller-এর কাজ:
+
+```text
+Request
+ ↓
+Extract validated input
+ ↓
+Call service
+ ↓
+Format response
+```
+
+Business logic controller-এ থাকবে না।
+
+---
+
+# 21. `services/`
+
+Business logic-এর main layer।
+
+```text
+services/
+├── auth/
+├── reporter/
+├── complaints/
+├── evidence/
+├── verification/
+├── publication/
+├── legal/
+├── corrections/
+├── notifications/
+├── messaging/
+├── joinUs/
+├── users/
+├── statistics/
+├── security/
+├── audit/
+└── admin/
+```
+
+---
+
+# 22. Complaint Services
+
+```text
+services/complaints/
+├── createComplaint.service.js
+├── getUserComplaints.service.js
+├── getAdminComplaints.service.js
+├── updateComplaint.service.js
+├── withdrawComplaint.service.js
+├── complaintStatus.service.js
+└── complaintLimit.service.js
+```
+
+Non-user 5-complaint rule এখানে enforce হবে।
+
+---
+
+# 23. Reporter Services
+
+```text
+services/reporter/
+├── findReporter.service.js
+├── createReporter.service.js
+├── linkReporterAccount.service.js
+├── validateNonUserLimit.service.js
+└── reporterSecurity.service.js
+```
+
+Reporter identity logic একটি centralized service layer-এ থাকবে।
+
+---
+
+# 24. Evidence Services
+
+```text
+services/evidence/
+├── createUploadSession.service.js
+├── completeUpload.service.js
+├── scanEvidence.service.js
+├── reviewEvidence.service.js
+├── publishEvidence.service.js
+├── redactEvidence.service.js
+├── deleteEvidence.service.js
+└── signedUrl.service.js
+```
+
+---
+
+# 25. Verification Services
+
+```text
+services/verification/
+├── assignReviewer.service.js
+├── verifyComplaint.service.js
+├── conflictCheck.service.js
+└── verificationDecision.service.js
+```
+
+Final verification human reviewer-এর decision হবে।
+
+---
+
+# 26. Publication Services
+
+```text
+services/publication/
+├── disclosureReview.service.js
+├── createPublicReport.service.js
+├── updatePublicReport.service.js
+├── sanitizePublicData.service.js
+└── publicEvidence.service.js
+```
+
+এই layer public-safe data তৈরি করবে।
+
+---
+
+# 27. Legal Services
+
+```text
+services/legal/
+├── createCase.service.js
+├── updateCase.service.js
+├── addTimelineEvent.service.js
+├── addAuthorityAction.service.js
+├── updateLegalStatus.service.js
+└── publicLegalSummary.service.js
+```
+
+---
+
+# 28. `repositories/`
+
+MongoDB access centralized থাকবে।
+
+```text
+repositories/
+├── user.repository.js
+├── admin.repository.js
+├── superAdmin.repository.js
+├── role.repository.js
+├── permission.repository.js
+├── reporter.repository.js
+├── complaint.repository.js
+├── evidence.repository.js
+├── legalCase.repository.js
+├── publicReport.repository.js
+├── correctionRequest.repository.js
+├── notification.repository.js
+├── message.repository.js
+├── joinUs.repository.js
+├── session.repository.js
+├── refreshToken.repository.js
+├── auditLog.repository.js
+├── securityLog.repository.js
+├── district.repository.js
+├── upazila.repository.js
+└── systemSettings.repository.js
+```
+
+---
+
+# 29. `models/`
+
+MongoDB/Mongoose models:
+
+```text
+models/
+├── User.js
+├── Admin.js
+├── SuperAdmin.js
+├── Role.js
+├── Permission.js
+├── Reporter.js
+├── Complaint.js
+├── Evidence.js
+├── LegalCase.js
+├── PublicReport.js
+├── CorrectionRequest.js
+├── Notification.js
+├── Message.js
+├── JoinUsSubmission.js
+├── Session.js
+├── RefreshToken.js
+├── AuditLog.js
+├── SecurityLog.js
+├── District.js
+├── Upazila.js
+└── SystemSetting.js
+```
+
+---
+
+# 30. `middlewares/`
+
+```text
+middlewares/
+├── auth.middleware.js
+├── role.middleware.js
+├── permission.middleware.js
+├── ownership.middleware.js
+├── rateLimit.middleware.js
+├── csrf.middleware.js
+├── validation.middleware.js
+├── requestId.middleware.js
+├── upload.middleware.js
+├── security.middleware.js
+├── error.middleware.js
+└── notFound.middleware.js
+```
+
+---
+
+# 31. Authorization Middleware
+
+Authorization chain:
+
+```text
+Authentication
+      ↓
+Account Type
+      ↓
+Permission
+      ↓
+Object Ownership / Scope
+      ↓
+Allow / Deny
+```
+
+Example:
+
+```text
+User
+ ↓
+GET /api/v1/user/complaints/:id
+ ↓
+Authenticated?
+ ↓
+User?
+ ↓
+Complaint belongs to this User?
+ ↓
+YES → Continue
+NO  → Forbidden
+```
+
+---
+
+# 32. Admin Authorization
+
+Admin endpoint:
+
+```text
+/api/v1/admin/*
+```
+
+require:
+
+```text
+Authenticated
++
+Admin account
++
+Required permission
+```
+
+Admin-এর permission নেই এমন action deny হবে।
+
+---
+
+# 33. Super Admin Authorization
+
+Super Admin endpoint:
+
+```text
+/api/v1/super-admin/*
+```
+
+require:
+
+```text
+Authenticated
++
+Super Admin
++
+Required permission
+```
+
+Admin কখনো শুধু URL পরিবর্তন করে Super Admin resource access করতে পারবে না।
+
+---
+
+# 34. Critical Action Middleware
+
+Critical actions-এর জন্য:
+
+```text
+Authentication
+ ↓
+Permission
+ ↓
+Re-authentication
+ ↓
+2FA
+ ↓
+Action
+ ↓
+Audit Log
+```
+
+Applicable actions:
+
+* Admin permission changes
+* Financial settings changes
+* Critical system settings
+* Sensitive security actions
+* Evidence destructive operations
+* Privileged management operations
+
+---
+
+# 35. `validators/`
+
+Validation route/business context অনুযায়ী grouped থাকবে।
+
+```text
+validators/
+├── auth/
+├── users/
+├── reporters/
+├── complaints/
+├── evidence/
+├── legal/
+├── corrections/
+├── messages/
+├── joinUs/
+├── admin/
+└── superAdmin/
+```
+
+---
+
+# 36. `integrations/`
+
+External services:
+
+```text
+integrations/
+├── google/
+├── facebook/
+├── googleCloudStorage/
+├── email/
+└── ai/
+```
+
+External API logic সরাসরি controller-এ থাকবে না।
+
+---
+
+# 37. Google Cloud Storage Integration
+
+```text
+integrations/googleCloudStorage/
+├── uploadSession.js
+├── upload.js
+├── signedUrl.js
+└── delete.js
+```
+
+GCS credential environment variable থেকে আসবে।
+
+---
+
+# 38. AI Integration
+
+AI optional assistance layer:
+
+```text
+integrations/ai/
+├── classify.js
+├── summarize.js
+├── translate.js
+├── duplicateDetection.js
+└── moderation.js
+```
+
+AI service final verification/legal decision করতে পারবে না।
+
+---
+
+# 39. `jobs/`
+
+Asynchronous processing যেখানে প্রয়োজন:
+
+```text
+jobs/
+├── malwareScan.job.js
+├── evidenceProcessing.job.js
+├── emailNotification.job.js
+└── aiAssistance.job.js
+```
+
+Async job ব্যবহার করলে final business state update validated service-এর মাধ্যমে হবে।
+
+---
+
+# 40. `utils/`
+
+Generic utilities:
+
+```text
+utils/
+├── errors.js
+├── response.js
+├── crypto.js
+├── date.js
+├── sanitize.js
+├── pagination.js
+├── urlValidation.js
+└── logger.js
+```
+
+Utility-তে business-specific policy রাখা যাবে না।
+
+---
+
+# 41. `constants/`
+
+Controlled values:
+
+```text
+constants/
+├── roles.js
+├── permissions.js
+├── complaintStatus.js
+├── evidenceStatus.js
+├── legalStatus.js
+├── notificationTypes.js
+└── accountStatus.js
+```
+
+---
+
+# 42. `types/`
+
+JavaScript project হলেও shared data-shape definitions/documentation এখানে রাখা যেতে পারে।
+
+```text
+types/
+├── complaint.js
+├── evidence.js
+├── publicReport.js
+└── api.js
+```
+
+TypeScript introduce করা হবে না।
+
+---
+
+# 43. `app.js`
+
+`app.js` handle করবে:
+
+* Express initialization
+* middleware registration
+* route mounting
+* error middleware
+
+Example architecture:
+
+```text
+app.js
+ ↓
+Security Middleware
+ ↓
+Request ID
+ ↓
+CORS
+ ↓
+Routes
+ ↓
+Error Handler
+```
+
+---
+
+# 44. `server.js`
+
+`server.js` handle করবে:
+
+* server startup
+* database initialization
+* application bootstrap
+* graceful shutdown
+
+---
+
+# 45. Route Mounting
+
+```text
+/api/v1/public
+/api/v1/auth
+/api/v1/user
+/api/v1/admin
+/api/v1/super-admin
+```
+
+কোন route কোন boundary-এর তা root application-এ explicit থাকবে।
+
+---
+
+# 46. Public Route Mounting
+
+```text
+/api/v1/public/reports
+/api/v1/public/evidence
+/api/v1/public/statistics
+/api/v1/public/districts
+/api/v1/public/content
+```
+
+Public complaint submission allowed হলে:
+
+```text
+/api/v1/public/complaints
+```
+
+এটি authenticated public browsing endpoint থেকে আলাদা security/rate-limit policy অনুসরণ করবে।
+
+---
+
+# 47. User Route Mounting
+
+```text
+/api/v1/user/profile
+/api/v1/user/complaints
+/api/v1/user/notifications
+/api/v1/user/messages
+/api/v1/user/security
+```
+
+User শুধুমাত্র নিজের private resources access করবে।
+
+---
+
+# 48. Admin Route Mounting
+
+```text
+/api/v1/admin/dashboard
+/api/v1/admin/complaints
+/api/v1/admin/evidence
+/api/v1/admin/reports
+/api/v1/admin/corrections
+/api/v1/admin/withdrawals
+/api/v1/admin/users
+/api/v1/admin/join-us
+/api/v1/admin/messages
+/api/v1/admin/audit-logs
+```
+
+Granular permission required।
+
+---
+
+# 49. Super Admin Route Mounting
+
+```text
+/api/v1/super-admin/dashboard
+/api/v1/super-admin/admins
+/api/v1/super-admin/security
+/api/v1/super-admin/system-settings
+/api/v1/super-admin/financial-settings
+/api/v1/super-admin/audit-logs
+```
+
+Highest privilege।
+
+---
+
+# PART D — FRONTEND / BACKEND RESPONSIBILITY
+
+# 50. Public Page
+
+Public page দেখাবে:
+
+* Public reports
+* Public evidence
+* Statistics
+* Public content
+* Join Us
+* Donation information
+* Contact
+* FAQ
+* Legal/safety pages
+
+সব approved public information।
+
+---
+
+# 51. User Page
+
+User page:
+
+```text
+Public Approved Information
++
+User's Own Private Information
+```
+
+Public report-এর ক্ষেত্রে User **Public Page-এর identical approved information** দেখবে।
+
+নিজের জন্য additional:
+
+* My Complaints
+* Status
+* Timeline
+* Notifications
+* Messages
+* permitted evidence
+* Profile/settings
+
+থাকবে।
+
+---
+
+# 52. Admin Page
+
+Admin operational work করবে:
+
+* complaints
+* screening
+* review
+* evidence
+* verification
+* publication
+* users
+* Join Us
+* corrections
+* withdrawals
+* messages
+* audit logs
+
+Permission অনুযায়ী।
+
+---
+
+# 53. Super Admin Page
+
+Super Admin:
+
+* Admin management
+* permissions
+* security
+* system settings
+* financial settings
+* privileged audit access
+
+manage করবে।
+
+---
+
+# PART E — DATA FLOW
+
+# 54. Registered User Complaint
+
+```text
+User
+ ↓
+Frontend Complaint Form
+ ↓
+POST /api/v1/user/complaints
+ ↓
+Auth Middleware
+ ↓
+User Ownership / Validation
+ ↓
+Complaint Service
+ ↓
+Reporter Service
+ ↓
+Complaint Repository
+ ↓
+MongoDB
+ ↓
+Notification
+```
+
+---
+
+# 55. Non-User Complaint
+
+```text
+Visitor
+ ↓
+Complaint Form
+ ↓
+POST /api/v1/public/complaints
+ ↓
+Security Signals
+ ↓
+Reporter Identification
+ ↓
+5-Complaint Limit Check
+ ↓
+Contact Validation
+ ↓
+Complaint Creation
+ ↓
+MongoDB
+```
+
+---
+
+# 56. Evidence Flow
+
+```text
+User/Reporter
+ ↓
+Upload Session Request
+ ↓
+Backend Authorization
+ ↓
+GCS Upload
+ ↓
+Quarantine
+ ↓
+Malware Scan
+ ↓
+Evidence Metadata Update
+ ↓
+Reviewer
+ ↓
+Public Approval / Withhold
+```
+
+---
+
+# 57. Verification Flow
+
+```text
+Complaint
+ ↓
+Screening
+ ↓
+Evidence Review
+ ↓
+Reviewer Assignment
+ ↓
+Conflict Check
+ ↓
+Verification
+ ↓
+Human Decision
+ ↓
+Verified / Other Status
+```
+
+---
+
+# 58. Publication Flow
+
+```text
+Complaint
+ ↓
+Verification
+ ↓
+Disclosure Review
+ ↓
+Victim Safety Review
+ ↓
+Accused Visibility Review
+ ↓
+Evidence Disclosure Review
+ ↓
+Legal Information Review
+ ↓
+Public Report
+ ↓
+Published
+```
+
+---
+
+# 59. Public/User Report Flow
+
+```text
+MongoDB
+   ↓
+publicReports
+   ↓
+Public Report API
+   ├── Public Website
+   └── User Website
+```
+
+একই approved source।
+
+Duplicate public-report content database-এ রাখা হবে না।
+
+---
+
+# PART F — LOGGING & ERROR HANDLING
+
+# 60. Logging Rules
+
+Application logs structured হবে।
+
+Log করা যাবে:
+
+* request ID
+* route
+* method
+* response status
+* latency
+* error category
+* safe metadata
+
+Log করা যাবে না:
+
+* password
+* raw access token
+* refresh token
+* secret
+* sensitive evidence
+* unnecessary personal information
+
+---
+
+# 61. Error Handling
+
+Central error middleware:
+
+```text
+Request
+ ↓
+Error
+ ↓
+Central Error Handler
+ ↓
+Safe Client Response
+ ↓
+Internal Structured Log
+```
+
+Client-কে stack trace/secret/internal query information পাঠানো যাবে না।
+
+---
+
+# 62. Request Correlation
+
+প্রতিটি request-এর:
+
+```text
+requestId
+```
+
+থাকবে।
+
+এই ID:
+
+* logs
+* audit logs
+* security events
+* relevant error response
+
+এর সঙ্গে সম্পর্কিত থাকতে পারে।
+
+---
+
+# PART G — SECURITY BOUNDARIES
+
+# 63. Object-Level Authorization
+
+Role authorization যথেষ্ট নয়।
+
+Example:
+
+```text
+User A
+ ↓
+Complaint B
+ ↓
+Complaint B belongs to User A?
+```
+
+না হলে deny।
+
+Admin একইভাবে permission এবং scope অনুযায়ী data access করবে।
+
+---
+
+# 64. Private Evidence Authorization
+
+Private evidence access:
+
+```text
+Authenticated/Authorized Request
+ ↓
+Complaint/Evidence Permission
+ ↓
+Object Ownership/Staff Scope
+ ↓
+Signed URL
+```
+
+---
+
+# 65. Public Evidence Authorization
+
+যখন evidence:
+
+```text
+publicStatus = approved_public
+```
+
+তখন public-safe version accessible হবে।
+
+Viewer login required নয়।
+
+Viewer tracking নেই।
+
+---
+
+# 66. Session Security
+
+Session internally track করা হবে।
+
+User-এর জন্য active session list endpoint থাকবে না।
+
+Privileged session revocation permission-controlled হবে।
+
+Critical session/security operation audit করা হবে।
+
+---
+
+# PART H — DEPLOYMENT ARCHITECTURE
+
+# 67. Production Architecture
+
+```text
+                    Internet
+                       │
+                       ▼
+               Cloudflare
+                       │
+              ┌────────┴────────┐
+              │                 │
+              ▼                 ▼
+       Cloudflare Pages      API Requests
+          Frontend                │
+                                  ▼
+                               Render
+                               Backend
+                                  │
+                ┌─────────────────┼──────────────────┐
+                │                 │                  │
+                ▼                 ▼                  ▼
+          MongoDB Atlas         GCS              Email/AI
+```
+
+---
+
+# 68. Frontend Deployment
+
+Cloudflare Pages:
+
+* static frontend build
+* environment-specific API base URL
+* no backend secret
+* no database credential
+
+---
+
+# 69. Backend Deployment
+
+Render:
+
+* Node.js/Express backend
+* environment secrets
+* MongoDB connection
+* GCS credentials
+* authentication configuration
+* email provider configuration
+* AI provider credentials
+
+---
+
+# 70. Environment Variables
+
+`.env` local environment-এ থাকবে।
+
+Git-এ commit হবে না।
+
+`.env.example` repository-তে থাকবে।
+
+Example categories:
+
+```text
+NODE_ENV
+PORT
+
+MONGODB_URI
+
+JWT / ACCESS AUTH CONFIG
+REFRESH TOKEN CONFIG
+
+GOOGLE OAUTH CONFIG
+FACEBOOK OAUTH CONFIG
+
+GCS CONFIG
+
+EMAIL CONFIG
+
+AI CONFIG
+
+CORS_ORIGIN
+
+SECURITY CONFIG
+```
+
+Actual variable names implementation phase-এ নির্ধারিত হবে।
+
+---
+
+# 71. Environment Separation
+
+কমপক্ষে:
+
+```text
+development
+production
+```
+
+আলাদা configuration থাকবে।
+
+Production secret local development-এ hard-code করা যাবে না।
+
+---
+
+# PART I — TEST STRUCTURE
+
+# 72. Tests
+
+```text
+tests/
+├── unit/
+├── integration/
+├── api/
+├── security/
+└── fixtures/
+```
+
+---
+
+# 73. Minimum Critical Tests
+
+Testing cover করবে:
+
+### Authentication
+
+* register
+* login
+* invalid credentials
+* email verification
+* password reset
+* social authentication
+
+### Authorization
+
+* User → User route
+* User → Admin denied
+* Admin → Admin route
+* Admin → Super Admin denied
+* Super Admin → Super Admin route
+
+### Complaint
+
+* User complaint
+* Non-user complaint
+* 5-limit
+* duplicate detection
+* withdrawal
+* correction limit
+
+### Evidence
+
+* upload
+* malware failure
+* private access
+* publication approval
+* redaction
+* deletion
+
+### Public Reports
+
+* only approved data
+* no private field leakage
+* Public/User data consistency
+
+### Legal
+
+* multiple cases
+* timeline
+* authority actions
+* legal update review
+
+### Join Us
+
+* submission
+* duplicate rejection
+* Admin access
+* export permission
+* Super Admin-only deletion
+
+---
+
+# PART J — DEVELOPMENT RULES
+
+# 74. No Cross-Boundary Mixing
+
+এই structure non-negotiable:
+
+```text
+User
+≠ Admin
+≠ Super Admin
+```
+
+Frontend ও backend—দুই দিকেই separation থাকবে।
+
+---
+
+# 75. No Direct Database Access From Route
+
+Forbidden:
+
+```text
+route → MongoDB
+```
+
+Required:
+
+```text
+route
+ ↓
+controller
+ ↓
+service
+ ↓
+repository/model
+ ↓
+MongoDB
+```
+
+---
+
+# 76. No Business Logic in Frontend
+
+Frontend UX validation করতে পারবে।
+
+কিন্তু authoritative business rule backend enforce করবে।
+
+উদাহরণ:
+
+```text
+Frontend:
+"5 complaints reached"
+
+Backend:
+Actual limit enforcement
+```
+
+---
+
+# 77. No Public Raw Complaint
+
+Public API কখনো:
+
+```text
+Complaint document
+```
+
+সরাসরি return করবে না।
+
+বরং:
+
+```text
+Complaint
+ ↓
+Sanitization
+ ↓
+PublicReport
+ ↓
+Public API
+```
+
+---
+
+# 78. No Public Raw Evidence
+
+Raw private GCS object কখনো public করা যাবে না।
+
+Approved/redacted public version ব্যবহৃত হবে।
+
+---
+
+# 79. No Duplicate Public Data
+
+Public এবং User page-এর জন্য একই public report source থাকবে।
+
+একই report-এর duplicate copies রাখা যাবে না।
+
+---
+
+# 80. No Unapproved Product Decisions
+
+Developer বা AI coding assistant:
+
+* নতুন feature invent করবে না
+* নিজের মতো database collection বানাবে না
+* role permission পরিবর্তন করবে না
+* নতুন ID architecture introduce করবে না
+* Public/User information আলাদা করবে না
+* User active session viewer তৈরি করবে না
+* evidence viewer tracking যোগ করবে না
+* Join Us database পরিবর্তন করবে না
+
+পরিবর্তন করতে হলে specification update করতে হবে।
+
+---
+
+# 81. Recommended Repository Tree — Final
+
+```text
+human-rights-platform/
+│
+├── frontend/
+│   ├── public/
+│   ├── src/
+│   │   ├── pages/
+│   │   │   ├── public/
+│   │   │   ├── user/
+│   │   │   ├── admin/
+│   │   │   └── superAdmin/
+│   │   ├── components/
+│   │   │   ├── common/
+│   │   │   ├── public/
+│   │   │   ├── user/
+│   │   │   ├── admin/
+│   │   │   └── superAdmin/
+│   │   ├── services/
+│   │   ├── utils/
+│   │   ├── validators/
+│   │   ├── constants/
+│   │   ├── config/
+│   │   └── main.js
+│   ├── package.json
+│   └── vite.config.js
+│
+├── backend/
+│   ├── src/
+│   │   ├── config/
+│   │   ├── routes/
+│   │   │   ├── public/
+│   │   │   ├── auth/
+│   │   │   ├── user/
+│   │   │   ├── admin/
+│   │   │   └── superAdmin/
+│   │   ├── controllers/
+│   │   │   ├── public/
+│   │   │   ├── auth/
+│   │   │   ├── user/
+│   │   │   ├── admin/
+│   │   │   └── superAdmin/
+│   │   ├── services/
+│   │   ├── repositories/
+│   │   ├── models/
+│   │   ├── middlewares/
+│   │   ├── validators/
+│   │   ├── utils/
+│   │   ├── integrations/
+│   │   ├── jobs/
+│   │   ├── constants/
+│   │   ├── types/
+│   │   ├── app.js
+│   │   └── server.js
+│   ├── tests/
+│   └── package.json
+│
+├── docs/
+│   ├── PRD.md
+│   ├── DATABASE-SCHEMA.md
+│   ├── API-SPECIFICATION.md
+│   ├── BACKEND-ARCHITECTURE.md
+│   ├── PROJECT-STRUCTURE.md
+│   ├── SECURITY.md
+│   └── DEVELOPMENT-ROADMAP.md
+│
+├── .env.example
+├── .gitignore
+├── README.md
+├── package.json
+└── LICENSE
+```
+
+---
+
+# 82. Final Architecture Rule
+
+Development-এর সময় source-of-truth hierarchy:
+
+```text
+PRD
+ ↓
+DATABASE-SCHEMA
+ ↓
+API-SPECIFICATION
+ ↓
+BACKEND-ARCHITECTURE
+ ↓
+PROJECT-STRUCTURE
+ ↓
+Implementation
+```
+
+কোনো implementation decision উপরের specification-এর সঙ্গে conflict করলে implementation change হবে; specification silently change করা যাবে না।
+
+---
+
+## Status
+
+**Document:** BACKEND-ARCHITECTURE.md + PROJECT-STRUCTURE.md
+**Version:** 1.0
+**Status:** Frozen for implementation
+**Parent:** PRD v1.0
+**Database:** DATABASE-SCHEMA.md v1.0
+**API:** API-SPECIFICATION.md v1.0
