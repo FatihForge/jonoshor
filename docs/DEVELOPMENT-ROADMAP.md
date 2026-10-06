@@ -317,7 +317,7 @@ User/Admin/Super Admin authentication তৈরি করা।
 ### Social Authentication
 
 ```text id="d8z3vk"
-[ ] Google Login
+[x] Google Login
 [ ] Facebook Login
 ```
 

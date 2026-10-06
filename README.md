@@ -51,6 +51,7 @@ All approved specification documents are in `docs/`:
 
 | Document | Description |
 |---|---|
+| [`PROJECT_STATUS.md`](./PROJECT_STATUS.md) | **Current Project Status, Architecture & Complete Operational Guide** |
 | `PRD.md` | Frozen Product Requirements Document |
 | `DATABASE-SCHEMA.md` | Frozen Database Specification |
 | `API-SPECIFICATION.md` | Frozen API Specification |

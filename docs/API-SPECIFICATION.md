@@ -286,11 +286,11 @@ Failed login security logging এবং endpoint-specific rate limiting-এর �
 # 12. Social Login
 
 ```text id="44k77l"
-POST /api/v1/auth/google
-POST /api/v1/auth/facebook
+GET /api/v1/auth/google
+GET /api/v1/auth/google/callback
 ```
 
-Provider authentication সফল হলে existing User account-এর সঙ্গে authentication provider link করা যাবে।
+Google OAuth 2.0 Authorization Code flow। Server-side cryptographically signed state token, code exchange, এবং Google verified email-এর মাধ্যমে account creation ও safe account linking পরিচালিত হয়। Authentication সফল হলে JonoShor HttpOnly session cookies (`access_token`, `refresh_token`) ইস্যু করা হয়। Provider tokens কখনোই frontend-এ প্রকাশ করা হয় না।
 
 ---
 
@@ -541,7 +541,7 @@ Backend authorized upload session তৈরি করবে।
 
 Step 3:
 
-Client Google Cloud Storage-এ direct/resumable upload করবে।
+Client Google Drive evidence storage adapter-এ direct/resumable upload করবে।
 
 Step 4:
 

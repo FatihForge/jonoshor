@@ -1,0 +1,120 @@
+import { apiRequest } from '../api/apiClient.js';
+
+export const adminComplaintService = {
+  /**
+   * Fetch operational metrics for Admin Dashboard
+   */
+  async getDashboard() {
+    return await apiRequest('/admin/dashboard');
+  },
+
+  /**
+   * List complaints with filtering and pagination
+   */
+  async listComplaints({ page = 1, limit = 20, status, category, districtId, priority } = {}) {
+    const params = new URLSearchParams();
+    if (page) params.set('page', page);
+    if (limit) params.set('limit', limit);
+    if (status) params.set('status', status);
+    if (category) params.set('category', category);
+    if (districtId) params.set('districtId', districtId);
+    if (priority) params.set('priority', priority);
+
+    const qs = params.toString();
+    return await apiRequest(`/admin/complaints${qs ? `?${qs}` : ''}`);
+  },
+
+  /**
+   * Get full complaint details for review
+   */
+  async getComplaintById(id) {
+    return await apiRequest(`/admin/complaints/${id}`);
+  },
+
+  /**
+   * Assign reviewer to complaint
+   */
+  async assignReviewer(id, reviewerId) {
+    return await apiRequest(`/admin/complaints/${id}/assign`, {
+      method: 'POST',
+      body: { reviewerId },
+    });
+  },
+
+  /**
+   * Declare conflict of interest
+   */
+  async declareConflict(id, reason) {
+    return await apiRequest(`/admin/complaints/${id}/conflict`, {
+      method: 'POST',
+      body: { reason },
+    });
+  },
+
+  /**
+   * Screen complaint to transition workflow status with notes
+   */
+  async screenComplaint(id, { status, notes }) {
+    return await apiRequest(`/admin/complaints/${id}/screen`, {
+      method: 'POST',
+      body: { status, notes },
+    });
+  },
+
+  /**
+   * Request more information from reporter
+   */
+  async requestInformation(id, { message, targetUserId }) {
+    return await apiRequest(`/admin/complaints/${id}/request-information`, {
+      method: 'POST',
+      body: { message, targetUserId },
+    });
+  },
+
+  /**
+   * Record verification decision
+   */
+  async verifyComplaint(id, { decision, reason, notes, assessment }) {
+    return await apiRequest(`/admin/complaints/${id}/verify`, {
+      method: 'POST',
+      body: { decision, reason, notes, assessment },
+    });
+  },
+
+  /**
+   * Publication review decision
+   */
+  async reviewPublication(id, { approved, reason }) {
+    return await apiRequest(`/admin/complaints/${id}/publication-review`, {
+      method: 'POST',
+      body: { approved, reason },
+    });
+  },
+
+  /**
+   * Create and publish public report
+   */
+  async createPublicReport(id, reportPayload) {
+    return await apiRequest(`/admin/complaints/${id}/public-report`, {
+      method: 'POST',
+      body: reportPayload,
+    });
+  },
+
+  /**
+   * Update existing public report
+   */
+  async updatePublicReport(reportId, reportPayload) {
+    return await apiRequest(`/admin/public-reports/${reportId}`, {
+      method: 'PATCH',
+      body: reportPayload,
+    });
+  },
+
+  /**
+   * Get public report for a complaint
+   */
+  async getPublicReportByComplaintId(id) {
+    return await apiRequest(`/admin/complaints/${id}/public-report`);
+  },
+};
