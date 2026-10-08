@@ -12,147 +12,147 @@ export async function renderSuperAdminSecurityPage(container) {
   const auditLimit = 25;
 
   container.innerHTML = `
-    <div class="min-h-screen bg-slate-950 text-slate-100">
+    <div class="min-h-screen bg-slate-50 text-slate-900">
       ${renderSuperAdminNav('security')}
 
       <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         <!-- Header -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-purple-900/40">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
           <div>
-            <h1 class="text-2xl font-black text-white tracking-tight flex items-center gap-2.5">
-              <span>নিরাপত্তা ও অডিট ওভারভিউ</span>
-              <span class="text-xs px-2.5 py-0.5 rounded-full bg-purple-950 text-purple-300 border border-purple-800 font-mono">
+            <h1 class="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+              <span>Security & Audit Intelligence</span>
+              <span class="text-xs px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 font-mono font-semibold">
                 Security & Audit Intel
               </span>
             </h1>
-            <p class="text-xs text-slate-400 mt-1">
-              প্ল্যাটফর্মের সাইবার নিরাপত্তা ঘটনা, সাইন-ইন ঝুঁকি সংকেত এবং বিশেষাধিকারপ্রাপ্ত প্রশাসনিক অডিট ট্রেইল পর্যবেক্ষণ।
+            <p class="text-xs text-slate-500 mt-1">
+              Platform cyber security telemetry, authentication threat signals, and immutable privileged audit logs.
             </p>
           </div>
-          <button id="refresh-logs-btn" class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-purple-300 text-xs font-semibold border border-purple-900/60 shadow-lg transition flex items-center gap-1.5 self-start sm:self-auto">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <button id="refresh-logs-btn" class="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold border border-slate-200 shadow-sm transition flex items-center gap-1.5 self-start sm:self-auto focus:outline-none focus:ring-2 focus:ring-purple-500/20" aria-label="Refresh security and audit logs">
+            <svg class="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
             </svg>
-            রিফ্রেশ
+            <span>Refresh</span>
           </button>
         </div>
 
         <!-- Distinct Tabs Bar -->
-        <div class="flex items-center gap-2 p-1.5 rounded-2xl bg-slate-900 border border-slate-800 w-fit">
-          <button id="tab-security-btn" class="px-5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+        <div class="flex items-center gap-2 p-1.5 rounded-2xl bg-white border border-slate-200 shadow-sm w-fit" role="tablist" aria-label="Log categories">
+          <button id="tab-security-btn" role="tab" aria-selected="${activeTab === 'security'}" class="px-5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
             activeTab === 'security'
-              ? 'bg-purple-900/90 text-white shadow-lg border border-purple-700/80'
-              : 'text-slate-400 hover:text-white'
+              ? 'bg-purple-700 text-white shadow-sm'
+              : 'text-slate-600 hover:text-slate-900'
           }">
-            <span>🛡️ নিরাপত্তা লগ (Security Logs)</span>
-            <span id="tab-sec-badge" class="px-1.5 py-0.2 rounded text-[10px] bg-red-950 text-red-300 font-mono">0</span>
+            <span>🛡️ Security Logs</span>
+            <span id="tab-sec-badge" class="px-1.5 py-0.2 rounded text-[10px] bg-rose-50 text-rose-700 border border-rose-200 font-mono">0</span>
           </button>
-          <button id="tab-audit-btn" class="px-5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+          <button id="tab-audit-btn" role="tab" aria-selected="${activeTab === 'audit'}" class="px-5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
             activeTab === 'audit'
-              ? 'bg-purple-900/90 text-white shadow-lg border border-purple-700/80'
-              : 'text-slate-400 hover:text-white'
+              ? 'bg-purple-700 text-white shadow-sm'
+              : 'text-slate-600 hover:text-slate-900'
           }">
-            <span>📜 প্রশাসনিক অডিট লগ (Audit Logs)</span>
-            <span id="tab-audit-badge" class="px-1.5 py-0.2 rounded text-[10px] bg-indigo-950 text-indigo-300 font-mono">0</span>
+            <span>📜 Privileged Audit Logs</span>
+            <span id="tab-audit-badge" class="px-1.5 py-0.2 rounded text-[10px] bg-indigo-50 text-indigo-700 border border-indigo-200 font-mono">0</span>
           </button>
         </div>
 
         <!-- Guidance Banner -->
-        <div id="logs-guidance-banner" class="p-3.5 rounded-xl border text-xs shadow-inner flex items-start gap-3 ${
+        <div id="logs-guidance-banner" class="p-3.5 rounded-xl border text-xs flex items-start gap-3 ${
           activeTab === 'security'
-            ? 'bg-red-950/30 border-red-900/50 text-red-200'
-            : 'bg-indigo-950/30 border-indigo-900/50 text-indigo-200'
+            ? 'bg-rose-50 border-rose-200 text-rose-900'
+            : 'bg-indigo-50 border-indigo-200 text-indigo-900'
         }">
-          <span class="text-base shrink-0 mt-0.5">${activeTab === 'security' ? '🚨' : '📝'}</span>
+          <span class="text-base shrink-0 mt-0.5" aria-hidden="true">${activeTab === 'security' ? '🚨' : '📝'}</span>
           <div class="space-y-0.5">
-            <span class="font-bold">${activeTab === 'security' ? 'নিরাপত্তা লগ নির্দেশিকা:' : 'অডিট লগ নির্দেশিকা:'}</span>
-            <p class="text-slate-400">
+            <span class="font-bold">${activeTab === 'security' ? 'Security Telemetry Protocol:' : 'Audit Protocol & Immutability:'}</span>
+            <p class="text-slate-600 text-xs">
               ${
                 activeTab === 'security'
-                  ? 'প্রমাণীকরণ ব্যর্থতা, রেট-লিমিট ট্রিগার এবং সন্দেহজনক ট্রাফিকের আইপি ও ডিভাইস তথ্য সংরক্ষিত থাকে। কোনো পাসওয়ার্ড বা সংবেদনশীল প্রমাণ ইন্টারফেসে প্রদর্শিত হয় না।'
-                  : 'সুপার অ্যাডমিন ও অ্যাডমিনদের দ্বারা সম্পন্ন সকল নীতিগত ও প্রোফাইল পরিবর্তন অপরিবর্তনশীল (Immutable) অডিট ট্রেইলে সংরক্ষিত। অডিট লগ স্থায়ী ও মুছে ফেলা নিষিদ্ধ।'
+                  ? 'Authentication failures, rate-limit triggers, and suspicious IP telemetry are recorded for security monitoring. Passwords and sensitive payloads are never logged or exposed.'
+                  : 'All policy and configuration modifications initiated by administrators and Super Admins are saved to an immutable audit trail. Logs are permanent and tampering-resistant.'
               }
             </p>
           </div>
         </div>
 
         <!-- Main State Containers -->
-        <div id="logs-loading" class="py-20 text-center">
-          <div class="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p class="text-slate-400 text-sm">লগ ডাটা লোড হচ্ছে...</p>
+        <div id="logs-loading" class="py-20 text-center" role="status" aria-live="polite">
+          <div class="w-10 h-10 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" aria-hidden="true"></div>
+          <p class="text-slate-500 text-sm">Loading security logs...</p>
         </div>
 
-        <div id="logs-error" class="hidden py-16 text-center"></div>
+        <div id="logs-error" class="hidden py-16 text-center" role="alert"></div>
 
         <!-- Panel 1: Security Logs -->
-        <div id="sec-logs-panel" class="${activeTab === 'security' ? '' : 'hidden'} space-y-4">
-          <div class="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-900 shadow-xl">
+        <div id="sec-logs-panel" class="${activeTab === 'security' ? '' : 'hidden'} space-y-4" role="tabpanel" aria-labelledby="tab-security-btn">
+          <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
             <table class="w-full text-left text-xs border-collapse">
               <thead>
-                <tr class="border-b border-slate-800 bg-slate-850/80 text-slate-400">
-                  <th class="px-4 py-3 font-semibold">সময় ও তারিখ</th>
-                  <th class="px-4 py-3 font-semibold">ঘটনার ধরন (Event Type)</th>
-                  <th class="px-4 py-3 font-semibold">আইপি ঠিকানা</th>
-                  <th class="px-4 py-3 font-semibold">ঝুঁকি সংকেত (Risk Signal)</th>
-                  <th class="px-4 py-3 font-semibold">গৃহীত ব্যবস্থা (Action Taken)</th>
-                  <th class="px-4 py-3 font-semibold">ডিভাইস / ইউজার এজেন্ট</th>
+                <tr class="border-b border-slate-200 bg-slate-50 text-slate-600">
+                  <th scope="col" class="px-4 py-3 font-semibold">Timestamp</th>
+                  <th scope="col" class="px-4 py-3 font-semibold">Event Type</th>
+                  <th scope="col" class="px-4 py-3 font-semibold">IP Address</th>
+                  <th scope="col" class="px-4 py-3 font-semibold">Risk Signal</th>
+                  <th scope="col" class="px-4 py-3 font-semibold">Action Taken</th>
+                  <th scope="col" class="px-4 py-3 font-semibold">Device / User Agent</th>
                 </tr>
               </thead>
-              <tbody id="sec-logs-tbody" class="divide-y divide-slate-800/80 text-slate-300">
+              <tbody id="sec-logs-tbody" class="divide-y divide-slate-100 text-slate-700">
                 <!-- Injected dynamically -->
               </tbody>
             </table>
           </div>
 
-          <div id="sec-logs-empty" class="hidden py-16 text-center rounded-2xl border border-slate-800 bg-slate-900">
-            <p class="text-sm font-semibold text-slate-300">কোনো নিরাপত্তা লগ পাওয়া যায়নি</p>
+          <div id="sec-logs-empty" class="hidden py-16 text-center rounded-2xl border border-slate-200 bg-white">
+            <p class="text-sm font-semibold text-slate-900">No security events found</p>
           </div>
 
-          <div id="sec-pagination" class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 text-xs text-slate-400">
-            <span id="sec-page-info">পৃষ্ঠা ১</span>
+          <div id="sec-pagination" class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 text-xs text-slate-500">
+            <span id="sec-page-info">Page 1</span>
             <div class="flex items-center gap-2">
-              <button id="sec-prev-btn" class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition">
-                ← পূর্ববর্তী
+              <button id="sec-prev-btn" class="px-3 py-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition">
+                ← Previous
               </button>
-              <button id="sec-next-btn" class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition">
-                পরবর্তী →
+              <button id="sec-next-btn" class="px-3 py-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition">
+                Next →
               </button>
             </div>
           </div>
         </div>
 
         <!-- Panel 2: Audit Logs -->
-        <div id="audit-logs-panel" class="${activeTab === 'audit' ? '' : 'hidden'} space-y-4">
-          <div class="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-900 shadow-xl">
+        <div id="audit-logs-panel" class="${activeTab === 'audit' ? '' : 'hidden'} space-y-4" role="tabpanel" aria-labelledby="tab-audit-btn">
+          <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
             <table class="w-full text-left text-xs border-collapse">
               <thead>
-                <tr class="border-b border-slate-800 bg-slate-850/80 text-slate-400">
-                  <th class="px-4 py-3 font-semibold">সময় ও তারিখ</th>
-                  <th class="px-4 py-3 font-semibold">অ্যাকশন (Action)</th>
-                  <th class="px-4 py-3 font-semibold">অ্যাক্টর (Actor)</th>
-                  <th class="px-4 py-3 font-semibold">রিসোর্স (Resource)</th>
-                  <th class="px-4 py-3 font-semibold">আইপি ঠিকানা</th>
-                  <th class="px-4 py-3 font-semibold">রিকোয়েস্ট আইডি</th>
+                <tr class="border-b border-slate-200 bg-slate-50 text-slate-600">
+                  <th scope="col" class="px-4 py-3 font-semibold">Timestamp</th>
+                  <th scope="col" class="px-4 py-3 font-semibold">Action</th>
+                  <th scope="col" class="px-4 py-3 font-semibold">Actor</th>
+                  <th scope="col" class="px-4 py-3 font-semibold">Resource</th>
+                  <th scope="col" class="px-4 py-3 font-semibold">IP Address</th>
+                  <th scope="col" class="px-4 py-3 font-semibold">Request ID</th>
                 </tr>
               </thead>
-              <tbody id="audit-logs-tbody" class="divide-y divide-slate-800/80 text-slate-300">
+              <tbody id="audit-logs-tbody" class="divide-y divide-slate-100 text-slate-700">
                 <!-- Injected dynamically -->
               </tbody>
             </table>
           </div>
 
-          <div id="audit-logs-empty" class="hidden py-16 text-center rounded-2xl border border-slate-800 bg-slate-900">
-            <p class="text-sm font-semibold text-slate-300">কোনো অডিট লগ পাওয়া যায়নি</p>
+          <div id="audit-logs-empty" class="hidden py-16 text-center rounded-2xl border border-slate-200 bg-white">
+            <p class="text-sm font-semibold text-slate-900">No privileged audit logs found</p>
           </div>
 
-          <div id="audit-pagination" class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 text-xs text-slate-400">
-            <span id="audit-page-info">পৃষ্ঠা ১</span>
+          <div id="audit-pagination" class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 text-xs text-slate-500">
+            <span id="audit-page-info">Page 1</span>
             <div class="flex items-center gap-2">
-              <button id="audit-prev-btn" class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition">
-                ← পূর্ববর্তী
+              <button id="audit-prev-btn" class="px-3 py-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition">
+                ← Previous
               </button>
-              <button id="audit-next-btn" class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition">
-                পরবর্তী →
+              <button id="audit-next-btn" class="px-3 py-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition">
+                Next →
               </button>
             </div>
           </div>
@@ -187,29 +187,33 @@ export async function renderSuperAdminSecurityPage(container) {
 
   function updateTabUI() {
     if (activeTab === 'security') {
-      tabSecBtn.className = 'px-5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-purple-900/90 text-white shadow-lg border border-purple-700/80';
-      tabAuditBtn.className = 'px-5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 text-slate-400 hover:text-white';
+      tabSecBtn.className = 'px-5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-purple-700 text-white shadow-sm';
+      tabSecBtn.setAttribute('aria-selected', 'true');
+      tabAuditBtn.className = 'px-5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 text-slate-600 hover:text-slate-900';
+      tabAuditBtn.setAttribute('aria-selected', 'false');
       secPanel.classList.remove('hidden');
       auditPanel.classList.add('hidden');
-      guidanceBanner.className = 'p-3.5 rounded-xl border text-xs shadow-inner flex items-start gap-3 bg-red-950/30 border-red-900/50 text-red-200';
+      guidanceBanner.className = 'p-3.5 rounded-xl border text-xs flex items-start gap-3 bg-rose-50 border-rose-200 text-rose-900';
       guidanceBanner.innerHTML = `
-        <span class="text-base shrink-0 mt-0.5">🚨</span>
+        <span class="text-base shrink-0 mt-0.5" aria-hidden="true">🚨</span>
         <div class="space-y-0.5">
-          <span class="font-bold">নিরাপত্তা লগ নির্দেশিকা:</span>
-          <p class="text-slate-400">প্রমাণীকরণ ব্যর্থতা, রেট-লিমিট ট্রিগার এবং সন্দেহজনক ট্রাফিকের আইপি ও ডিভাইস তথ্য সংরক্ষিত থাকে। কোনো পাসওয়ার্ড বা সংবেদনশীল প্রমাণ ইন্টারফেসে প্রদর্শিত হয় না।</p>
+          <span class="font-bold">Security Telemetry Protocol:</span>
+          <p class="text-slate-600 text-xs">Authentication failures, rate-limit triggers, and suspicious IP telemetry are recorded for security monitoring. Passwords and sensitive payloads are never logged or exposed.</p>
         </div>
       `;
     } else {
-      tabAuditBtn.className = 'px-5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-purple-900/90 text-white shadow-lg border border-purple-700/80';
-      tabSecBtn.className = 'px-5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 text-slate-400 hover:text-white';
+      tabAuditBtn.className = 'px-5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-purple-700 text-white shadow-sm';
+      tabAuditBtn.setAttribute('aria-selected', 'true');
+      tabSecBtn.className = 'px-5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 text-slate-600 hover:text-slate-900';
+      tabSecBtn.setAttribute('aria-selected', 'false');
       auditPanel.classList.remove('hidden');
       secPanel.classList.add('hidden');
-      guidanceBanner.className = 'p-3.5 rounded-xl border text-xs shadow-inner flex items-start gap-3 bg-indigo-950/30 border-indigo-900/50 text-indigo-200';
+      guidanceBanner.className = 'p-3.5 rounded-xl border text-xs flex items-start gap-3 bg-indigo-50 border-indigo-200 text-indigo-900';
       guidanceBanner.innerHTML = `
-        <span class="text-base shrink-0 mt-0.5">📝</span>
+        <span class="text-base shrink-0 mt-0.5" aria-hidden="true">📝</span>
         <div class="space-y-0.5">
-          <span class="font-bold">অডিট লগ নির্দেশিকা:</span>
-          <p class="text-slate-400">সুপার অ্যাডমিন ও অ্যাডমিনদের দ্বারা সম্পন্ন সকল নীতিগত ও প্রোফাইল পরিবর্তন অপরিবর্তনশীল (Immutable) অডিট ট্রেইলে সংরক্ষিত। অডিট লগ মুছে ফেলা নিষিদ্ধ।</p>
+          <span class="font-bold">Audit Protocol & Immutability:</span>
+          <p class="text-slate-600 text-xs">All policy and configuration modifications initiated by administrators and Super Admins are saved to an immutable audit trail. Logs are permanent and tampering-resistant.</p>
         </div>
       `;
     }
@@ -239,7 +243,7 @@ export async function renderSuperAdminSecurityPage(container) {
       const totalPages = Math.max(1, Math.ceil(total / secLimit));
 
       tabSecBadge.textContent = total;
-      secPageInfo.textContent = `পৃষ্ঠা ${secPage} / ${totalPages} (মোট ${total}টি নিরাপত্তা লগ)`;
+      secPageInfo.textContent = `Page ${secPage} of ${totalPages} (${total} total security logs)`;
       secPrevBtn.disabled = secPage <= 1;
       secNextBtn.disabled = secPage >= totalPages;
 
@@ -252,25 +256,25 @@ export async function renderSuperAdminSecurityPage(container) {
           .map((log) => {
             const time = formatDateTime(log.timestamp);
             return `
-              <tr class="hover:bg-slate-850/40 transition">
-                <td class="px-4 py-3 font-mono text-[11px] text-slate-400 whitespace-nowrap">
+              <tr class="hover:bg-slate-50/80 transition">
+                <td class="px-4 py-3 font-mono text-[11px] text-slate-500 whitespace-nowrap">
                   ${time}
                 </td>
-                <td class="px-4 py-3 font-mono font-bold text-red-300 text-xs">
-                  <span class="px-2 py-0.5 rounded bg-red-950/80 border border-red-800 text-[11px]">
+                <td class="px-4 py-3 font-mono font-bold text-rose-700 text-xs">
+                  <span class="px-2 py-0.5 rounded bg-rose-50 border border-rose-200 text-[11px]">
                     ${log.eventType || 'SECURITY_EVENT'}
                   </span>
                 </td>
-                <td class="px-4 py-3 font-mono text-slate-300 text-[11px]">
+                <td class="px-4 py-3 font-mono text-slate-700 text-[11px]">
                   ${log.ip || '—'}
                 </td>
                 <td class="px-4 py-3">
-                  ${log.riskSignal ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-950 text-amber-300 border border-amber-800">${log.riskSignal}</span>` : '<span class="text-slate-500">—</span>'}
+                  ${log.riskSignal ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">${log.riskSignal}</span>` : '<span class="text-slate-400">—</span>'}
                 </td>
-                <td class="px-4 py-3 text-slate-300 text-[11px]">
+                <td class="px-4 py-3 text-slate-700 text-[11px]">
                   ${log.actionTaken || 'Log Only'}
                 </td>
-                <td class="px-4 py-3 text-slate-400 text-[10px] font-mono truncate max-w-xs" title="${log.userAgent || ''}">
+                <td class="px-4 py-3 text-slate-500 text-[10px] font-mono truncate max-w-xs" title="${log.userAgent || ''}">
                   ${log.userAgent || '—'}
                 </td>
               </tr>
@@ -285,9 +289,9 @@ export async function renderSuperAdminSecurityPage(container) {
       loadingEl.classList.add('hidden');
       errorEl.classList.remove('hidden');
       errorEl.innerHTML = `
-        <div class="max-w-md mx-auto p-6 rounded-2xl bg-slate-900 border border-red-900/60 text-center">
-          <p class="text-sm font-semibold text-red-400 mb-2">নিরাপত্তা লগ লোড করা যায়নি</p>
-          <p class="text-xs text-slate-400 mb-4">${err?.message || 'অনুরোধ ব্যর্থ হয়েছে'}</p>
+        <div class="max-w-md mx-auto p-6 rounded-2xl bg-white border border-rose-200 text-center shadow-sm">
+          <p class="text-sm font-semibold text-rose-700 mb-2">Failed to load security logs</p>
+          <p class="text-xs text-slate-500 mb-4">${err?.message || 'Request failed'}</p>
         </div>
       `;
     }
@@ -305,7 +309,7 @@ export async function renderSuperAdminSecurityPage(container) {
       const totalPages = Math.max(1, Math.ceil(total / auditLimit));
 
       tabAuditBadge.textContent = total;
-      auditPageInfo.textContent = `পৃষ্ঠা ${auditPage} / ${totalPages} (মোট ${total}টি অডিট লগ)`;
+      auditPageInfo.textContent = `Page ${auditPage} of ${totalPages} (${total} total audit logs)`;
       auditPrevBtn.disabled = auditPage <= 1;
       auditNextBtn.disabled = auditPage >= totalPages;
 
@@ -318,18 +322,18 @@ export async function renderSuperAdminSecurityPage(container) {
           .map((log) => {
             const time = formatDateTime(log.timestamp || log.createdAt);
             const actorBadgeColor = log.actorType === 'superAdmin'
-              ? 'bg-purple-950 text-purple-300 border-purple-800'
+              ? 'bg-purple-50 text-purple-700 border-purple-200'
               : log.actorType === 'admin'
-                ? 'bg-emerald-950 text-emerald-300 border-emerald-800'
-                : 'bg-slate-800 text-slate-300 border-slate-700';
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                : 'bg-slate-100 text-slate-700 border-slate-200';
 
             return `
-              <tr class="hover:bg-slate-850/40 transition">
-                <td class="px-4 py-3 font-mono text-[11px] text-slate-400 whitespace-nowrap">
+              <tr class="hover:bg-slate-50/80 transition">
+                <td class="px-4 py-3 font-mono text-[11px] text-slate-500 whitespace-nowrap">
                   ${time}
                 </td>
-                <td class="px-4 py-3 font-mono font-bold text-indigo-300 text-xs">
-                  <span class="px-2 py-0.5 rounded bg-indigo-950/80 border border-indigo-800 text-[11px]">
+                <td class="px-4 py-3 font-mono font-bold text-indigo-700 text-xs">
+                  <span class="px-2 py-0.5 rounded bg-indigo-50 border border-indigo-200 text-[11px]">
                     ${log.action || 'ACTION'}
                   </span>
                 </td>
@@ -337,16 +341,16 @@ export async function renderSuperAdminSecurityPage(container) {
                   <span class="px-2 py-0.5 rounded text-[10px] font-bold border ${actorBadgeColor}">
                     ${log.actorType || 'actor'}
                   </span>
-                  <span class="block text-[10px] text-slate-500 font-mono mt-0.5">${log.actorId ? `#${log.actorId.slice(-6).toUpperCase()}` : ''}</span>
+                  <span class="block text-[10px] text-slate-400 font-mono mt-0.5">${log.actorId ? `#${log.actorId.slice(-6).toUpperCase()}` : ''}</span>
                 </td>
-                <td class="px-4 py-3 text-slate-300 text-[11px]">
-                  <span class="font-semibold text-slate-200">${log.resourceType || log.entity || '—'}</span>
-                  ${log.resourceId || log.entityId ? `<span class="text-slate-500 font-mono block text-[10px]">${log.resourceId || log.entityId}</span>` : ''}
+                <td class="px-4 py-3 text-slate-700 text-[11px]">
+                  <span class="font-semibold text-slate-900">${log.resourceType || log.entity || '—'}</span>
+                  ${log.resourceId || log.entityId ? `<span class="text-slate-400 font-mono block text-[10px]">${log.resourceId || log.entityId}</span>` : ''}
                 </td>
-                <td class="px-4 py-3 font-mono text-slate-400 text-[11px]">
+                <td class="px-4 py-3 font-mono text-slate-600 text-[11px]">
                   ${log.ip || '—'}
                 </td>
-                <td class="px-4 py-3 font-mono text-slate-500 text-[10px] truncate max-w-[120px]" title="${log.requestId || ''}">
+                <td class="px-4 py-3 font-mono text-slate-400 text-[10px] truncate max-w-[120px]" title="${log.requestId || ''}">
                   ${log.requestId ? log.requestId.slice(0, 8) + '...' : '—'}
                 </td>
               </tr>
@@ -361,9 +365,9 @@ export async function renderSuperAdminSecurityPage(container) {
       loadingEl.classList.add('hidden');
       errorEl.classList.remove('hidden');
       errorEl.innerHTML = `
-        <div class="max-w-md mx-auto p-6 rounded-2xl bg-slate-900 border border-red-900/60 text-center">
-          <p class="text-sm font-semibold text-red-400 mb-2">অডিট লগ লোড করা যায়নি</p>
-          <p class="text-xs text-slate-400 mb-4">${err?.message || 'অনুরোধ ব্যর্থ হয়েছে'}</p>
+        <div class="max-w-md mx-auto p-6 rounded-2xl bg-white border border-rose-200 text-center shadow-sm">
+          <p class="text-sm font-semibold text-rose-700 mb-2">Failed to load audit logs</p>
+          <p class="text-xs text-slate-500 mb-4">${err?.message || 'Request failed'}</p>
         </div>
       `;
     }

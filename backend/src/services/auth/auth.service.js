@@ -3,6 +3,9 @@ import { userRepository } from '../../repositories/user.repository.js';
 import { reporterRepository } from '../../repositories/reporter.repository.js';
 import { sessionRepository } from '../../repositories/session.repository.js';
 import { refreshTokenRepository } from '../../repositories/refreshToken.repository.js';
+import { superAdminRepository } from '../../repositories/superAdmin.repository.js';
+import { adminRepository } from '../../repositories/admin.repository.js';
+import { privilegedAuthService } from './privilegedAuth.service.js';
 import { authConfig } from '../../config/auth.js';
 import {
   hashPassword,
@@ -71,7 +74,7 @@ export const authService = {
         emailVerified: user.emailVerified,
         languagePreference: user.languagePreference,
       },
-      verificationToken,
+      ...((ENV.NODE_ENV === 'development' || ENV.NODE_ENV === 'test') ? { verificationToken } : {}),
     };
   },
 
@@ -103,7 +106,7 @@ export const authService = {
     return {
       success: true,
       message: 'নতুন যাচাইকরণ লিঙ্ক পাঠানো হয়েছে। অনুগ্রহ করে ইনবক্স চেক করুন।',
-      verificationToken: ENV.NODE_ENV === 'development' ? verificationToken : undefined,
+      ...((ENV.NODE_ENV === 'development' || ENV.NODE_ENV === 'test') ? { verificationToken } : {}),
     };
   },
 
@@ -141,46 +144,58 @@ export const authService = {
    */
   async login({ email, password, ip = null, userAgent = null }) {
     const user = await userRepository.findByEmail(email, true);
-    if (!user) {
-      throw new UnauthorizedError('Invalid email or password');
-    }
+    if (user) {
+      if (user.accountStatus !== 'active') {
+        throw new ForbiddenError(`Account is ${user.accountStatus}. Please contact support.`);
+      }
 
-    if (user.accountStatus !== 'active') {
-      throw new ForbiddenError(`Account is ${user.accountStatus}. Please contact support.`);
-    }
+      const isValid = await verifyPassword(user.passwordHash, password);
+      if (!isValid) {
+        throw new UnauthorizedError('Invalid email or password');
+      }
 
-    const isValid = await verifyPassword(user.passwordHash, password);
-    if (!isValid) {
-      throw new UnauthorizedError('Invalid email or password');
-    }
+      // Enforce email verification (403 Forbidden with EMAIL_NOT_VERIFIED code)
+      if (!user.emailVerified) {
+        throw new EmailNotVerifiedError(
+          'আপনার ইমেইল ঠিকানাটি এখনও যাচাই করা হয়নি। অনুগ্রহ করে আপনার ইনবক্স চেক করে ইমেইল যাচাই সম্পন্ন করুন।'
+        );
+      }
 
-    // Enforce email verification (403 Forbidden with EMAIL_NOT_VERIFIED code)
-    if (!user.emailVerified) {
-      throw new EmailNotVerifiedError(
-        'আপনার ইমেইল ঠিকানাটি এখনও যাচাই করা হয়নি। অনুগ্রহ করে আপনার ইনবক্স চেক করে ইমেইল যাচাই সম্পন্ন করুন।'
-      );
-    }
-
-    // Generate tokens
-    const { accessToken, refreshToken } = await this.createTokensAndSession({
-      account: user,
-      accountType: ACCOUNT_TYPES.USER,
-      ip,
-      userAgent,
-    });
-
-    return {
-      user: {
-        id: user._id,
-        fullName: user.fullName,
-        email: user.email,
-        emailVerified: user.emailVerified,
-        languagePreference: user.languagePreference,
+      // Generate tokens
+      const { accessToken, refreshToken } = await this.createTokensAndSession({
+        account: user,
         accountType: ACCOUNT_TYPES.USER,
-      },
-      accessToken,
-      refreshToken,
-    };
+        ip,
+        userAgent,
+      });
+
+      return {
+        user: {
+          id: user._id,
+          fullName: user.fullName,
+          email: user.email,
+          emailVerified: user.emailVerified,
+          languagePreference: user.languagePreference,
+          accountType: ACCOUNT_TYPES.USER,
+        },
+        accessToken,
+        refreshToken,
+      };
+    }
+
+    // Check if account is Super Admin (delegates to privileged auth with mandatory 2FA)
+    const superAdmin = await superAdminRepository.findByEmail(email, true);
+    if (superAdmin) {
+      return await privilegedAuthService.superAdminLogin({ email, password });
+    }
+
+    // Check if account is Admin (delegates to privileged auth with mandatory 2FA)
+    const admin = await adminRepository.findByEmail(email, true);
+    if (admin) {
+      return await privilegedAuthService.adminLogin({ email, password });
+    }
+
+    throw new UnauthorizedError('Invalid email or password');
   },
 
   /**
@@ -324,13 +339,16 @@ export const authService = {
   },
 
   /**
-   * Forgot Password — generates reset token
+   * Forgot Password — generates reset token & sends email
    */
   async forgotPassword(email) {
     const user = await userRepository.findByEmail(email);
     if (!user) {
-      // Return success without revealing whether email exists to prevent enumeration
-      return { success: true };
+      // Anti-enumeration: Return generic success without revealing whether email exists
+      return {
+        success: true,
+        message: 'যদি এই ইমেইল ঠিকানাটি নিবন্ধিত থাকে, তবে পাসওয়ার্ড রিসেটের নির্দেশাবলী পাঠানো হয়েছে।',
+      };
     }
 
     const resetToken = jwt.sign(
@@ -339,7 +357,18 @@ export const authService = {
       { expiresIn: '1h' }
     );
 
-    return { success: true, resetToken };
+    // Send reset instructions to user's registered email
+    await emailService.sendPasswordResetEmail({
+      email: user.email,
+      fullName: user.fullName,
+      token: resetToken,
+    });
+
+    return {
+      success: true,
+      message: 'যদি এই ইমেইল ঠিকানাটি নিবন্ধিত থাকে, তবে পাসওয়ার্ড রিসেটের নির্দেশাবলী পাঠানো হয়েছে।',
+      ...(ENV.NODE_ENV === 'test' ? { resetToken } : {}),
+    };
   },
 
   /**

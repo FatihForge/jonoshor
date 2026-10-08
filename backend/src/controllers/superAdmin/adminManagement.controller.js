@@ -233,7 +233,18 @@ export const superAdminController = {
         { key: 'max_evidence_files_per_complaint', value: 10, category: 'complaint' },
         { key: 'max_file_size_mb', value: 25, category: 'complaint' },
         { key: 'require_admin_verification_before_publish', value: true, category: 'complaint' },
+        {
+          key: 'social_links',
+          value: [
+            { id: 'facebook', name: 'Facebook', url: 'https://facebook.com/jonoshor', icon: 'facebook', enabled: true, order: 1 },
+            { id: 'linkedin', name: 'LinkedIn', url: 'https://linkedin.com/company/jonoshor', icon: 'linkedin', enabled: true, order: 2 },
+            { id: 'youtube', name: 'YouTube', url: 'https://youtube.com/@jonoshor', icon: 'youtube', enabled: true, order: 3 },
+            { id: 'x', name: 'X / Twitter', url: 'https://x.com/jonoshor', icon: 'x', enabled: true, order: 4 },
+          ],
+          category: 'general',
+        },
       ];
+
 
       for (const def of defaultSystemSettings) {
         await SystemSetting.updateOne({ key: def.key }, { $setOnInsert: def }, { upsert: true });

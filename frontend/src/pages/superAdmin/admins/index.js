@@ -8,62 +8,62 @@ import { showReAuthModal } from '../../../components/superAdmin/ReAuthModal.js';
 // Granular permissions grouped by domain
 const PERMISSION_GROUPS = [
   {
-    group: 'অভিযোগ পর্যালোচনা (Complaints)',
+    group: 'Complaints Management',
     permissions: [
-      { id: 'complaint.read', label: 'অভিযোগ পাঠ (Read)' },
-      { id: 'complaint.review', label: 'অভিযোগ পর্যালোচনা (Review)' },
-      { id: 'complaint.assign', label: 'পর্যালোচক নিয়োগ (Assign)' },
-      { id: 'complaint.screen', label: 'বাছাইকরণ (Screen)' },
-      { id: 'complaint.verify', label: 'যাচাইকরণ সিদ্ধান্ত (Verify)' },
-      { id: 'complaint.publish', label: 'প্রকাশনা অনুমোদন (Publish)' },
+      { id: 'complaint.read', label: 'Read Complaints' },
+      { id: 'complaint.review', label: 'Review Complaints' },
+      { id: 'complaint.assign', label: 'Assign Reviewers' },
+      { id: 'complaint.screen', label: 'Initial Screening' },
+      { id: 'complaint.verify', label: 'Verification Decision' },
+      { id: 'complaint.publish', label: 'Approve Publication' },
     ],
   },
   {
-    group: 'প্রমাণ ব্যবস্থাপনা (Evidence)',
+    group: 'Evidence Management',
     permissions: [
-      { id: 'evidence.read', label: 'প্রমাণ পাঠ (Read)' },
-      { id: 'evidence.review', label: 'প্রমাণ পর্যালোচনা (Review)' },
-      { id: 'evidence.publish', label: 'প্রমাণ প্রকাশনা (Publish)' },
-      { id: 'evidence.delete', label: 'প্রমাণ অপসারণ (Delete)' },
+      { id: 'evidence.read', label: 'Read Evidence' },
+      { id: 'evidence.review', label: 'Review Evidence' },
+      { id: 'evidence.publish', label: 'Publish Evidence' },
+      { id: 'evidence.delete', label: 'Delete Evidence' },
     ],
   },
   {
-    group: 'আইনি ও কর্তৃপক্ষ ট্র্যাকিং (Legal)',
+    group: 'Legal & Authority Tracking',
     permissions: [
-      { id: 'legal.read', label: 'আইনি কেস পাঠ (Read)' },
-      { id: 'legal.create', label: 'আইনি রেকর্ড তৈরি (Create)' },
-      { id: 'legal.update', label: 'টাইমলাইন হালনাগাদ (Update)' },
+      { id: 'legal.read', label: 'Read Legal Cases' },
+      { id: 'legal.create', label: 'Create Legal Record' },
+      { id: 'legal.update', label: 'Update Timeline' },
     ],
   },
   {
-    group: 'ব্যবহারকারী ব্যবস্থাপনা (User)',
+    group: 'User Management',
     permissions: [
-      { id: 'user.read', label: 'ব্যবহারকারী প্রোফাইল পাঠ (Read)' },
-      { id: 'user.manage', label: 'অ্যাকাউন্ট অবস্থা পরিবর্তন (Manage)' },
+      { id: 'user.read', label: 'Read User Profiles' },
+      { id: 'user.manage', label: 'Manage Account Status' },
     ],
   },
   {
-    group: 'যুক্ত হোন আবেদন (Join Us)',
+    group: 'Volunteer Applications (Join Us)',
     permissions: [
-      { id: 'joinUs.read', label: 'আবেদন পাঠ (Read)' },
-      { id: 'joinUs.notes', label: 'মন্তব্য যুক্তকরণ (Notes)' },
-      { id: 'joinUs.export', label: 'ডাটা এক্সপোর্ট (Export)' },
-      { id: 'joinUs.delete', label: 'আবেদন মুছে ফেলা (Delete)' },
+      { id: 'joinUs.read', label: 'Read Applications' },
+      { id: 'joinUs.notes', label: 'Add Internal Notes' },
+      { id: 'joinUs.export', label: 'Export Data' },
+      { id: 'joinUs.delete', label: 'Delete Application' },
     ],
   },
   {
-    group: 'বার্তা ও নোটিফিকেশন (Messaging)',
+    group: 'Messaging & Notifications',
     permissions: [
-      { id: 'notification.send', label: 'নোটিফিকেশন প্রেরণ (Send)' },
-      { id: 'message.read', label: 'বার্তা পাঠ (Read)' },
-      { id: 'message.send', label: 'বার্তা প্রেরণ (Send)' },
+      { id: 'notification.send', label: 'Send Notifications' },
+      { id: 'message.read', label: 'Read Messages' },
+      { id: 'message.send', label: 'Send Messages' },
     ],
   },
   {
-    group: 'অডিট ও নিরাপত্তা পরিদর্শন (Audit)',
+    group: 'Audit & Security Logs',
     permissions: [
-      { id: 'audit.read', label: 'অডিট লগ পাঠ (Read)' },
-      { id: 'security.read', label: 'নিরাপত্তা লগ পাঠ (Read)' },
+      { id: 'audit.read', label: 'Read Audit Logs' },
+      { id: 'security.read', label: 'Read Security Logs' },
     ],
   },
 ];
@@ -73,92 +73,92 @@ export async function renderSuperAdminAdminsPage(container) {
   const limit = 20;
 
   container.innerHTML = `
-    <div class="min-h-screen bg-slate-950 text-slate-100">
+    <div class="min-h-screen bg-slate-50 text-slate-900">
       ${renderSuperAdminNav('admins')}
 
       <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         <!-- Header -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-purple-900/40">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
           <div>
-            <h1 class="text-2xl font-black text-white tracking-tight flex items-center gap-2.5">
-              <span>অ্যাডমিন অ্যাকাউন্ট ব্যবস্থাপনা</span>
-              <span class="text-xs px-2.5 py-0.5 rounded-full bg-purple-950 text-purple-300 border border-purple-800 font-mono">
+            <h1 class="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+              <span>Administrator Directory</span>
+              <span class="text-xs px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 font-mono font-semibold">
                 Admin Governance
               </span>
             </h1>
-            <p class="text-xs text-slate-400 mt-1">
-              প্ল্যাটফর্মের সকল অনুমোদিত অ্যাডমিন তালিকা, স্ট্যাটাস পরিবর্তন এবং সুনির্দিষ্ট দানাদার অনুমতি (RBAC) নিয়ন্ত্রণ।
+            <p class="text-xs text-slate-500 mt-1">
+              Platform administrator roster, account status management, and granular role-based permissions (RBAC).
             </p>
           </div>
           <div class="flex items-center gap-2.5">
-            <button id="refresh-admins-btn" class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-purple-300 text-xs font-semibold border border-purple-900/60 shadow-lg transition flex items-center gap-1.5">
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <button id="refresh-admins-btn" class="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold border border-slate-200 shadow-sm transition flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-purple-500/20" aria-label="Refresh administrator directory">
+              <svg class="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
               </svg>
-              রিফ্রেশ
+              <span>Refresh</span>
             </button>
-            <button id="create-admin-btn" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold shadow-lg shadow-purple-950/60 transition flex items-center gap-1.5">
-              <span class="text-sm font-bold">+</span>
-              <span>নতুন অ্যাডমিন তৈরি</span>
+            <button id="create-admin-btn" class="px-4 py-2 rounded-xl bg-purple-700 hover:bg-purple-800 text-white text-xs font-semibold shadow-sm transition flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-purple-500/20">
+              <span class="text-sm font-bold" aria-hidden="true">+</span>
+              <span>New Administrator</span>
             </button>
           </div>
         </div>
 
         <!-- Success Toast Banner -->
-        <div id="sa-admins-success-banner" class="hidden p-4 rounded-xl bg-emerald-950/80 border border-emerald-800 text-xs text-emerald-200 flex items-center justify-between shadow-lg">
+        <div id="sa-admins-success-banner" class="hidden p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-center justify-between shadow-sm" role="status" aria-live="polite">
           <div class="flex items-center gap-2">
-            <span class="text-emerald-400 font-bold text-sm">✓</span>
-            <span id="sa-admins-success-text">কার্যক্রম সফল হয়েছে।</span>
+            <span class="text-emerald-600 font-bold text-sm" aria-hidden="true">✓</span>
+            <span id="sa-admins-success-text">Operation completed successfully.</span>
           </div>
-          <button id="close-success-banner-btn" class="text-emerald-400 hover:text-emerald-200 font-bold text-sm ml-4">✕</button>
+          <button id="close-success-banner-btn" class="text-emerald-700 hover:text-emerald-900 font-bold text-sm ml-4" aria-label="Dismiss banner">✕</button>
         </div>
 
         <!-- Main State Containers -->
-        <div id="sa-admins-loading" class="py-20 text-center">
-          <div class="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p class="text-slate-400 text-sm">অ্যাডমিন তালিকা লোড হচ্ছে...</p>
+        <div id="sa-admins-loading" class="py-20 text-center" role="status" aria-live="polite">
+          <div class="w-10 h-10 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" aria-hidden="true"></div>
+          <p class="text-slate-500 text-sm">Loading administrator directory...</p>
         </div>
 
-        <div id="sa-admins-error" class="hidden py-16 text-center"></div>
+        <div id="sa-admins-error" class="hidden py-16 text-center" role="alert"></div>
 
         <div id="sa-admins-table-container" class="hidden space-y-4">
-          <div class="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-900 shadow-xl">
+          <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
             <table class="w-full text-left text-xs border-collapse">
               <thead>
-                <tr class="border-b border-slate-800 bg-slate-850/80 text-slate-400">
-                  <th class="px-4 py-3 font-semibold">রেফারেন্স / আইডি</th>
-                  <th class="px-4 py-3 font-semibold">নাম ও ইমেইল</th>
-                  <th class="px-4 py-3 font-semibold">মোবাইল</th>
-                  <th class="px-4 py-3 font-semibold">অবস্থা</th>
-                  <th class="px-4 py-3 font-semibold">অনুমতিসমূহ (RBAC)</th>
-                  <th class="px-4 py-3 font-semibold">তৈরি ও শেষ লগইন</th>
-                  <th class="px-4 py-3 font-semibold text-right">কার্যক্রম</th>
+                <tr class="border-b border-slate-200 bg-slate-50 text-slate-600">
+                  <th scope="col" class="px-4 py-3 font-semibold">Reference / ID</th>
+                  <th scope="col" class="px-4 py-3 font-semibold">Name & Email</th>
+                  <th scope="col" class="px-4 py-3 font-semibold">Mobile</th>
+                  <th scope="col" class="px-4 py-3 font-semibold">Status</th>
+                  <th scope="col" class="px-4 py-3 font-semibold">Permissions (RBAC)</th>
+                  <th scope="col" class="px-4 py-3 font-semibold">Created & Last Login</th>
+                  <th scope="col" class="px-4 py-3 font-semibold text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody id="sa-admins-table-body" class="divide-y divide-slate-800/80 text-slate-300">
+              <tbody id="sa-admins-table-body" class="divide-y divide-slate-100 text-slate-700">
                 <!-- Rows injected dynamically -->
               </tbody>
             </table>
           </div>
 
           <!-- Empty State -->
-          <div id="sa-admins-empty" class="hidden py-16 text-center rounded-2xl border border-slate-800 bg-slate-900">
-            <div class="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-3 text-slate-500">
+          <div id="sa-admins-empty" class="hidden py-16 text-center rounded-2xl border border-slate-200 bg-white">
+            <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3 text-slate-400">
               👥
             </div>
-            <p class="text-sm font-semibold text-slate-300">কোনো অ্যাডমিন অ্যাকাউন্ট পাওয়া যায়নি</p>
-            <p class="text-xs text-slate-500 mt-1">সুপার অ্যাডমিন হিসেবে আপনি নতুন অ্যাডমিন তৈরি করতে পারেন।</p>
+            <p class="text-sm font-semibold text-slate-900">No administrators found</p>
+            <p class="text-xs text-slate-500 mt-1">As Super Admin, you can provision new administrator accounts.</p>
           </div>
 
           <!-- Pagination Bar -->
-          <div id="sa-admins-pagination" class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 text-xs text-slate-400">
-            <span id="sa-pagination-info">পৃষ্ঠা ১</span>
+          <div id="sa-admins-pagination" class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 text-xs text-slate-500">
+            <span id="sa-pagination-info">Page 1</span>
             <div class="flex items-center gap-2">
-              <button id="sa-prev-page-btn" class="px-3.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition">
-                ← পূর্ববর্তী
+              <button id="sa-prev-page-btn" class="px-3.5 py-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition">
+                ← Previous
               </button>
-              <button id="sa-next-page-btn" class="px-3.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition">
-                পরবর্তী →
+              <button id="sa-next-page-btn" class="px-3.5 py-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition">
+                Next →
               </button>
             </div>
           </div>
@@ -209,7 +209,7 @@ export async function renderSuperAdminAdminsPage(container) {
       loadingEl.classList.add('hidden');
       tableContainerEl.classList.remove('hidden');
 
-      paginationInfo.textContent = `পৃষ্ঠা ${currentPage} / ${totalPages} (মোট ${total} জন অ্যাডমিন)`;
+      paginationInfo.textContent = `Page ${currentPage} of ${totalPages} (${total} total administrators)`;
       prevBtn.disabled = currentPage <= 1;
       nextBtn.disabled = currentPage >= totalPages;
 
@@ -225,21 +225,21 @@ export async function renderSuperAdminAdminsPage(container) {
           const refCode = adm._id ? adm._id.slice(-6).toUpperCase() : 'ADMIN';
           const permsCount = Array.isArray(adm.permissions) ? adm.permissions.length : 0;
           const regDate = formatDate(adm.createdAt);
-          const lastLogin = adm.lastLoginAt ? formatDateTime(adm.lastLoginAt) : 'লগইন হয়নি';
+          const lastLogin = adm.lastLoginAt ? formatDateTime(adm.lastLoginAt) : 'Never';
 
           return `
-            <tr class="hover:bg-slate-850/40 transition">
-              <td class="px-4 py-3 font-mono text-[11px] text-slate-400">
-                <span class="px-2 py-0.5 rounded bg-purple-950/60 border border-purple-800/80 text-purple-300 font-bold">
+            <tr class="hover:bg-slate-50/80 transition">
+              <td class="px-4 py-3 font-mono text-[11px] text-slate-500">
+                <span class="px-2 py-0.5 rounded bg-purple-50 border border-purple-200 text-purple-700 font-bold">
                   #${refCode}
                 </span>
-                <span class="block text-[10px] text-slate-500 mt-1 select-all font-mono">${adm._id}</span>
+                <span class="block text-[10px] text-slate-400 mt-1 select-all font-mono">${adm._id}</span>
               </td>
-              <td class="px-4 py-3 font-medium text-white">
-                <div class="text-slate-100 font-semibold">${adm.fullName || 'নামবিহীন'}</div>
-                <div class="text-[11px] text-slate-400 font-mono mt-0.5">${adm.email}</div>
+              <td class="px-4 py-3 font-medium text-slate-900">
+                <div class="text-slate-900 font-semibold">${adm.fullName || 'Unnamed'}</div>
+                <div class="text-[11px] text-slate-500 font-mono mt-0.5">${adm.email}</div>
               </td>
-              <td class="px-4 py-3 text-slate-300 font-mono text-xs">
+              <td class="px-4 py-3 text-slate-600 font-mono text-xs">
                 ${adm.mobile || '—'}
               </td>
               <td class="px-4 py-3">
@@ -247,30 +247,30 @@ export async function renderSuperAdminAdminsPage(container) {
               </td>
               <td class="px-4 py-3">
                 <div class="flex items-center gap-1.5 flex-wrap max-w-xs">
-                  <span class="px-2 py-0.5 rounded text-[11px] bg-slate-800 text-purple-300 border border-slate-700 font-mono font-bold">
-                    ${permsCount}টি অনুমতি
+                  <span class="px-2 py-0.5 rounded text-[11px] bg-slate-100 text-purple-700 border border-slate-200 font-mono font-bold">
+                    ${permsCount} Permissions
                   </span>
                   ${
                     permsCount > 0
                       ? `<span class="text-[10px] text-slate-500 truncate max-w-[140px]" title="${(adm.permissions || []).join(', ')}">
                           ${(adm.permissions || []).slice(0, 2).join(', ')}${permsCount > 2 ? '...' : ''}
                         </span>`
-                      : '<span class="text-[10px] text-slate-500">কোনো অনুমতি নেই</span>'
+                      : '<span class="text-[10px] text-slate-400">No permissions</span>'
                   }
                 </div>
               </td>
-              <td class="px-4 py-3 text-slate-400 text-[11px] whitespace-nowrap">
-                <div>নিবন্ধন: ${regDate}</div>
-                <div class="text-[10px] text-slate-500 font-mono mt-0.5">শেষ: ${lastLogin}</div>
+              <td class="px-4 py-3 text-slate-500 text-[11px] whitespace-nowrap">
+                <div>Created: ${regDate}</div>
+                <div class="text-[10px] text-slate-400 font-mono mt-0.5">Last login: ${lastLogin}</div>
               </td>
               <td class="px-4 py-3 text-right">
                 <div class="flex items-center justify-end gap-1.5">
-                  <button data-action="edit-profile" data-id="${adm._id}" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs border border-slate-700 transition">
-                    প্রোফাইল ও অবস্থা
+                  <button data-action="edit-profile" data-id="${adm._id}" class="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-50 text-slate-700 font-medium text-xs border border-slate-200 shadow-sm transition focus:outline-none focus:ring-2 focus:ring-purple-500/20">
+                    Profile & Status
                   </button>
-                  <button data-action="edit-perms" data-id="${adm._id}" class="px-2.5 py-1 rounded-lg bg-purple-950/80 hover:bg-purple-900 text-purple-300 font-medium text-xs border border-purple-800/80 transition flex items-center gap-1">
-                    <span>অনুমতি</span>
-                    <span class="text-[10px]">🔒</span>
+                  <button data-action="edit-perms" data-id="${adm._id}" class="px-2.5 py-1 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 font-medium text-xs border border-purple-200 transition flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-purple-500/20">
+                    <span>Permissions</span>
+                    <span class="text-[10px]" aria-hidden="true">🔒</span>
                   </button>
                 </div>
               </td>
@@ -282,11 +282,11 @@ export async function renderSuperAdminAdminsPage(container) {
       loadingEl.classList.add('hidden');
       errorEl.classList.remove('hidden');
       errorEl.innerHTML = `
-        <div class="max-w-md mx-auto p-6 rounded-2xl bg-slate-900 border border-red-900/60 text-center">
-          <p class="text-sm font-semibold text-red-400 mb-2">তালিকা লোড করা যায়নি</p>
-          <p class="text-xs text-slate-400 mb-4">${err?.message || 'অনুরোধ ব্যর্থ হয়েছে'}</p>
-          <button id="retry-admins-btn" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs rounded-xl transition">
-            পুনরায় চেষ্টা করুন
+        <div class="max-w-md mx-auto p-6 rounded-2xl bg-white border border-rose-200 text-center shadow-sm">
+          <p class="text-sm font-semibold text-rose-700 mb-2">Failed to load administrator directory</p>
+          <p class="text-xs text-slate-500 mb-4">${err?.message || 'Request failed'}</p>
+          <button id="retry-admins-btn" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded-xl transition">
+            Retry
           </button>
         </div>
       `;
@@ -298,12 +298,12 @@ export async function renderSuperAdminAdminsPage(container) {
   // Handle Create Admin Modal
   createBtn.addEventListener('click', () => {
     const permissionsHtml = PERMISSION_GROUPS.map((grp) => `
-      <div class="space-y-1.5 p-3 rounded-xl bg-slate-950/60 border border-slate-800">
-        <span class="text-[11px] font-bold text-purple-300 block mb-1">${grp.group}</span>
+      <div class="space-y-1.5 p-3 rounded-xl bg-slate-50 border border-slate-200">
+        <span class="text-[11px] font-bold text-purple-800 block mb-1">${grp.group}</span>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
           ${grp.permissions.map((p) => `
-            <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer hover:text-white">
-              <input type="checkbox" name="create-perm" value="${p.id}" class="rounded border-slate-700 text-purple-600 focus:ring-purple-500 bg-slate-900"/>
+            <label class="flex items-center gap-2 text-xs text-slate-700 cursor-pointer hover:text-slate-900">
+              <input type="checkbox" name="create-perm" value="${p.id}" class="rounded border-slate-300 text-purple-600 focus:ring-purple-500"/>
               <span class="text-[11px]">${p.label}</span>
             </label>
           `).join('')}
@@ -314,32 +314,32 @@ export async function renderSuperAdminAdminsPage(container) {
     const contentHtml = `
       <div class="space-y-3.5 max-h-[70vh] overflow-y-auto pr-1">
         <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">পূর্ণ নাম <span class="text-rose-400">*</span></label>
-          <input type="text" id="create-admin-name" required placeholder="যেমন: সাজ্জাদ হোসেন" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-purple-500"/>
+          <label for="create-admin-name" class="block text-xs font-semibold text-slate-700 mb-1">Full Name <span class="text-rose-600">*</span></label>
+          <input type="text" id="create-admin-name" required placeholder="e.g. Sazzad Hossain" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600"/>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">ইমেইল ঠিকানা <span class="text-rose-400">*</span></label>
-          <input type="email" id="create-admin-email" required placeholder="admin@jonoshor.org" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-purple-500 font-mono"/>
+          <label for="create-admin-email" class="block text-xs font-semibold text-slate-700 mb-1">Email Address <span class="text-rose-600">*</span></label>
+          <input type="email" id="create-admin-email" required placeholder="admin@jonoshor.org" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 font-mono"/>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">প্রাথমিক পাসওয়ার্ড <span class="text-rose-400">*</span></label>
-          <input type="password" id="create-admin-password" required placeholder="কমপক্ষে ৮ অক্ষরের শক্তিশালী পাসওয়ার্ড" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-purple-500"/>
+          <label for="create-admin-password" class="block text-xs font-semibold text-slate-700 mb-1">Initial Password <span class="text-rose-600">*</span></label>
+          <input type="password" id="create-admin-password" required placeholder="Minimum 8 characters with strong complexity" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600"/>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">মোবাইল নম্বর (ঐচ্ছিক)</label>
-          <input type="tel" id="create-admin-mobile" placeholder="০১৭xxxxxxxx" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-purple-500 font-mono"/>
+          <label for="create-admin-mobile" class="block text-xs font-semibold text-slate-700 mb-1">Mobile Number (Optional)</label>
+          <input type="tel" id="create-admin-mobile" placeholder="+88017xxxxxxxx" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 font-mono"/>
         </div>
 
-        <div class="pt-2 border-t border-slate-800">
+        <div class="pt-2 border-t border-slate-200">
           <div class="flex items-center justify-between mb-2">
-            <span class="text-xs font-semibold text-white">প্রারম্ভিক অনুমতিসমূহ (Initial RBAC Permissions)</span>
+            <span class="text-xs font-semibold text-slate-900">Initial RBAC Permissions</span>
             <div class="flex items-center gap-2 text-[10px]">
-              <button type="button" id="select-all-create-perms" class="text-purple-400 hover:underline">সব নির্বাচন</button>
-              <span>•</span>
-              <button type="button" id="clear-all-create-perms" class="text-slate-400 hover:underline">সব বাতিল</button>
+              <button type="button" id="select-all-create-perms" class="text-purple-700 hover:underline">Select All</button>
+              <span class="text-slate-300">•</span>
+              <button type="button" id="clear-all-create-perms" class="text-slate-500 hover:underline">Clear All</button>
             </div>
           </div>
           <div class="space-y-2">
@@ -350,11 +350,11 @@ export async function renderSuperAdminAdminsPage(container) {
     `;
 
     const modal = showModal({
-      title: 'নতুন অ্যাডমিন অ্যাকাউন্ট তৈরি',
-      description: 'প্ল্যাটফর্মে নতুন প্রশাসনিক সদস্য যুক্ত করুন ও অনুমতি নির্ধারণ করুন।',
+      title: 'Provision New Administrator',
+      description: 'Create an administrator account and assign granular role-based permissions.',
       contentHtml,
-      confirmText: 'অ্যাকাউন্ট তৈরি করুন',
-      confirmColor: 'bg-purple-600 hover:bg-purple-500',
+      confirmText: 'Create Administrator',
+      confirmColor: 'bg-purple-700 hover:bg-purple-800 text-white',
       onConfirm: async (modalEl) => {
         const name = modalEl.querySelector('#create-admin-name').value.trim();
         const email = modalEl.querySelector('#create-admin-email').value.trim();
@@ -362,7 +362,7 @@ export async function renderSuperAdminAdminsPage(container) {
         const mobile = modalEl.querySelector('#create-admin-mobile').value.trim();
 
         if (!name || !email || !password) {
-          throw new Error('নাম, ইমেইল এবং পাসওয়ার্ড আবশ্যক');
+          throw new Error('Name, email, and password are required.');
         }
 
         const checkedBoxes = Array.from(modalEl.querySelectorAll('input[name="create-perm"]:checked'));
@@ -376,7 +376,7 @@ export async function renderSuperAdminAdminsPage(container) {
           permissions,
         });
 
-        showSuccess(`অ্যাডমিন '${name}' সফলভাবে তৈরি করা হয়েছে।`);
+        showSuccess(`Administrator '${name}' was provisioned successfully.`);
         await loadAdmins();
       },
     });
@@ -417,37 +417,37 @@ export async function renderSuperAdminAdminsPage(container) {
     const contentHtml = `
       <div class="space-y-4">
         <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">পূর্ণ নাম <span class="text-rose-400">*</span></label>
-          <input type="text" id="edit-admin-name" value="${admin.fullName || ''}" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-purple-500"/>
+          <label for="edit-admin-name" class="block text-xs font-semibold text-slate-700 mb-1">Full Name <span class="text-rose-600">*</span></label>
+          <input type="text" id="edit-admin-name" value="${admin.fullName || ''}" required class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600"/>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">ইমেইল ঠিকানা</label>
-          <input type="text" disabled value="${admin.email}" class="w-full bg-slate-950/50 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-400 font-mono cursor-not-allowed"/>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Email Address</label>
+          <input type="text" disabled value="${admin.email}" class="w-full bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-500 font-mono cursor-not-allowed"/>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">মোবাইল নম্বর</label>
-          <input type="tel" id="edit-admin-mobile" value="${admin.mobile || ''}" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-purple-500 font-mono"/>
+          <label for="edit-admin-mobile" class="block text-xs font-semibold text-slate-700 mb-1">Mobile Number</label>
+          <input type="tel" id="edit-admin-mobile" value="${admin.mobile || ''}" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 font-mono"/>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">অ্যাকাউন্ট অবস্থা (Status) <span class="text-rose-400">*</span></label>
-          <select id="edit-admin-status" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-purple-500">
-            <option value="active" ${admin.accountStatus === 'active' ? 'selected' : ''}>সক্রিয় (Active) — স্বাভাবিক প্রশাসনিক প্রবেশাধিকার</option>
-            <option value="suspended" ${admin.accountStatus === 'suspended' ? 'selected' : ''}>সাময়িক স্থগিত (Suspended) — লগইন ও কার্যক্রম সাময়িক স্থগিত</option>
-            <option value="blocked" ${admin.accountStatus === 'blocked' ? 'selected' : ''}>অবরুদ্ধ (Blocked) — অ্যাকাউন্ট নিষিদ্ধ</option>
+          <label for="edit-admin-status" class="block text-xs font-semibold text-slate-700 mb-1">Account Status <span class="text-rose-600">*</span></label>
+          <select id="edit-admin-status" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600">
+            <option value="active" ${admin.accountStatus === 'active' ? 'selected' : ''}>Active — Normal administrative operational access</option>
+            <option value="suspended" ${admin.accountStatus === 'suspended' ? 'selected' : ''}>Suspended — Temporary login and operations freeze</option>
+            <option value="blocked" ${admin.accountStatus === 'blocked' ? 'selected' : ''}>Blocked — Permanent account revocation</option>
           </select>
         </div>
       </div>
     `;
 
     showModal({
-      title: 'অ্যাডমিন প্রোফাইল ও অবস্থা হালনাগাদ',
-      description: `${admin.fullName} (#${admin._id.slice(-6).toUpperCase()}) এর তথ্য পরিবর্তন`,
+      title: 'Update Administrator Profile & Status',
+      description: `Modifying settings for ${admin.fullName} (#${admin._id.slice(-6).toUpperCase()})`,
       contentHtml,
-      confirmText: 'হালনাগাদ সংরক্ষণ করুন',
-      confirmColor: 'bg-purple-600 hover:bg-purple-500',
+      confirmText: 'Save Changes',
+      confirmColor: 'bg-purple-700 hover:bg-purple-800 text-white',
       onConfirm: async (modalEl) => {
         const fullName = modalEl.querySelector('#edit-admin-name').value.trim();
         const mobile = modalEl.querySelector('#edit-admin-mobile').value.trim();
@@ -459,7 +459,7 @@ export async function renderSuperAdminAdminsPage(container) {
           accountStatus,
         });
 
-        showSuccess(`অ্যাডমিন '${fullName}' এর তথ্য সফলভাবে হালনাগাদ করা হয়েছে।`);
+        showSuccess(`Administrator '${fullName}' was successfully updated.`);
         await loadAdmins();
       },
     });
@@ -470,14 +470,14 @@ export async function renderSuperAdminAdminsPage(container) {
     const currentPerms = new Set(admin.permissions || []);
 
     const permissionsHtml = PERMISSION_GROUPS.map((grp) => `
-      <div class="space-y-1.5 p-3 rounded-xl bg-slate-950/60 border border-slate-800">
-        <span class="text-[11px] font-bold text-purple-300 block mb-1">${grp.group}</span>
+      <div class="space-y-1.5 p-3 rounded-xl bg-slate-50 border border-slate-200">
+        <span class="text-[11px] font-bold text-purple-800 block mb-1">${grp.group}</span>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
           ${grp.permissions.map((p) => {
             const isChecked = currentPerms.has(p.id) ? 'checked' : '';
             return `
-              <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer hover:text-white">
-                <input type="checkbox" name="edit-perm" value="${p.id}" ${isChecked} class="rounded border-slate-700 text-purple-600 focus:ring-purple-500 bg-slate-900"/>
+              <label class="flex items-center gap-2 text-xs text-slate-700 cursor-pointer hover:text-slate-900">
+                <input type="checkbox" name="edit-perm" value="${p.id}" ${isChecked} class="rounded border-slate-300 text-purple-600 focus:ring-purple-500"/>
                 <span class="text-[11px]">${p.label}</span>
               </label>
             `;
@@ -488,16 +488,16 @@ export async function renderSuperAdminAdminsPage(container) {
 
     const contentHtml = `
       <div class="space-y-3 max-h-[65vh] overflow-y-auto pr-1">
-        <div class="p-3 rounded-xl bg-purple-950/40 border border-purple-800/40 text-[11px] text-purple-300 leading-relaxed">
-          🔒 <strong>নিরাপত্তা নীতি:</strong> প্রশাসনিক অনুমতি পরিবর্তন একটি সংবেদনশীল ও বিশেষাধিকারপ্রাপ্ত কার্য। এটি সংরক্ষণের সময় পাসওয়ার্ড ও ২-ফ্যাক্টর অথেনটিকেটর কোড (Re-Auth) দ্বারা চূড়ান্ত প্রমাণীকরণ আবশ্যক।
+        <div class="p-3 rounded-xl bg-purple-50 border border-purple-200 text-[11px] text-purple-800 leading-relaxed">
+          🔒 <strong>Security Policy:</strong> Modifying administrative permissions is a high-privilege action. Saving updates requires password confirmation and Two-Factor Authentication (2FA) verification.
         </div>
 
         <div class="flex items-center justify-between pt-1">
-          <span class="text-xs font-semibold text-white">অনুমতি নির্বাচন (RBAC Matrix)</span>
+          <span class="text-xs font-semibold text-slate-900">RBAC Permission Matrix</span>
           <div class="flex items-center gap-2 text-[10px]">
-            <button type="button" id="select-all-edit-perms" class="text-purple-400 hover:underline">সব নির্বাচন</button>
-            <span>•</span>
-            <button type="button" id="clear-all-edit-perms" class="text-slate-400 hover:underline">সব বাতিল</button>
+            <button type="button" id="select-all-edit-perms" class="text-purple-700 hover:underline">Select All</button>
+            <span class="text-slate-300">•</span>
+            <button type="button" id="clear-all-edit-perms" class="text-slate-500 hover:underline">Clear All</button>
           </div>
         </div>
 
@@ -508,11 +508,11 @@ export async function renderSuperAdminAdminsPage(container) {
     `;
 
     const modal = showModal({
-      title: 'অ্যাডমিন অনুমতি ব্যবস্থাপনা (Permissions RBAC)',
-      description: `${admin.fullName} (${admin.email}) এর অনুমতি সমন্বয়`,
+      title: 'Administrator Permission Matrix (RBAC)',
+      description: `Configure access privileges for ${admin.fullName} (${admin.email})`,
       contentHtml,
-      confirmText: 'অনুমতি পরিবর্তন এগিয়ে নিন →',
-      confirmColor: 'bg-purple-600 hover:bg-purple-500',
+      confirmText: 'Proceed to Authentication →',
+      confirmColor: 'bg-purple-700 hover:bg-purple-800 text-white',
       onConfirm: async (modalEl) => {
         const checkedBoxes = Array.from(modalEl.querySelectorAll('input[name="edit-perm"]:checked'));
         const newPermissions = checkedBoxes.map((cb) => cb.value);
@@ -520,8 +520,8 @@ export async function renderSuperAdminAdminsPage(container) {
         // Prompt Re-Authentication Modal for password + 2FA
         return new Promise((resolve, reject) => {
           showReAuthModal({
-            title: 'অনুমতি পরিবর্তনের জন্য ২-ফ্যাক্টর পুনঃপ্রমাণীকরণ',
-            description: `${admin.fullName}-এর নতুন ${newPermissions.length}টি অনুমতি কার্যকর করতে পাসওয়ার্ড ও 2FA কোড প্রদান করুন।`,
+            title: 'Executive Re-Authentication Required',
+            description: `Provide your password and 2FA authenticator code to apply ${newPermissions.length} permissions to ${admin.fullName}.`,
             onSuccess: async (reAuthToken) => {
               try {
                 await superAdminService.updatePermissions(admin._id, {
@@ -529,7 +529,7 @@ export async function renderSuperAdminAdminsPage(container) {
                   reAuthToken,
                 });
 
-                showSuccess(`অ্যাডমিন '${admin.fullName}' এর অনুমতি সফলভাবে হালনাগাদ করা হয়েছে।`);
+                showSuccess(`Permissions for '${admin.fullName}' were successfully updated.`);
                 await loadAdmins();
                 resolve();
               } catch (err) {

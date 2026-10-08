@@ -35,6 +35,7 @@ router.post('/admin/2fa/verify', privilegedAuthController.verify2FA);
 router.post('/super-admin/login', loginValidator, privilegedAuthController.superAdminLogin);
 router.post('/super-admin/2fa/setup', privilegedAuthController.setup2FA);
 router.post('/super-admin/2fa/verify', privilegedAuthController.verify2FA);
+router.post('/2fa/verify', privilegedAuthController.verify2FA);
 
 // Critical action re-authentication (requires active authentication)
 router.post('/re-authenticate', authenticate, privilegedAuthController.reAuthenticate);

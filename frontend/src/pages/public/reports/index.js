@@ -1,9 +1,12 @@
 import { reportService } from '../../../services/reports/reportService.js';
 import { locationService } from '../../../services/locations/locationService.js';
 import { COMPLAINT_CATEGORIES } from '../../../config/constants.js';
+import { t, isBangla, translateCategory, translateCaseStatus, formatNumber } from '../../../i18n/index.js';
 
 export async function renderReportsPage(container) {
   let currentPage = 1;
+  const isBn = isBangla();
+
   let filters = {
     keyword: '',
     category: '',
@@ -15,39 +18,39 @@ export async function renderReportsPage(container) {
   };
 
   const CASE_STATUS_MAP = {
-    under_investigation: { bn: 'তদন্তাধীন', color: 'text-amber-400 bg-amber-950/60 border-amber-800' },
-    case_filed: { bn: 'মামলা দায়েরকৃত', color: 'text-blue-400 bg-blue-950/60 border-blue-800' },
-    trial: { bn: 'বিচারিক পর্যায়ে', color: 'text-purple-400 bg-purple-950/60 border-purple-800' },
-    no_legal_case: { bn: 'কোনো মামলা নেই', color: 'text-slate-400 bg-slate-900 border-slate-700' },
-    unknown: { bn: 'অনির্ধারিত', color: 'text-slate-400 bg-slate-900 border-slate-700' },
-    resolved: { bn: 'নিষ্পত্তিকৃত', color: 'text-emerald-400 bg-emerald-950/60 border-emerald-800' },
-    closed: { bn: 'সমাপ্ত', color: 'text-slate-400 bg-slate-900 border-slate-700' },
+    under_investigation: { color: 'text-amber-800 bg-amber-50 border-amber-200' },
+    case_filed: { color: 'text-blue-800 bg-blue-50 border-blue-200' },
+    trial: { color: 'text-purple-800 bg-purple-50 border-purple-200' },
+    no_legal_case: { color: 'text-slate-700 bg-slate-100 border-slate-200' },
+    unknown: { color: 'text-slate-700 bg-slate-100 border-slate-200' },
+    resolved: { color: 'text-emerald-800 bg-emerald-50 border-emerald-200' },
+    closed: { color: 'text-slate-700 bg-slate-100 border-slate-200' },
   };
 
   container.innerHTML = `
     <div class="mb-8">
-      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-950/40 text-emerald-400 text-xs font-medium mb-3">
-        <span>✓</span> স্বচ্ছ ও নিরপেক্ষ সত্য প্রকাশ
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-emerald-200 bg-emerald-50 text-emerald-800 text-xs font-semibold mb-3">
+        <span aria-hidden="true">✓</span> ${t('reports.badge')}
       </div>
-      <h1 class="text-3xl font-extrabold text-white mb-2">যাচাইকৃত পাবলিক রিপোর্টসমূহ</h1>
-      <p class="text-slate-400 text-sm max-w-3xl leading-relaxed">
-        জনস্বর প্ল্যাটফর্মে দালিলিক প্রমাণাদি ও নিরপেক্ষ তদন্তের ভিত্তিতে যাচাইকৃত মানবাধিকার লঙ্ঘন ও অবিচারের উন্মুক্ত নথিপত্র।
+      <h1 class="text-3xl font-extrabold text-slate-900 mb-2">${t('reports.title')}</h1>
+      <p class="text-slate-600 text-sm max-w-3xl leading-relaxed">
+        ${t('reports.subtitle')}
       </p>
     </div>
 
     <!-- Comprehensive Filter Panel -->
-    <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 mb-8 space-y-4 shadow-xl">
+    <div class="p-5 rounded-2xl bg-white border border-slate-200 mb-8 space-y-4 shadow-sm">
       <!-- Search Bar -->
       <div>
-        <label class="block text-xs font-semibold text-slate-300 mb-1.5">মূলশব্দ অনুসন্ধান (Keyword Search)</label>
+        <label for="filter-keyword" class="block text-xs font-semibold text-slate-700 mb-1.5">${t('reports.search_label')}</label>
         <div class="relative">
           <input 
             type="text" 
             id="filter-keyword" 
-            placeholder="রিপোর্টের শিরোনাম, ঘটনার বিবরণ বা স্থান দিয়ে অনুসন্ধান করুন..." 
-            class="w-full bg-slate-950 border border-slate-700 rounded-lg pl-10 pr-4 py-2.5 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+            placeholder="${t('reports.search_placeholder')}" 
+            class="w-full bg-white border border-slate-300 rounded-lg pl-10 pr-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
           />
-          <svg class="w-4 h-4 text-slate-500 absolute left-3.5 top-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
           </svg>
         </div>
@@ -56,67 +59,67 @@ export async function renderReportsPage(container) {
       <!-- Filter Controls Grid -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
         <div>
-          <label class="block font-medium text-slate-400 mb-1">ক্যাটাগরি</label>
-          <select id="filter-category" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
-            <option value="">সকল ক্যাটাগরি</option>
-            ${COMPLAINT_CATEGORIES.map((c) => `<option value="${c}">${c}</option>`).join('')}
+          <label for="filter-category" class="block font-semibold text-slate-700 mb-1">${t('reports.category_label')}</label>
+          <select id="filter-category" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600">
+            <option value="">${t('reports.all_categories')}</option>
+            ${COMPLAINT_CATEGORIES.map((c) => `<option value="${c}">${translateCategory(c)}</option>`).join('')}
           </select>
         </div>
 
         <div>
-          <label class="block font-medium text-slate-400 mb-1">জেলা</label>
-          <select id="filter-district" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
-            <option value="">সকল জেলা</option>
+          <label for="filter-district" class="block font-semibold text-slate-700 mb-1">${t('reports.district_label')}</label>
+          <select id="filter-district" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600">
+            <option value="">${t('reports.all_districts')}</option>
           </select>
         </div>
 
         <div>
-          <label class="block font-medium text-slate-400 mb-1">উপজেলা / থানা</label>
-          <select id="filter-upazila" disabled class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500 disabled:opacity-40">
-            <option value="">প্রথমে জেলা নির্বাচন করুন</option>
+          <label for="filter-upazila" class="block font-semibold text-slate-700 mb-1">${t('reports.upazila_label')}</label>
+          <select id="filter-upazila" disabled class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 disabled:opacity-40 disabled:bg-slate-50">
+            <option value="">${t('reports.select_district_first')}</option>
           </select>
         </div>
 
         <div>
-          <label class="block font-medium text-slate-400 mb-1">আইনি / মামলার অবস্থা</label>
-          <select id="filter-case-status" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500">
-            <option value="">সকল অবস্থা</option>
-            <option value="under_investigation">তদন্তাধীন</option>
-            <option value="case_filed">মামলা দায়েরকৃত</option>
-            <option value="trial">বিচারিক পর্যায়ে</option>
-            <option value="no_legal_case">কোনো মামলা নেই</option>
-            <option value="resolved">নিষ্পত্তিকৃত</option>
-            <option value="closed">সমাপ্ত</option>
+          <label for="filter-case-status" class="block font-semibold text-slate-700 mb-1">${t('reports.case_status_label')}</label>
+          <select id="filter-case-status" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600">
+            <option value="">${t('reports.all_statuses')}</option>
+            <option value="under_investigation">${translateCaseStatus('under_investigation')}</option>
+            <option value="case_filed">${translateCaseStatus('case_filed')}</option>
+            <option value="trial">${translateCaseStatus('trial')}</option>
+            <option value="no_legal_case">${translateCaseStatus('no_legal_case')}</option>
+            <option value="resolved">${translateCaseStatus('resolved')}</option>
+            <option value="closed">${translateCaseStatus('closed')}</option>
           </select>
         </div>
 
         <div>
-          <label class="block font-medium text-slate-400 mb-1">ঘটনার তারিখ (শুরু)</label>
-          <input type="date" id="filter-date-from" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500" />
+          <label for="filter-date-from" class="block font-semibold text-slate-700 mb-1">${t('reports.date_from')}</label>
+          <input type="date" id="filter-date-from" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600" />
         </div>
 
         <div>
-          <label class="block font-medium text-slate-400 mb-1">ঘটনার তারিখ (শেষ)</label>
-          <input type="date" id="filter-date-to" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-emerald-500" />
+          <label for="filter-date-to" class="block font-semibold text-slate-700 mb-1">${t('reports.date_to')}</label>
+          <input type="date" id="filter-date-to" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600" />
         </div>
 
         <div class="sm:col-span-2 flex items-end gap-3 pt-2 sm:pt-0">
-          <button id="apply-filters-btn" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-2 px-4 rounded-lg text-xs transition flex items-center justify-center gap-1.5 shadow">
-            <span>ফিল্টার প্রয়োগ করুন</span>
+          <button id="apply-filters-btn" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-4 rounded-lg text-xs transition flex items-center justify-center gap-1.5 shadow-xs">
+            <span>${t('reports.apply_filters')}</span>
           </button>
-          <button id="reset-filters-btn" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-lg text-xs transition">
-            রিসেট
+          <button id="reset-filters-btn" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg text-xs transition">
+            ${t('reports.reset_filters')}
           </button>
         </div>
       </div>
     </div>
 
     <!-- Active Filters Summary Badge Bar -->
-    <div id="active-filters-bar" class="hidden mb-6 flex flex-wrap items-center gap-2 text-xs"></div>
+    <div id="active-filters-bar" class="hidden mb-6 flex flex-wrap items-center gap-2 text-xs" aria-live="polite"></div>
 
     <!-- Reports Grid Mount -->
-    <div id="reports-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-      <div class="col-span-full py-16 text-center text-slate-500">রিপোর্ট লোড হচ্ছে...</div>
+    <div id="reports-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8" aria-live="polite">
+      <div class="col-span-full py-16 text-center text-slate-500">${t('reports.loading_reports')}</div>
     </div>
 
     <!-- Pagination Controls -->
@@ -132,7 +135,7 @@ export async function renderReportsPage(container) {
     districts.forEach((d) => {
       const opt = document.createElement('option');
       opt.value = d.id || d._id;
-      opt.textContent = `${d.nameBn || d.nameEn} (${d.nameEn || d.id})`;
+      opt.textContent = isBn ? (d.nameBn || d.nameEn) : `${d.nameEn || d.nameBn} (${d.nameBn || d.id})`;
       districtSelect.appendChild(opt);
     });
   } catch (err) {
@@ -142,10 +145,10 @@ export async function renderReportsPage(container) {
   // Handle District selection -> load Upazilas cascading dropdown
   districtSelect.addEventListener('change', async () => {
     const distId = districtSelect.value;
-    upazilaSelect.innerHTML = '<option value="">সকল উপজেলা / থানা</option>';
+    upazilaSelect.innerHTML = `<option value="">${t('reports.all_upazilas')}</option>`;
     if (!distId) {
       upazilaSelect.disabled = true;
-      upazilaSelect.innerHTML = '<option value="">প্রথমে জেলা নির্বাচন করুন</option>';
+      upazilaSelect.innerHTML = `<option value="">${t('reports.select_district_first')}</option>`;
       return;
     }
 
@@ -155,7 +158,7 @@ export async function renderReportsPage(container) {
       upazilas.forEach((u) => {
         const opt = document.createElement('option');
         opt.value = u.id || u._id;
-        opt.textContent = u.nameBn || u.nameEn;
+        opt.textContent = isBn ? (u.nameBn || u.nameEn) : (u.nameEn || u.nameBn);
         upazilaSelect.appendChild(opt);
       });
     } catch (e) {
@@ -166,7 +169,7 @@ export async function renderReportsPage(container) {
   async function loadReports() {
     const grid = container.querySelector('#reports-grid');
     const pagination = container.querySelector('#reports-pagination');
-    grid.innerHTML = '<div class="col-span-full py-16 text-center text-slate-500">রিপোর্ট লোড হচ্ছে...</div>';
+    grid.innerHTML = `<div class="col-span-full py-16 text-center text-slate-500">${t('reports.loading_reports')}</div>`;
 
     try {
       const res = await reportService.getReports({
@@ -180,12 +183,12 @@ export async function renderReportsPage(container) {
 
       if (reports.length === 0) {
         grid.innerHTML = `
-          <div class="col-span-full py-16 text-center rounded-2xl bg-slate-900 border border-slate-800 text-slate-400 p-8 shadow-inner">
-            <svg class="w-12 h-12 mx-auto text-slate-600 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div class="col-span-full py-16 text-center rounded-2xl bg-white border border-slate-200 text-slate-600 p-8 shadow-xs" role="status">
+            <svg class="w-12 h-12 mx-auto text-slate-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
             </svg>
-            <p class="font-semibold text-slate-300 mb-1">কোনো যাচাইকৃত পাবলিক রিপোর্ট পাওয়া যায়নি</p>
-            <p class="text-xs text-slate-500">অনুসন্ধান বা ফিল্টারের শর্ত পরিবর্তন করে পুনরায় চেষ্টা করুন।</p>
+            <p class="font-bold text-slate-800 mb-1">${t('reports.no_reports_found')}</p>
+            <p class="text-xs text-slate-500">${t('reports.no_reports_desc')}</p>
           </div>
         `;
         pagination.innerHTML = '';
@@ -194,70 +197,72 @@ export async function renderReportsPage(container) {
 
       grid.innerHTML = reports
         .map((report) => {
-          const caseStatusInfo = CASE_STATUS_MAP[report.caseStatus] || {
-            bn: report.caseStatus || 'অনির্ধারিত',
-            color: 'text-slate-400 bg-slate-900 border-slate-700',
-          };
+          const statusStyle = CASE_STATUS_MAP[report.caseStatus]?.color || 'text-slate-700 bg-slate-100 border-slate-200';
+          const statusLabel = translateCaseStatus(report.caseStatus);
           const refCode = report._id ? report._id.slice(-6).toUpperCase() : 'REPORT';
-          const pubDate = new Date(report.publishedAt || report.createdAt).toLocaleDateString('bn-BD');
+          
+          const localeCode = isBn ? 'bn-BD' : 'en-US';
+          const pubDate = new Date(report.publishedAt || report.createdAt).toLocaleDateString(localeCode, { year: 'numeric', month: 'short', day: 'numeric' });
           const incDate = report.incidentDate?.startDate
             ? (report.incidentDate.isRange && report.incidentDate.endDate
-                ? `${new Date(report.incidentDate.startDate).toLocaleDateString('bn-BD')} - ${new Date(report.incidentDate.endDate).toLocaleDateString('bn-BD')}`
-                : new Date(report.incidentDate.startDate).toLocaleDateString('bn-BD'))
+                ? `${new Date(report.incidentDate.startDate).toLocaleDateString(localeCode, { year: 'numeric', month: 'short', day: 'numeric' })} - ${new Date(report.incidentDate.endDate).toLocaleDateString(localeCode, { year: 'numeric', month: 'short', day: 'numeric' })}`
+                : new Date(report.incidentDate.startDate).toLocaleDateString(localeCode, { year: 'numeric', month: 'short', day: 'numeric' }))
             : null;
           const evCount = Array.isArray(report.approvedEvidence) ? report.approvedEvidence.length : 0;
 
+          // Localized Title & Summary selection
+          const title = isBn
+            ? (report.bn?.title || report.en?.title || 'যাচাইকৃত রিপোর্ট')
+            : (report.en?.title || report.bn?.title || 'Verified Report');
+          const summary = isBn
+            ? (report.bn?.summary || report.en?.summary || '')
+            : (report.en?.summary || report.bn?.summary || '');
+          const categoryName = translateCategory(report.category?.primary);
+
           return `
-            <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition flex flex-col justify-between shadow-lg">
+            <div class="p-6 rounded-2xl bg-white border border-slate-200 hover:border-slate-300 transition flex flex-col justify-between shadow-xs">
               <div>
                 <!-- Top Badge Bar -->
                 <div class="flex items-center justify-between gap-2 mb-3">
                   <div class="flex items-center gap-1.5 flex-wrap">
-                    <span class="text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-slate-800 text-slate-300 border border-slate-700">
+                    <span class="text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200">
                       #${refCode}
                     </span>
-                    <span class="text-xs px-2.5 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800 font-medium">
-                      ${report.category?.primary || 'মানবাধিকার'}
+                    <span class="text-xs px-2.5 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 font-semibold">
+                      ${categoryName || (isBn ? 'মানবাধিকার' : 'Human Rights')}
                     </span>
                   </div>
-                  <span class="text-[11px] text-slate-400">
+                  <span class="text-[11px] text-slate-500">
                     ${pubDate}
                   </span>
                 </div>
 
                 <!-- Title -->
-                <h3 class="text-lg font-bold text-white mb-2 leading-snug hover:text-emerald-400 transition">
-                  <a href="#/reports/${report._id}">${report.bn?.title || 'যাচাইকৃত প্রতিবেদন'}</a>
-                </h3>
+                <h2 class="text-lg font-bold text-slate-900 mb-2 leading-snug hover:text-emerald-700 transition">
+                  <a href="#/reports/${report._id}">${title}</a>
+                </h2>
 
                 <!-- Summary snippet -->
-                <p class="text-slate-400 text-xs line-clamp-3 mb-4 leading-relaxed">
-                  ${report.bn?.summary || ''}
+                <p class="text-slate-600 text-xs line-clamp-3 mb-4 leading-relaxed">
+                  ${summary}
                 </p>
 
                 <!-- Metadata pills -->
                 <div class="flex flex-wrap items-center gap-2 mb-4 text-[11px]">
-                  <span class="px-2 py-0.5 rounded border ${caseStatusInfo.color}">
-                    মামলা: ${caseStatusInfo.bn}
+                  <span class="px-2 py-0.5 rounded border font-medium ${statusStyle}">
+                    ${t('common.status')}: ${statusLabel}
                   </span>
                   ${
                     incDate
-                      ? `<span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300">
-                          📅 ঘটনা: ${incDate}
+                      ? `<span class="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-700">
+                          📅 ${t('reports.incident_date')}: ${incDate}
                         </span>`
                       : ''
                   }
                   ${
                     evCount > 0
-                      ? `<span class="px-2 py-0.5 rounded bg-blue-950/60 border border-blue-800 text-blue-300">
-                          📎 ${evCount}টি প্রমাণ
-                        </span>`
-                      : ''
-                  }
-                  ${
-                    report.authorityActionSummary
-                      ? `<span class="px-2 py-0.5 rounded bg-indigo-950/60 border border-indigo-800 text-indigo-300 truncate max-w-[200px]" title="${report.authorityActionSummary}">
-                          আইনি পদক্ষেপ গৃহীত
+                      ? `<span class="px-2 py-0.5 rounded bg-blue-50 border border-blue-200 text-blue-800 font-medium">
+                          📎 ${formatNumber(evCount)} ${t('reports.evidence_attached')}
                         </span>`
                       : ''
                   }
@@ -265,13 +270,13 @@ export async function renderReportsPage(container) {
               </div>
 
               <!-- Footer Section -->
-              <div class="pt-4 border-t border-slate-800 flex items-center justify-between text-xs">
-                <span class="text-slate-400 truncate max-w-[150px]">
-                  📍 ${report.location?.generalLocation || report.location?.districtId || 'বাংলাদেশ'}
+              <div class="pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
+                <span class="text-slate-500 truncate max-w-[150px]">
+                  📍 ${report.location?.generalLocation || report.location?.districtId || (isBn ? 'বাংলাদেশ' : 'Bangladesh')}
                 </span>
-                <a href="#/reports/${report._id}" class="font-semibold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 transition">
-                  <span>সম্পূর্ণ পড়ুন</span>
-                  <span>→</span>
+                <a href="#/reports/${report._id}" class="font-semibold text-emerald-700 hover:text-emerald-800 flex items-center gap-1 transition">
+                  <span>${t('reports.read_report')}</span>
+                  <span aria-hidden="true">→</span>
                 </a>
               </div>
             </div>
@@ -282,12 +287,14 @@ export async function renderReportsPage(container) {
       // Render pagination
       if (meta.totalPages > 1) {
         pagination.innerHTML = `
-          <button id="prev-page-btn" ${meta.hasPrev ? '' : 'disabled'} class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium disabled:opacity-40 disabled:pointer-events-none transition">
-            ← আগের পৃষ্ঠা
+          <button id="prev-page-btn" ${meta.hasPrev ? '' : 'disabled'} class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold disabled:opacity-40 disabled:pointer-events-none transition shadow-xs">
+            ← ${t('common.previous')}
           </button>
-          <span class="text-xs text-slate-400">পৃষ্ঠা ${meta.page} / ${meta.totalPages} (মোট ${meta.total} টি রিপোর্ট)</span>
-          <button id="next-page-btn" ${meta.hasNext ? '' : 'disabled'} class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium disabled:opacity-40 disabled:pointer-events-none transition">
-            পরের পৃষ্ঠা →
+          <span class="text-xs text-slate-600 font-medium">
+            ${isBn ? `পৃষ্ঠা ${formatNumber(meta.page)} / ${formatNumber(meta.totalPages)} (মোট ${formatNumber(meta.total)}টি রিপোর্ট)` : `Page ${meta.page} of ${meta.totalPages} (${meta.total} reports)`}
+          </span>
+          <button id="next-page-btn" ${meta.hasNext ? '' : 'disabled'} class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold disabled:opacity-40 disabled:pointer-events-none transition shadow-xs">
+            ${t('common.next')} →
           </button>
         `;
 
@@ -314,7 +321,7 @@ export async function renderReportsPage(container) {
         pagination.innerHTML = '';
       }
     } catch (err) {
-      grid.innerHTML = `<div class="col-span-full py-12 text-center text-red-400 text-sm">রিপোর্ট লোড করতে ব্যর্থ হয়েছে: ${err.message}</div>`;
+      grid.innerHTML = `<div class="col-span-full py-12 text-center text-red-700 text-sm">${t('common.error')}: ${err.message}</div>`;
     }
   }
 

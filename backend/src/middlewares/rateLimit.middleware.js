@@ -67,3 +67,34 @@ export const complaintSubmissionRateLimiter = rateLimit({
   message: securityConfig.complaintSubmissionRateLimit.message,
   skip: isWhitelisted,
 });
+
+export const joinUsSubmissionRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    error: {
+      code: 'TOO_MANY_REQUESTS',
+      message: 'Too many requests. Please try again after a few minutes.',
+    },
+  },
+  skip: isWhitelisted,
+});
+
+export const contactSubmissionRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    error: {
+      code: 'TOO_MANY_REQUESTS',
+      message: 'Too many contact requests from this source. Please try again later.',
+    },
+  },
+  skip: isWhitelisted,
+});
+

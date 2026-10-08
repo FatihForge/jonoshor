@@ -5,7 +5,18 @@ import evidenceRoutes from './evidence.routes.js';
 import { publicComplaintController } from '../../controllers/public/complaint.controller.js';
 import { publicJoinUsController } from '../../controllers/public/joinUs.controller.js';
 import { createComplaintValidator } from '../../validators/complaints/complaint.validator.js';
-import { complaintSubmissionRateLimiter } from '../../middlewares/rateLimit.middleware.js';
+import { submitJoinUsValidator } from '../../validators/public/joinUs.validator.js';
+import { uploadMiddleware } from '../../middlewares/upload.middleware.js';
+import {
+  complaintSubmissionRateLimiter,
+  joinUsSubmissionRateLimiter,
+} from '../../middlewares/rateLimit.middleware.js';
+import { publicStatisticsController } from '../../controllers/public/statistics.controller.js';
+import { publicContentController } from '../../controllers/public/content.controller.js';
+import { publicContactController } from '../../controllers/public/contact.controller.js';
+import { submitContactValidator } from '../../validators/public/contact.validator.js';
+import { contactSubmissionRateLimiter } from '../../middlewares/rateLimit.middleware.js';
+import { getPublicSocialLinks } from '../../controllers/public/socialLinks.controller.js';
 
 const router = Router();
 
@@ -13,19 +24,38 @@ const router = Router();
 router.use('/', locationsRoutes);
 
 // Public complaint submission for visitors
-router.post('/complaints', complaintSubmissionRateLimiter, createComplaintValidator, publicComplaintController.submitComplaint);
+router.post(
+  '/complaints',
+  complaintSubmissionRateLimiter,
+  createComplaintValidator,
+  publicComplaintController.submitComplaint
+);
 
-// Public Join Us application submission
-router.post('/join-us', publicJoinUsController.submit);
+// Public Join Us application submission (with rate limiting, upload support, and reference/document validation)
+router.post(
+  '/join-us',
+  joinUsSubmissionRateLimiter,
+  uploadMiddleware.array('documents', 5),
+  submitJoinUsValidator,
+  publicJoinUsController.submit
+);
+
+// Public contact form submission
+router.post(
+  '/contact',
+  contactSubmissionRateLimiter,
+  submitContactValidator,
+  publicContactController.submitContact
+);
+
+// Public social platform links
+router.get('/social-links', getPublicSocialLinks);
 
 // Public reports list & details
 router.use('/reports', reportsRoutes);
 
 // Public evidence access
 router.use('/evidence', evidenceRoutes);
-
-import { publicStatisticsController } from '../../controllers/public/statistics.controller.js';
-import { publicContentController } from '../../controllers/public/content.controller.js';
 
 // Statistics
 router.get('/statistics', publicStatisticsController.getStatistics);
@@ -36,3 +66,4 @@ router.get('/announcements', publicContentController.getAnnouncements);
 router.get('/faqs', publicContentController.getFaqs);
 
 export default router;
+

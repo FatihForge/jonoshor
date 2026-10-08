@@ -242,6 +242,41 @@ User-এর additional private data আলাদা authenticated endpoint থ�
 
 ---
 
+# 9.1 Public Join Us Application Submission
+
+```text
+POST /api/v1/public/join-us
+```
+
+Allows prospective volunteers and professionals to express interest in contributing to JonoShor without requiring an account.
+
+Request (supports `application/json` or `multipart/form-data` with attached files):
+
+```text
+fullName: String (required, 2-120 chars)
+email: String (required, valid, non-disposable)
+contactInformation:
+  mobile: String
+  address: String
+primaryProfession: String (required)
+secondaryProfessions: [String]
+customProfession: String
+primaryContributionRole: String (required)
+secondaryContributionRoles: [String]
+contributionDetails: String (required, min 10 chars)
+socialLinks: [String] (SSRF validated)
+linkedin: String (SSRF validated)
+portfolio: String (SSRF validated)
+documents: File[] (multipart files, max 5, max 20MB, scanned for malware)
+```
+
+Rules:
+* At least ONE meaningful professional/social reference link (LinkedIn, Portfolio, GitHub/website) OR supporting document (CV, recommendation) is required.
+* Submissions are subject to rate limiting and duplicate detection.
+* Triggers automated email confirmation.
+
+---
+
 # 10. Authentication API
 
 ## Register
@@ -1020,9 +1055,18 @@ Admin user account-এর restricted management করতে পারবে।
 ```text id="yqt8ja"
 GET /api/v1/admin/join-us
 GET /api/v1/admin/join-us/:id
+PATCH /api/v1/admin/join-us/:id/status
 ```
 
-Authorized Admin/Super Admin only।
+Authorized Admin/Super Admin only (`joinUs.read` permission)।
+
+Status values:
+* `submitted`
+* `reviewed`
+* `accepted`
+* `rejected`
+
+Status change is audit logged.
 
 Applicant publicভাবে এই endpoint access করতে পারবে না।
 

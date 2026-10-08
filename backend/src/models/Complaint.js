@@ -200,6 +200,11 @@ const complaintSchema = new mongoose.Schema(
       default: 0,
       max: 3,
     },
+    securityIdentifiers: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
+      select: false,
+    },
   },
   {
     timestamps: true,
@@ -212,5 +217,7 @@ complaintSchema.index({ createdAt: -1 });
 complaintSchema.index({ status: 1, createdAt: -1 });
 complaintSchema.index({ 'location.districtId': 1, status: 1 });
 complaintSchema.index({ 'category.primary': 1, status: 1 });
+complaintSchema.index({ 'securityIdentifiers.ip': 1 });
+complaintSchema.index({ 'securityIdentifiers.anonymousSubmissionId': 1 });
 
 export const Complaint = mongoose.model('Complaint', complaintSchema);

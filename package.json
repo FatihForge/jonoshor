@@ -15,7 +15,8 @@
     "test:backend": "npm run test --prefix backend",
     "lint:backend": "npm run lint --prefix backend",
     "lint:frontend": "npm run lint --prefix frontend",
-    "lint": "npm run lint:backend && npm run lint:frontend"
+    "lint": "npm run lint:backend && npm run lint:frontend",
+    "bootstrap:super-admin": "npm run bootstrap:super-admin --prefix backend"
   },
   "keywords": [
     "jonoshor",

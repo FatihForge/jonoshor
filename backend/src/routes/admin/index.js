@@ -12,6 +12,15 @@ import { adminJoinUsController } from '../../controllers/admin/joinUs.controller
 import { adminNotificationController } from '../../controllers/admin/notification.controller.js';
 import { adminMessagingController } from '../../controllers/admin/messaging.controller.js';
 import { adminUserController } from '../../controllers/admin/user.controller.js';
+import { adminContactController } from '../../controllers/admin/contact.controller.js';
+import {
+  listJoinUsValidator,
+
+  updateJoinUsStatusValidator,
+  addJoinUsNoteValidator,
+  updateJoinUsNoteValidator,
+  deleteJoinUsValidator,
+} from '../../validators/admin/joinUs.validator.js';
 import {
   listUsersValidator,
   getUserByIdValidator,
@@ -105,11 +114,14 @@ router.get('/withdrawals', requirePermission(PERMISSIONS.COMPLAINT_SCREEN), admi
 router.post('/complaints/:id/withdrawal-review', requirePermission(PERMISSIONS.COMPLAINT_SCREEN), adminCorrectionsWithdrawalsController.reviewWithdrawal);
 
 // Join Us Admin Management (Phase 26)
-router.get('/join-us', requirePermission(PERMISSIONS.JOIN_US_READ), adminJoinUsController.list);
+router.get('/join-us', requirePermission(PERMISSIONS.JOIN_US_READ), listJoinUsValidator, adminJoinUsController.list);
 router.get('/join-us/:id', requirePermission(PERMISSIONS.JOIN_US_READ), adminJoinUsController.getById);
-router.post('/join-us/:id/notes', requirePermission(PERMISSIONS.JOIN_US_NOTES), adminJoinUsController.addNote);
+router.patch('/join-us/:id/status', requirePermission(PERMISSIONS.JOIN_US_READ), updateJoinUsStatusValidator, adminJoinUsController.updateStatus);
+router.post('/join-us/:id/notes', requirePermission(PERMISSIONS.JOIN_US_NOTES), addJoinUsNoteValidator, adminJoinUsController.addNote);
+router.patch('/join-us/:id/notes/:noteId', requirePermission(PERMISSIONS.JOIN_US_NOTES), updateJoinUsNoteValidator, adminJoinUsController.updateNote);
+router.get('/join-us/:id/documents/:documentId', requirePermission(PERMISSIONS.JOIN_US_READ), adminJoinUsController.downloadDocument);
 router.post('/join-us/export', requirePermission(PERMISSIONS.JOIN_US_EXPORT), adminJoinUsController.exportData);
-router.delete('/join-us/:id', requireSuperAdmin, adminJoinUsController.delete);
+router.delete('/join-us/:id', requireSuperAdmin, deleteJoinUsValidator, adminJoinUsController.delete);
 
 // User Management (Section 57)
 router.get('/users', requirePermission(PERMISSIONS.USER_READ), listUsersValidator, adminUserController.listUsers);
@@ -121,7 +133,13 @@ router.post('/users/:id/notifications', requirePermission(PERMISSIONS.NOTIFICATI
 router.get('/users/:id/messages', requirePermission(PERMISSIONS.MESSAGE_READ), adminMessagingController.listUserMessages);
 router.post('/users/:id/messages', requirePermission(PERMISSIONS.MESSAGE_SEND), adminMessagingController.sendMessageToUser);
 
+// Contact Inquiries (Public feedback & messages)
+router.get('/contact', adminContactController.listMessages);
+router.get('/contact/:id', adminContactController.getMessageById);
+router.patch('/contact/:id/status', adminContactController.updateStatus);
+
 // Audit Logs
+
 router.get('/audit-logs', requirePermission(PERMISSIONS.AUDIT_READ), async (req, res, next) => {
   try {
     const page = parseInt(req.query.page, 10) || 1;

@@ -13,6 +13,9 @@ import {
 } from '../../utils/errors.js';
 import { ACCOUNT_TYPES } from '../../constants/roles.js';
 
+// Configure TOTP window: 1 (allows +/- 1 time step / 30 seconds for clock skew tolerance)
+authenticator.options = { window: 1 };
+
 export const privilegedAuthService = {
   /**
    * Admin initial login step (returns temp 2FA token)
@@ -47,6 +50,7 @@ export const privilegedAuthService = {
       temp2FAToken,
       requires2FA: true,
       twoFactorEnabled: admin.twoFactorEnabled,
+      accountType: ACCOUNT_TYPES.ADMIN,
     };
   },
 
@@ -82,6 +86,7 @@ export const privilegedAuthService = {
       temp2FAToken,
       requires2FA: true,
       twoFactorEnabled: superAdmin.twoFactorEnabled,
+      accountType: ACCOUNT_TYPES.SUPER_ADMIN,
     };
   },
 

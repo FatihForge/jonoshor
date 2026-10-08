@@ -14,26 +14,26 @@ export async function renderUserMessagesPage(container, initialConversationId = 
 
   function render() {
     container.innerHTML = `
-      <div class="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+      <div class="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans">
         ${renderUserNav('messages')}
 
         <main class="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-8 space-y-6">
           <!-- Page Header -->
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200">
             <div>
               <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-indigo-950/80 border border-indigo-700/60 flex items-center justify-center text-xl shadow-lg">
+                <div class="w-10 h-10 rounded-xl bg-emerald-100 border border-emerald-200 flex items-center justify-center text-xl shadow-xs" aria-hidden="true">
                   💬
                 </div>
                 <div>
-                  <h1 class="text-2xl font-bold text-white tracking-tight">বার্তা ও প্রশাসনিক যোগাযোগ</h1>
-                  <p class="text-xs text-slate-400 mt-0.5">তদন্তকারী অ্যাডমিন দলের সাথে নিরাপদ ও সরাসরি মেসেজিং কথোপকথন</p>
+                  <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Messages & Inquiries</h1>
+                  <p class="text-xs text-slate-500 mt-0.5">Secure, direct communications with case investigators and administrators</p>
                 </div>
               </div>
             </div>
 
-            <button id="refresh-convs-btn" class="p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white text-xs transition self-start sm:self-auto" title="রিফ্রেশ">
-              <svg class="w-4 h-4 ${isLoadingConversations ? 'animate-spin' : ''}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <button id="refresh-convs-btn" class="p-2 rounded-lg bg-white border border-slate-300 text-slate-600 hover:text-slate-900 text-xs transition self-start sm:self-auto" title="Refresh conversations" aria-label="Refresh conversations">
+              <svg class="w-4 h-4 ${isLoadingConversations ? 'animate-spin' : ''}" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
             </button>
@@ -43,9 +43,9 @@ export async function renderUserMessagesPage(container, initialConversationId = 
           ${
             errorMessage
               ? `
-            <div class="p-4 rounded-xl bg-red-950/60 border border-red-800 text-red-200 text-xs flex items-center justify-between">
+            <div class="p-4 rounded-xl bg-red-50 border border-red-300 text-red-800 text-xs flex items-center justify-between" role="alert">
               <span>⚠️ ${errorMessage}</span>
-              <button id="dismiss-err-btn" class="text-red-400 hover:text-red-200">✕</button>
+              <button id="dismiss-err-btn" class="text-red-600 hover:text-red-800 font-bold" aria-label="Dismiss alert">✕</button>
             </div>
           `
               : ''
@@ -54,38 +54,38 @@ export async function renderUserMessagesPage(container, initialConversationId = 
           ${
             successMessage
               ? `
-            <div class="p-4 rounded-xl bg-emerald-950/60 border border-emerald-800 text-emerald-200 text-xs flex items-center justify-between">
+            <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs flex items-center justify-between" role="status">
               <span>✓ ${successMessage}</span>
-              <button id="dismiss-succ-btn" class="text-emerald-400 hover:text-emerald-200">✕</button>
+              <button id="dismiss-succ-btn" class="text-emerald-700 hover:text-emerald-900 font-bold" aria-label="Dismiss message">✕</button>
             </div>
           `
               : ''
           }
 
           <!-- Messaging Layout: 2 Columns on desktop -->
-          <div class="grid grid-cols-1 md:grid-cols-12 gap-6 bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden shadow-xl min-h-[550px]">
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-6 bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm min-h-[550px]">
             <!-- Left: Conversations List (5 cols) -->
-            <div class="md:col-span-5 border-b md:border-b-0 md:border-r border-slate-800 flex flex-col bg-slate-900/40">
-              <div class="p-4 border-b border-slate-800 flex items-center justify-between">
-                <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">কথোপকথনসমূহ</span>
-                <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400">
-                  ${conversations.length} টি
+            <div class="md:col-span-5 border-b md:border-b-0 md:border-r border-slate-200 flex flex-col bg-slate-50/50">
+              <div class="p-4 border-b border-slate-200 flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">Conversations</span>
+                <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-200 text-slate-700">
+                  ${conversations.length} total
                 </span>
               </div>
 
-              <div class="flex-1 overflow-y-auto divide-y divide-slate-800/80 max-h-[500px]">
+              <div class="flex-1 overflow-y-auto divide-y divide-slate-100 max-h-[500px]">
                 ${
                   isLoadingConversations
                     ? `
-                  <div class="p-8 text-center text-xs text-slate-500">কথোপকথন লোড হচ্ছে...</div>
+                  <div class="p-8 text-center text-xs text-slate-500">Loading conversations...</div>
                 `
                     : conversations.length === 0
                     ? `
                   <div class="p-8 text-center space-y-2">
-                    <span class="text-3xl block">✉️</span>
-                    <p class="text-xs font-semibold text-slate-300">কোনো কথোপকথন নেই</p>
+                    <span class="text-3xl block" aria-hidden="true">✉️</span>
+                    <p class="text-xs font-semibold text-slate-800">No active conversations</p>
                     <p class="text-[11px] text-slate-500 leading-relaxed">
-                      অভিযোগ সংক্রান্ত প্রয়োজনে অ্যাডমিন দল থেকে বার্তা পাঠানো হলে এখানে প্রদর্শিত হবে।
+                      Inquiries from the investigation team regarding your cases will appear here.
                     </p>
                   </div>
                 `
@@ -97,32 +97,32 @@ export async function renderUserMessagesPage(container, initialConversationId = 
                           data-conv-id="${conv.conversationId}"
                           class="w-full text-left p-4 transition flex flex-col gap-1.5 ${
                             isSelected
-                              ? 'bg-indigo-950/60 border-l-4 border-indigo-500'
-                              : 'hover:bg-slate-800/40'
+                              ? 'bg-emerald-50 border-l-4 border-emerald-600'
+                              : 'hover:bg-slate-100/70'
                           }"
                         >
                           <div class="flex items-center justify-between gap-2">
-                            <span class="text-xs font-bold text-white truncate">
-                              ${conv.complaintId ? 'অভিযোগ সংক্রান্ত বার্তা' : 'প্রশাসনিক যোগাযোগ'}
+                            <span class="text-xs font-bold text-slate-900 truncate">
+                              ${conv.complaintId ? 'Complaint Inquiry' : 'Administrative Message'}
                             </span>
                             ${
                               conv.unread
                                 ? `
-                              <span class="text-[9px] px-1.5 py-0.2 rounded bg-indigo-500 text-white font-bold">
-                                নতুন
+                              <span class="text-[9px] px-1.5 py-0.2 rounded bg-emerald-600 text-white font-bold">
+                                New
                               </span>
                             `
                                 : ''
                             }
                           </div>
 
-                          <p class="text-xs text-slate-300 truncate">
-                            ${conv.lastMessage || 'কোনো পূর্ববর্তী বার্তা নেই'}
+                          <p class="text-xs text-slate-600 truncate">
+                            ${conv.lastMessage || 'No previous messages'}
                           </p>
 
                           <div class="flex items-center justify-between text-[10px] text-slate-500 font-mono pt-0.5">
                             <span>${formatDateTime(conv.lastMessageAt)}</span>
-                            ${conv.complaintId ? `<span class="text-slate-400 font-mono">ID: ${String(conv.complaintId).slice(-6)}</span>` : ''}
+                            ${conv.complaintId ? `<span class="text-slate-500 font-mono">ID: ${String(conv.complaintId).slice(-6)}</span>` : ''}
                           </div>
                         </button>
                       `;
@@ -133,30 +133,30 @@ export async function renderUserMessagesPage(container, initialConversationId = 
             </div>
 
             <!-- Right: Active Conversation Thread (7 cols) -->
-            <div class="md:col-span-7 flex flex-col bg-slate-950/40">
+            <div class="md:col-span-7 flex flex-col bg-white">
               ${
                 !selectedConversationId
                   ? `
                 <div class="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-3">
-                  <span class="text-4xl">💬</span>
-                  <h3 class="text-sm font-bold text-slate-300">একটি কথোপকথন নির্বাচন করুন</h3>
+                  <span class="text-4xl" aria-hidden="true">💬</span>
+                  <h3 class="text-sm font-bold text-slate-800">Select a Conversation</h3>
                   <p class="text-xs text-slate-500 max-w-sm">
-                    বামপাশের তালিকা থেকে যেকোনো মেসেজ থ্রেড বেছে নিয়ে বিস্তারিত বার্তা দেখুন এবং উত্তর দিন।
+                    Choose a thread from the list on the left to read messages and submit replies.
                   </p>
                 </div>
               `
                   : `
                 <!-- Thread Header -->
-                <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/60">
+                <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
                   <div class="space-y-0.5">
-                    <span class="text-xs font-bold text-white block">মেসেজ থ্রেড</span>
+                    <span class="text-xs font-bold text-slate-900 block">Message Thread</span>
                     <span class="text-[10px] font-mono text-slate-500 truncate block">
                       ${selectedConversationId}
                     </span>
                   </div>
 
-                  <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">
-                    অপরিবর্তনযোগ্য (Immutable)
+                  <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
+                    Immutable Record
                   </span>
                 </div>
 
@@ -165,28 +165,29 @@ export async function renderUserMessagesPage(container, initialConversationId = 
                   ${
                     isLoadingMessages
                       ? `
-                    <div class="py-12 text-center text-xs text-slate-500">বার্তা লোড হচ্ছে...</div>
+                    <div class="py-12 text-center text-xs text-slate-500">Loading messages...</div>
                   `
                       : activeMessages.length === 0
                       ? `
-                    <div class="py-12 text-center text-xs text-slate-500">এই থ্রেডে কোনো বার্তা পাওয়া যায়নি।</div>
+                    <div class="py-12 text-center text-xs text-slate-500">No messages found in this thread.</div>
                   `
                       : activeMessages.map((m) => renderMessageBubble(m)).join('')
                   }
                 </div>
 
                 <!-- Reply Input Area -->
-                <div class="p-4 border-t border-slate-800 bg-slate-900/80 space-y-3">
-                  <div class="text-[10px] text-slate-400 flex items-center justify-between">
-                    <span>* বার্তা পাঠানোর পর তা মুছে ফেলা বা পরিবর্তন করা যায় না (Section 33)।</span>
+                <div class="p-4 border-t border-slate-200 bg-slate-50 space-y-3">
+                  <div class="text-[10px] text-slate-500 flex items-center justify-between">
+                    <span>* Messages are permanently logged for audit and legal record compliance.</span>
                   </div>
 
                   <form id="reply-form" class="space-y-3">
+                    <label for="reply-body-input" class="sr-only">Reply Message</label>
                     <textarea 
                       id="reply-body-input" 
                       rows="3" 
-                      placeholder="আপনার উত্তর বা প্রয়োজনীয় তথ্য লিখুন..." 
-                      class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 resize-none"
+                      placeholder="Type your response or additional information here..." 
+                      class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 resize-none"
                       required
                     ></textarea>
 
@@ -194,13 +195,13 @@ export async function renderUserMessagesPage(container, initialConversationId = 
                       <button 
                         type="submit" 
                         id="send-reply-btn"
-                        class="px-5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow transition flex items-center gap-2 ${
+                        class="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition flex items-center gap-2 ${
                           isSendingReply ? 'opacity-60 cursor-not-allowed' : ''
                         }"
                         ${isSendingReply ? 'disabled' : ''}
                       >
-                        <span>${isSendingReply ? 'পাঠানো হচ্ছে...' : 'উত্তর পাঠান'}</span>
-                        <span>➤</span>
+                        <span>${isSendingReply ? 'Sending...' : 'Send Reply'}</span>
+                        <span aria-hidden="true">➤</span>
                       </button>
                     </div>
                   </form>
@@ -225,31 +226,31 @@ export async function renderUserMessagesPage(container, initialConversationId = 
           ${
             isAdmin
               ? `
-            <span class="text-[10px] font-bold px-1.5 py-0.2 rounded bg-indigo-950 text-indigo-300 border border-indigo-800">
-              🛡️ অ্যাডমিন
+            <span class="text-[10px] font-bold px-1.5 py-0.2 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">
+              🛡️ Admin
             </span>
           `
               : `
-            <span class="text-[10px] font-bold px-1.5 py-0.2 rounded bg-slate-800 text-slate-300">
-              👤 আপনি
+            <span class="text-[10px] font-bold px-1.5 py-0.2 rounded bg-slate-100 text-slate-700 border border-slate-200">
+              👤 You
             </span>
           `
           }
-          <span class="text-[10px] text-slate-500 font-mono">${formatDateTime(msg.createdAt)}</span>
+          <span class="text-[10px] text-slate-400 font-mono">${formatDateTime(msg.createdAt)}</span>
         </div>
 
         <div class="max-w-md p-3.5 rounded-2xl text-xs leading-relaxed ${
           isAdmin
-            ? 'bg-slate-800/90 text-slate-100 rounded-tl-sm border border-slate-700'
-            : 'bg-indigo-600 text-white rounded-tr-sm shadow-md'
+            ? 'bg-slate-100 text-slate-800 rounded-tl-sm border border-slate-200'
+            : 'bg-emerald-600 text-white rounded-tr-sm shadow-xs'
         }">
           <p class="whitespace-pre-wrap">${msg.body}</p>
 
           ${
             msg.attachmentEvidenceIds && msg.attachmentEvidenceIds.length > 0
               ? `
-            <div class="mt-2 pt-2 border-t border-slate-700/60 text-[10px] text-slate-300">
-              <span>সংযুক্ত প্রমাণপত্র: ${msg.attachmentEvidenceIds.length} টি</span>
+            <div class="mt-2 pt-2 border-t ${isAdmin ? 'border-slate-200 text-slate-600' : 'border-emerald-500/60 text-emerald-100'} text-[10px]">
+              <span>Attached Evidence Items: ${msg.attachmentEvidenceIds.length}</span>
             </div>
           `
               : ''
@@ -314,11 +315,11 @@ export async function renderUserMessagesPage(container, initialConversationId = 
             body: text,
           });
 
-          successMessage = 'বার্তা সফলভাবে পাঠানো হয়েছে।';
+          successMessage = 'Message sent successfully.';
           await loadConversationMessages(selectedConversationId);
           await loadConversations(false);
         } catch (err) {
-          errorMessage = err.message || 'বার্তা পাঠাতে ব্যর্থ হয়েছে।';
+          errorMessage = err.message || 'Failed to send message.';
         } finally {
           isSendingReply = false;
           render();
@@ -336,7 +337,6 @@ export async function renderUserMessagesPage(container, initialConversationId = 
       const res = await userService.getConversation(convId);
       activeMessages = Array.isArray(res.data) ? res.data : [];
 
-      // Auto scroll to bottom
       setTimeout(() => {
         const msgContainer = container.querySelector('#messages-container');
         if (msgContainer) {
@@ -344,7 +344,7 @@ export async function renderUserMessagesPage(container, initialConversationId = 
         }
       }, 50);
     } catch (err) {
-      errorMessage = err.message || 'মেসেজ লোড করতে ব্যর্থ হয়েছে।';
+      errorMessage = err.message || 'Failed to load conversation messages.';
     } finally {
       isLoadingMessages = false;
       render();
@@ -366,7 +366,7 @@ export async function renderUserMessagesPage(container, initialConversationId = 
         return;
       }
     } catch (err) {
-      errorMessage = err.message || 'কথোপকথন তালিকা লোড করতে ব্যর্থ হয়েছে।';
+      errorMessage = err.message || 'Failed to load conversations list.';
     } finally {
       isLoadingConversations = false;
       render();

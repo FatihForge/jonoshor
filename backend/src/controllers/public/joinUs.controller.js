@@ -4,12 +4,15 @@ import { sendSuccess } from '../../utils/response.js';
 export const publicJoinUsController = {
   async submit(req, res, next) {
     try {
-      const submission = await joinUsService.submit(req.body);
+      const files = req.files || (req.file ? [req.file] : []);
+      const submission = await joinUsService.submit(req.body, files);
+
       return sendSuccess(
         res,
         {
           id: submission._id,
-          message: 'আপনার আবেদনটি সফলভাবে গৃহীত হয়েছে। পর্যালোচনার পর আমাদের পক্ষ থেকে যোগাযোগ করা হবে।',
+          message:
+            'আপনার আবেদনটি সফলভাবে গৃহীত হয়েছে। আমাদের টিম পর্যালোচনা করে আপনার সাথে যোগাযোগ করবে।',
         },
         null,
         201

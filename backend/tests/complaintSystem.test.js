@@ -176,6 +176,22 @@ describe('Phase 9, 10 & 11 — Reporter System & Complaint Flows', () => {
     assert.equal(sixthRes.status, 403);
     assert.equal(sixthRes.body.success, false);
     assert.equal(sixthRes.body.error.code, 'ACCOUNT_REQUIRED');
+
+    // Attempt 5-limit bypass with rotated email from the same IP/session — MUST ALSO BE DENIED!
+    const rotatedPayload = {
+      ...validComplaintPayload,
+      contact: {
+        email: `rotated_bypass_${Date.now()}@jonoshor-test.org`,
+        mobile: '01899999992',
+      },
+    };
+    const rotatedRes = await request(app)
+      .post('/api/v1/public/complaints')
+      .send(rotatedPayload);
+
+    assert.equal(rotatedRes.status, 403);
+    assert.equal(rotatedRes.body.success, false);
+    assert.equal(rotatedRes.body.error.code, 'ACCOUNT_REQUIRED');
   });
 
   test('6. Non-user later registers account: existing reporter record is linked without creating new Reporter ID', async () => {

@@ -90,11 +90,51 @@ All approved specification documents are in `docs/`:
 
 ---
 
-## Local Development
+## Local Development & Super Admin Bootstrap
 
-> Prerequisites: Node.js, npm, MongoDB Atlas account, Google Cloud Storage bucket.
+### 1. Prerequisites
+- Node.js (v20+ recommended)
+- MongoDB instance (MongoDB Atlas or local MongoDB)
 
-Setup instructions will be added during Phase 1 (Monorepo Initialization).
+### 2. Initial Setup
+```bash
+# Install dependencies across monorepo
+npm install
+```
+
+### 3. Bootstrap Initial Super Admin
+Super Admin account creation is restricted and **cannot** be done through public registration APIs or web interfaces.
+
+Run the secure CLI bootstrap script:
+```bash
+# From repository root
+npm run bootstrap:super-admin
+
+# Or from backend directory
+cd backend
+npm run bootstrap:super-admin
+```
+
+**Bootstrap Security Rules:**
+- **Single Execution:** The bootstrap utility checks the database first. If any Super Admin already exists, the script safely aborts and will not create a duplicate.
+- **Argon2id Hashing:** Passwords are never stored in plaintext and are hashed using Argon2id.
+- **Mandatory 2FA (TOTP):** The command generates an Authenticator QR code and secret key in the terminal. You must scan it and verify a 6-digit TOTP code before the account is activated.
+- **Non-Interactive / CI Option:** For automated environments, environment variables `BOOTSTRAP_SUPERADMIN_NAME`, `BOOTSTRAP_SUPERADMIN_EMAIL`, `BOOTSTRAP_SUPERADMIN_PASSWORD`, and `BOOTSTRAP_SKIP_PROMPT=1` can be passed.
+
+### 4. Running the Platform
+```bash
+# Start backend API (http://localhost:5000)
+npm run dev:backend
+
+# Start frontend application (http://localhost:5173)
+npm run dev:frontend
+```
+
+### 5. Accessing Super Admin Console
+1. Navigate to: `http://localhost:5173/#/login`
+2. Enter your bootstrapped Super Admin email and password.
+3. Enter the 6-digit TOTP code from your Authenticator app.
+4. You will be automatically redirected to the root executive console: `http://localhost:5173/#/super-admin/dashboard`.
 
 ---
 

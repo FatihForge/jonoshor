@@ -15,6 +15,32 @@ export const authService = {
     return res;
   },
 
+  async verify2FA(temp2FAToken, totpCode, accountType = null) {
+    const endpoint = accountType === 'superAdmin'
+      ? '/auth/super-admin/2fa/verify'
+      : accountType === 'admin'
+        ? '/auth/admin/2fa/verify'
+        : '/auth/2fa/verify';
+    const res = await apiRequest(endpoint, {
+      method: 'POST',
+      body: { temp2FAToken, totpCode },
+    });
+    if (res.data?.account) {
+      currentUser = res.data.account;
+    }
+    return res;
+  },
+
+  async setup2FA(temp2FAToken, accountType = null) {
+    const endpoint = accountType === 'superAdmin'
+      ? '/auth/super-admin/2fa/setup'
+      : '/auth/admin/2fa/setup';
+    return await apiRequest(endpoint, {
+      method: 'POST',
+      body: { temp2FAToken },
+    });
+  },
+
   async logout() {
     try {
       await apiRequest('/auth/logout', { method: 'POST' });
@@ -45,6 +71,11 @@ export const authService = {
   },
 
   getCurrentUser() {
+    return currentUser;
+  },
+
+  setCurrentUser(user) {
+    currentUser = user;
     return currentUser;
   },
 

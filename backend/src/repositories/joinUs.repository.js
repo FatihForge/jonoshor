@@ -11,7 +11,17 @@ export const joinUsRepository = {
 
   async findByEmail(email) {
     if (!email) return null;
-    return await JoinUsSubmission.findOne({ email: email.toLowerCase() }).exec();
+    return await JoinUsSubmission.findOne({ email: email.toLowerCase() })
+      .sort({ submittedAt: -1 })
+      .exec();
+  },
+
+  async findPendingByEmail(email) {
+    if (!email) return null;
+    return await JoinUsSubmission.findOne({
+      email: email.toLowerCase(),
+      submissionStatus: 'submitted',
+    }).exec();
   },
 
   async find(filter = {}, { skip = 0, limit = 20, sort = { submittedAt: -1 } } = {}) {

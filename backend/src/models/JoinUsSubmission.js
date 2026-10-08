@@ -1,5 +1,81 @@
 import mongoose from 'mongoose';
 
+const joinUsDocumentSchema = new mongoose.Schema(
+  {
+    type: {
+      type: String,
+      enum: ['cv', 'recommendation_letter', 'work_experience_document', 'other'],
+      default: 'cv',
+    },
+    originalFilename: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    mimeType: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    size: {
+      type: Number,
+      required: true,
+    },
+    checksum: {
+      type: String,
+      trim: true,
+    },
+    driveFileId: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    storageReference: {
+      type: String,
+      trim: true,
+    },
+    scanStatus: {
+      type: String,
+      enum: ['clean', 'quarantined', 'infected', 'pending'],
+      default: 'clean',
+    },
+    reviewStatus: {
+      type: String,
+      enum: ['pending', 'verified', 'rejected'],
+      default: 'pending',
+    },
+    uploadedAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  { _id: true }
+);
+
+const joinUsNoteSchema = new mongoose.Schema(
+  {
+    adminId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Admin',
+      required: true,
+    },
+    adminName: {
+      type: String,
+      trim: true,
+    },
+    content: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  { _id: true }
+);
+
 const joinUsSubmissionSchema = new mongoose.Schema(
   {
     fullName: {
@@ -57,13 +133,7 @@ const joinUsSubmissionSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
-    documents: [
-      {
-        type: { type: String, enum: ['cv', 'recommendation_letter', 'work_experience_document', 'other'] },
-        driveFileId: { type: String, trim: true },
-        originalFilename: { type: String },
-      },
-    ],
+    documents: [joinUsDocumentSchema],
     submissionStatus: {
       type: String,
       enum: ['submitted', 'reviewed', 'accepted', 'rejected'],
@@ -72,6 +142,16 @@ const joinUsSubmissionSchema = new mongoose.Schema(
     },
     adminNotes: {
       type: String,
+    },
+    notes: [joinUsNoteSchema],
+    isDuplicate: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    duplicateOf: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'JoinUsSubmission',
     },
     submittedAt: {
       type: Date,
@@ -84,5 +164,8 @@ const joinUsSubmissionSchema = new mongoose.Schema(
     collection: 'joinUsSubmissions',
   }
 );
+
+joinUsSubmissionSchema.index({ email: 1, submittedAt: -1 });
+joinUsSubmissionSchema.index({ submissionStatus: 1, submittedAt: -1 });
 
 export const JoinUsSubmission = mongoose.model('JoinUsSubmission', joinUsSubmissionSchema);

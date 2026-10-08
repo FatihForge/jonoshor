@@ -1682,6 +1682,73 @@ Audit
 
 ---
 
+# 64.1 `joinUsSubmissions`
+
+Dedicated private MongoDB collection for volunteer & professional contributor expressions of interest.
+Join Us is NOT normal User registration, NOT public profile, and NOT public member directory.
+
+```text
+joinUsSubmissions
+```
+
+Fields:
+
+```text
+_id
+fullName: String (required, 2-120 chars)
+email: String (required, lowercase, indexed)
+contactInformation:
+  mobile: String
+  address: String
+primaryProfession: String (required)
+secondaryProfessions: [String]
+customProfession: String
+primaryContributionRole: String (required)
+secondaryContributionRoles: [String]
+contributionDetails: String (required)
+socialLinks: [String]
+linkedin: String
+portfolio: String
+documents: [
+  {
+    _id: ObjectId
+    type: 'cv' | 'recommendation_letter' | 'work_experience_document' | 'other'
+    originalFilename: String
+    mimeType: String
+    size: Number
+    checksum: String
+    driveFileId: String
+    storageReference: String
+    scanStatus: 'clean' | 'quarantined' | 'infected' | 'pending'
+    reviewStatus: 'pending' | 'verified' | 'rejected'
+    uploadedAt: Date
+  }
+]
+submissionStatus: 'submitted' | 'reviewed' | 'accepted' | 'rejected' (default: 'submitted')
+adminNotes: String
+notes: [
+  {
+    _id: ObjectId
+    adminId: ObjectId (ref: Admin)
+    adminName: String
+    content: String
+    createdAt: Date
+  }
+]
+isDuplicate: Boolean (default: false, indexed)
+duplicateOf: ObjectId (ref: JoinUsSubmission)
+submittedAt: Date (default: Date.now, indexed)
+createdAt: Date
+updatedAt: Date
+```
+
+Indexes:
+* `{ email: 1, submittedAt: -1 }`
+* `{ submissionStatus: 1, submittedAt: -1 }`
+* `{ isDuplicate: 1 }`
+
+---
+
 # 65. Schema Implementation Rule
 
 Developer/AI coding assistant:

@@ -1,9 +1,9 @@
-export function formatDate(dateStr) {
+export function formatDate(dateStr, locale = 'en-US') {
   if (!dateStr) return '—';
   try {
     const d = new Date(dateStr);
     if (isNaN(d.getTime())) return '—';
-    return d.toLocaleDateString('bn-BD', {
+    return d.toLocaleDateString(locale, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -13,12 +13,12 @@ export function formatDate(dateStr) {
   }
 }
 
-export function formatDateTime(dateStr) {
+export function formatDateTime(dateStr, locale = 'en-US') {
   if (!dateStr) return '—';
   try {
     const d = new Date(dateStr);
     if (isNaN(d.getTime())) return '—';
-    return d.toLocaleString('bn-BD', {
+    return d.toLocaleString(locale, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',

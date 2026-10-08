@@ -5,8 +5,8 @@ import { superAdminService } from '../../services/superAdmin/superAdminService.j
  * Prompts Super Admin for password and 2FA TOTP code, then obtains short-lived critical reAuthToken.
  */
 export function showReAuthModal({
-  title = 'গুরুত্বপূর্ণ সিদ্ধান্তের জন্য পুনঃপ্রমাণীকরণ (Re-Authentication)',
-  description = 'এই সংবেদনশীল প্রশাসনিক পরিবর্তনটি কার্যকর করতে আপনার পাসওয়ার্ড এবং ২-ফ্যাক্টর (2FA) কোড যাচাই করুন।',
+  title = 'Critical Action Re-Authentication',
+  description = 'Verify your Super Admin password and 2FA authenticator code to execute this sensitive operation.',
   onSuccess,
 }) {
   const existing = document.getElementById('superadmin-reauth-modal');
@@ -14,21 +14,24 @@ export function showReAuthModal({
 
   const modal = document.createElement('div');
   modal.id = 'superadmin-reauth-modal';
-  modal.className = 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in';
+  modal.className = 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-fade-in';
+  modal.setAttribute('role', 'dialog');
+  modal.setAttribute('aria-modal', 'true');
+  modal.setAttribute('aria-labelledby', 'reauth-title');
   modal.innerHTML = `
-    <div class="bg-slate-900 border border-purple-700/60 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+    <div class="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-6 shadow-xl relative text-slate-800" role="document">
       <!-- Header -->
-      <div class="flex items-start justify-between pb-3 border-b border-slate-800">
+      <div class="flex items-start justify-between pb-3 border-b border-slate-100">
         <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-xl bg-purple-950 border border-purple-700 text-purple-300 flex items-center justify-center font-bold text-lg">
+          <div class="w-9 h-9 rounded-xl bg-purple-50 border border-purple-200 text-purple-700 flex items-center justify-center font-bold text-lg" aria-hidden="true">
             🔒
           </div>
           <div>
-            <h3 class="text-base font-bold text-white">${title}</h3>
-            <p class="text-[11px] text-slate-400 mt-0.5">${description}</p>
+            <h3 id="reauth-title" class="text-base font-bold text-slate-900">${title}</h3>
+            <p class="text-[11px] text-slate-500 mt-0.5">${description}</p>
           </div>
         </div>
-        <button id="reauth-close-btn" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition">
+        <button id="reauth-close-btn" aria-label="Close dialog" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition focus-visible:ring-2 focus-visible:ring-purple-600">
           ✕
         </button>
       </div>
@@ -36,21 +39,21 @@ export function showReAuthModal({
       <!-- Body / Form -->
       <form id="reauth-form" class="py-4 space-y-4">
         <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">
-            সুপার অ্যাডমিন পাসওয়ার্ড <span class="text-rose-400">*</span>
+          <label for="reauth-password" class="block text-xs font-semibold text-slate-700 mb-1">
+            Super Admin Password <span class="text-rose-600">*</span>
           </label>
           <input
             type="password"
             id="reauth-password"
             required
-            placeholder="আপনার অ্যাকাউন্টের বর্তমান পাসওয়ার্ড"
-            class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+            placeholder="Enter your current password"
+            class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-purple-600 focus:ring-2 focus:ring-purple-600/20"
           />
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">
-            ২-ফ্যাক্টর অথেনটিকেটর কোড (TOTP Code) <span class="text-rose-400">*</span>
+          <label for="reauth-totp" class="block text-xs font-semibold text-slate-700 mb-1">
+            2-Factor Authenticator Code (TOTP) <span class="text-rose-600">*</span>
           </label>
           <input
             type="text"
@@ -58,36 +61,36 @@ export function showReAuthModal({
             required
             maxlength="6"
             pattern="[0-9]{6}"
-            placeholder="৬ ডিজিটের কোড (যেমন: 123456)"
-            class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono tracking-widest text-center text-slate-100 placeholder-slate-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+            placeholder="6-digit code (e.g. 123456)"
+            class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono tracking-widest text-center text-slate-900 placeholder-slate-400 focus:outline-none focus:border-purple-600 focus:ring-2 focus:ring-purple-600/20"
           />
         </div>
 
-        <div id="reauth-error-banner" class="hidden p-3 bg-red-950/80 border border-red-800 rounded-xl text-xs text-red-200 flex items-start gap-2">
-          <span class="text-red-400 font-bold">⚠️</span>
-          <span id="reauth-error-text">যাচাইকরণ ব্যর্থ হয়েছে।</span>
+        <div id="reauth-error-banner" role="alert" aria-live="assertive" class="hidden p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 flex items-start gap-2">
+          <span class="text-red-600 font-bold" aria-hidden="true">⚠️</span>
+          <span id="reauth-error-text">Re-authentication failed.</span>
         </div>
 
-        <div class="p-3 bg-purple-950/40 border border-purple-800/40 rounded-xl text-[11px] text-purple-300/90 leading-relaxed">
-          🛡️ এই পুনঃপ্রমাণীকরণ টোকেনটি স্বল্পমেয়াদী (৫ মিনিট) এবং শুধুমাত্র এই নির্দিষ্ট ক্রিয়াকলাপের জন্য প্রযোজ্য হবে।
+        <div class="p-3 bg-purple-50 border border-purple-200 rounded-lg text-[11px] text-purple-900 leading-relaxed">
+          🛡️ This re-authentication token is valid for 5 minutes and strictly authorized for this action only.
         </div>
 
         <!-- Footer Buttons -->
-        <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-800">
+        <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
           <button
             type="button"
             id="reauth-cancel-btn"
-            class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition"
+            class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition focus-visible:ring-2 focus-visible:ring-slate-400"
           >
-            বাতিল
+            Cancel
           </button>
           <button
             type="submit"
             id="reauth-submit-btn"
-            class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold shadow-lg shadow-purple-950/60 transition flex items-center gap-2"
+            class="px-5 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold shadow-sm transition flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-purple-600"
           >
-            <span id="reauth-spinner" class="hidden w-3.5 h-3.5 border-2 border-white/20 border-t-white rounded-full animate-spin"></span>
-            <span id="reauth-btn-text">যাচাই করে কার্যকর করুন</span>
+            <span id="reauth-spinner" class="hidden w-3.5 h-3.5 border-2 border-white/20 border-t-white rounded-full animate-spin" aria-hidden="true"></span>
+            <span id="reauth-btn-text">Verify & Execute</span>
           </button>
         </div>
       </form>
@@ -107,16 +110,26 @@ export function showReAuthModal({
   const spinner = modal.querySelector('#reauth-spinner');
   const btnText = modal.querySelector('#reauth-btn-text');
 
-  const closeModal = () => modal.remove();
+  const closeModal = () => {
+    document.removeEventListener('keydown', handleKeyDown);
+    modal.remove();
+  };
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Escape') {
+      closeModal();
+    }
+  };
+
+  document.addEventListener('keydown', handleKeyDown);
   closeBtn.addEventListener('click', closeModal);
   cancelBtn.addEventListener('click', closeModal);
   modal.addEventListener('click', (e) => {
     if (e.target === modal) closeModal();
   });
 
-  // Focus password
-  passwordInput.focus();
+  // Focus password field on open
+  setTimeout(() => passwordInput?.focus(), 50);
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -124,7 +137,7 @@ export function showReAuthModal({
     errorText.textContent = '';
     submitBtn.disabled = true;
     spinner.classList.remove('hidden');
-    btnText.textContent = 'যাচাই করা হচ্ছে...';
+    btnText.textContent = 'Verifying...';
 
     const password = passwordInput.value.trim();
     const totpCode = totpInput.value.trim();
@@ -133,7 +146,7 @@ export function showReAuthModal({
       const res = await superAdminService.reAuthenticate({ password, totpCode });
       const reAuthToken = res?.data?.reAuthToken;
       if (!reAuthToken) {
-        throw new Error('পুনঃপ্রমাণীকরণ টোকেন ইস্যু করা যায়নি');
+        throw new Error('Re-authentication token was not issued');
       }
 
       closeModal();
@@ -141,12 +154,12 @@ export function showReAuthModal({
         await onSuccess(reAuthToken);
       }
     } catch (err) {
-      errorText.textContent = err?.message || 'পুনঃপ্রমাণীকরণ ব্যর্থ হয়েছে। সঠিক পাসওয়ার্ড ও 2FA কোড প্রদান করুন।';
+      errorText.textContent = err?.message || 'Re-authentication failed. Please enter the correct password and 2FA code.';
       errorBanner.classList.remove('hidden');
     } finally {
       submitBtn.disabled = false;
       spinner.classList.add('hidden');
-      btnText.textContent = 'যাচাই করে কার্যকর করুন';
+      btnText.textContent = 'Verify & Execute';
     }
   });
 

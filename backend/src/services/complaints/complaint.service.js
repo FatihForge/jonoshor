@@ -4,6 +4,7 @@ import { reporterService } from '../reporter/reporter.service.js';
 import { correctionRequestRepository } from '../../repositories/correctionRequest.repository.js';
 import { publicReportRepository } from '../../repositories/publicReport.repository.js';
 import { auditService } from '../audit/audit.service.js';
+import { buildSecurityIdentifiers } from '../../utils/securityIdentifiers.js';
 import {
   COMPLAINT_STATUS,
   SUBMISSION_TYPES,
@@ -19,7 +20,14 @@ export const complaintService = {
   /**
    * Submit a new complaint (handles both User and Non-User flows)
    */
-  async createComplaint({ user = null, complaintData, ip = null, userAgent = null }) {
+  async createComplaint({
+    user = null,
+    complaintData,
+    ip = null,
+    userAgent = null,
+    req = null,
+    anonymousSubmissionId = null,
+  }) {
     const isUser = Boolean(user && user.id);
     const isDraft = isUser && Boolean(complaintData.isDraft || complaintData.status === 'draft');
     const submissionType = isUser ? SUBMISSION_TYPES.USER : SUBMISSION_TYPES.NON_USER;
@@ -37,6 +45,22 @@ export const complaintService = {
       throw new ValidationError('A valid contact method (email or mobile) is required for submission');
     }
 
+    // Construct rich security identifiers metadata across all signals
+    const builtSecurityIdentifiers = buildSecurityIdentifiers({
+      req,
+      ip,
+      userAgent,
+      location: complaintData.location,
+      anonymousSubmissionId,
+      source: isUser ? 'user_portal' : 'public_web',
+      securityEvents: [
+        {
+          event: isDraft ? 'DRAFT_CREATED' : 'COMPLAINT_SUBMISSION_INITIATED',
+          timestamp: new Date(),
+        },
+      ],
+    });
+
     // 1. Resolve persistent Reporter record
     const reporter = await reporterService.findOrCreateReporter({
       accountId: isUser ? user.id : null,
@@ -44,12 +68,16 @@ export const complaintService = {
       mobile,
       reporterType: submissionType,
       identityVisibility: complaintData.identityVisibility || 'private',
-      securityIdentifiers: { ip, userAgent },
+      securityIdentifiers: builtSecurityIdentifiers,
     });
 
-    // 2. Enforce 5-complaint non-user limit (only for non-users submitting)
-    if (!isUser) {
-      await reporterService.validateNonUserLimit(reporter);
+    // 2. Enforce 5-complaint non-user limit across IP, browser signals, security signals, and reporter identity
+    if (!isUser && !isDraft) {
+      await reporterService.validateNonUserLimit({
+        reporter,
+        ip: builtSecurityIdentifiers.ip,
+        securityIdentifiers: builtSecurityIdentifiers,
+      });
     }
 
     const initialStatus = isDraft ? COMPLAINT_STATUS.DRAFT : COMPLAINT_STATUS.SUBMITTED;
@@ -90,11 +118,12 @@ export const complaintService = {
         },
       ],
       correctionCount: 0,
+      securityIdentifiers: builtSecurityIdentifiers,
     });
 
-    // 4. If non-user submission, increment their complaint counter
+    // 4. If non-user submission, increment their complaint counter & update securityIdentifiers
     if (!isUser && !isDraft) {
-      await reporterService.recordSubmission(reporter._id);
+      await reporterService.recordSubmission(reporter._id, builtSecurityIdentifiers);
     }
 
     // 5. Audit log

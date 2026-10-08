@@ -33,11 +33,23 @@ export const reporterRepository = {
     ).exec();
   },
 
-  async incrementComplaintCount(reporterId) {
-    return await Reporter.findByIdAndUpdate(
-      reporterId,
-      { $inc: { nonUserComplaintCount: 1 } },
-      { new: true }
-    ).exec();
+  async incrementComplaintCount(reporterId, securityIdentifiers = null) {
+    const update = { $inc: { nonUserComplaintCount: 1 } };
+    if (securityIdentifiers) {
+      update.$set = {
+        'securityIdentifiers.timestamp': securityIdentifiers.timestamp,
+        'securityIdentifiers.ip': securityIdentifiers.ip,
+        'securityIdentifiers.approximateArea': securityIdentifiers.approximateArea,
+        'securityIdentifiers.browserSessionIdentifiers': securityIdentifiers.browserSessionIdentifiers,
+        'securityIdentifiers.anonymousSubmissionId': securityIdentifiers.anonymousSubmissionId,
+        'securityIdentifiers.source': securityIdentifiers.source,
+      };
+      if (Array.isArray(securityIdentifiers.securityEvents) && securityIdentifiers.securityEvents.length > 0) {
+        update.$push = {
+          'securityIdentifiers.securityEvents': { $each: securityIdentifiers.securityEvents },
+        };
+      }
+    }
+    return await Reporter.findByIdAndUpdate(reporterId, update, { new: true }).exec();
   },
 };

@@ -61,6 +61,10 @@ export const authController = {
 
       const result = await authService.login({ email, password, ip, userAgent });
 
+      if (result.requires2FA) {
+        return sendSuccess(res, result);
+      }
+
       setAuthCookies(res, result.accessToken, result.refreshToken);
 
       return sendSuccess(res, {

@@ -19,3 +19,5 @@ export { SecurityLog } from './SecurityLog.js';
 export { District } from './District.js';
 export { Upazila } from './Upazila.js';
 export { SystemSetting } from './SystemSetting.js';
+export { ContactSubmission } from './ContactSubmission.js';
+
