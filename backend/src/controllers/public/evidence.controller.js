@@ -25,7 +25,7 @@ export const publicEvidenceController = {
   async streamPublicFile(req, res, next) {
     try {
       const { evidenceId } = req.params;
-      const { stream, mimeType, size, filename, evidence } = await evidenceService.streamEvidenceFile(evidenceId);
+      const { stream, mimeType, size, filename, evidence } = await evidenceService.streamEvidenceFile(evidenceId, { preferPublic: true });
 
       if (evidence.publicStatus !== EVIDENCE_PUBLIC_STATUS.APPROVED_PUBLIC) {
         throw new ForbiddenError('Evidence is not approved for public viewing');

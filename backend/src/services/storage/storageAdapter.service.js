@@ -71,6 +71,15 @@ export class StorageAdapterService {
   }
 
   /**
+   * Copy file to Public Evidence folder (Preserving private original)
+   */
+  async copyToPublic(driveFileId, newFilename = null) {
+    logger.info('Copying storage file to public folder', { driveFileId, newFilename });
+    return await this.provider.copyToPublic(driveFileId, newFilename);
+  }
+
+
+  /**
    * Stream file content from storage (for authenticated private access or zero-tracking public proxy)
    */
   async getFileStream(driveFileId) {

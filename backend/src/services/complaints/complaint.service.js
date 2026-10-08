@@ -4,6 +4,8 @@ import { reporterService } from '../reporter/reporter.service.js';
 import { correctionRequestRepository } from '../../repositories/correctionRequest.repository.js';
 import { publicReportRepository } from '../../repositories/publicReport.repository.js';
 import { auditService } from '../audit/audit.service.js';
+import { locationService } from '../locations/location.service.js';
+import { normalizeCategoryKey, isValidCategory } from '../../constants/complaintCategories.js';
 import { buildSecurityIdentifiers } from '../../utils/securityIdentifiers.js';
 import {
   COMPLAINT_STATUS,
@@ -43,6 +45,67 @@ export const complaintService = {
 
     if (!isDraft && !email && !mobile) {
       throw new ValidationError('A valid contact method (email or mobile) is required for submission');
+    }
+
+    // Category resolution and validation
+    const primaryCategory = normalizeCategoryKey(
+      complaintData.category?.primary || (isDraft ? 'other_human_rights_violations' : null)
+    );
+    if (!isDraft) {
+      if (!primaryCategory || !isValidCategory(primaryCategory)) {
+        throw new ValidationError('A valid primary complaint category is required');
+      }
+    }
+
+    // Secondary categories normalization
+    const secondaryCategories = Array.isArray(complaintData.category?.secondary)
+      ? complaintData.category.secondary
+          .map((c) => normalizeCategoryKey(c))
+          .filter((c) => isValidCategory(c) && c !== primaryCategory)
+      : [];
+
+    // Date precision and incident date validation
+    const datePrecision = complaintData.incident?.datePrecision || 'exact';
+    const validPrecisions = ['exact', 'approximate', 'unknown', 'range'];
+    if (!validPrecisions.includes(datePrecision)) {
+      throw new ValidationError('Invalid incident date precision specified');
+    }
+
+    if (!isDraft) {
+      if (datePrecision !== 'unknown') {
+        if (!complaintData.incident?.startDate) {
+          throw new ValidationError('Incident start date is required');
+        }
+        const startDate = new Date(complaintData.incident.startDate);
+        if (isNaN(startDate.getTime())) {
+          throw new ValidationError('Invalid incident start date format');
+        }
+        if (startDate > new Date()) {
+          throw new ValidationError('Incident start date cannot be in the future');
+        }
+        if (complaintData.incident?.endDate) {
+          const endDate = new Date(complaintData.incident.endDate);
+          if (isNaN(endDate.getTime())) {
+            throw new ValidationError('Invalid incident end date format');
+          }
+          if (endDate < startDate) {
+            throw new ValidationError('Incident end date cannot be earlier than start date');
+          }
+        }
+      }
+
+      // Location validation
+      if (!complaintData.location?.divisionId) {
+        throw new ValidationError('Division is required for submission');
+      }
+      if (!complaintData.location?.districtId) {
+        throw new ValidationError('District is required for submission');
+      }
+      await locationService.validateHierarchy({
+        divisionId: complaintData.location?.divisionId,
+        districtId: complaintData.location?.districtId,
+        upazilaId: complaintData.location?.upazilaId,
+      });
     }
 
     // Construct rich security identifiers metadata across all signals
@@ -88,13 +151,13 @@ export const complaintService = {
       reporterId: reporter._id,
       submissionType,
       category: {
-        primary: complaintData.category?.primary || (isDraft ? 'অন্যান্য মানবাধিকার লঙ্ঘন' : undefined),
-        secondary: complaintData.category?.secondary || [],
+        primary: primaryCategory,
+        secondary: secondaryCategories,
       },
       incident: {
         startDate: complaintData.incident?.startDate || (isDraft ? new Date() : undefined),
         endDate: complaintData.incident?.endDate,
-        datePrecision: complaintData.incident?.datePrecision || 'exact',
+        datePrecision,
         ongoing: Boolean(complaintData.incident?.ongoing),
         description: complaintData.incident?.description || (isDraft ? 'খসড়া বিবরণ' : undefined),
       },
@@ -223,9 +286,9 @@ export const complaintService = {
     const isSubmitting = updateData.action === 'submit' || updateData.status === 'submitted' || (!updateData.isDraft && updateData.action !== 'save_draft');
 
     if (isSubmitting) {
-      const primaryCat = updateData.category?.primary || complaint.category?.primary;
-      if (!primaryCat) {
-        throw new ValidationError('Primary category is required for submission');
+      const primaryCat = normalizeCategoryKey(updateData.category?.primary || complaint.category?.primary);
+      if (!primaryCat || !isValidCategory(primaryCat)) {
+        throw new ValidationError('A valid primary category is required for submission');
       }
       const sDate = updateData.incident?.startDate || complaint.incident?.startDate;
       if (!sDate) {
@@ -243,12 +306,24 @@ export const complaintService = {
       if (!distId) {
         throw new ValidationError('District is required for submission');
       }
+      const upzId = updateData.location?.upazilaId !== undefined ? updateData.location.upazilaId : complaint.location?.upazilaId;
+      await locationService.validateHierarchy({
+        divisionId: divId,
+        districtId: distId,
+        upazilaId: upzId,
+      });
     }
 
     const fieldsToUpdate = {};
     if (updateData.category) {
-      if (updateData.category.primary !== undefined) fieldsToUpdate['category.primary'] = updateData.category.primary;
-      if (updateData.category.secondary !== undefined) fieldsToUpdate['category.secondary'] = updateData.category.secondary;
+      if (updateData.category.primary !== undefined) {
+        fieldsToUpdate['category.primary'] = normalizeCategoryKey(updateData.category.primary);
+      }
+      if (updateData.category.secondary !== undefined) {
+        fieldsToUpdate['category.secondary'] = Array.isArray(updateData.category.secondary)
+          ? updateData.category.secondary.map((c) => normalizeCategoryKey(c)).filter(Boolean)
+          : [];
+      }
     }
     if (updateData.incident) {
       if (updateData.incident.startDate !== undefined) fieldsToUpdate['incident.startDate'] = updateData.incident.startDate;

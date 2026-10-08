@@ -42,6 +42,15 @@ const evidenceSchema = new mongoose.Schema(
       trim: true,
       index: true,
     },
+    publicDriveFileId: {
+      type: String,
+      trim: true,
+      index: true,
+    },
+    safePublicNote: {
+      type: String,
+      trim: true,
+    },
     sha256: {
       type: String,
       trim: true,

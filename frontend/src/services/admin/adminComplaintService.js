@@ -117,4 +117,69 @@ export const adminComplaintService = {
   async getPublicReportByComplaintId(id) {
     return await apiRequest(`/admin/complaints/${id}/public-report`);
   },
+
+  // Legal Cases & Timeline Tracking
+  async getLegalCases(complaintId) {
+    return await apiRequest(`/admin/complaints/${complaintId}/legal-cases`);
+  },
+
+  async createLegalCase(complaintId, caseData) {
+    return await apiRequest(`/admin/complaints/${complaintId}/legal-cases`, {
+      method: 'POST',
+      body: caseData,
+    });
+  },
+
+  async updateLegalCase(caseId, updateData) {
+    return await apiRequest(`/admin/legal-cases/${caseId}`, {
+      method: 'PATCH',
+      body: updateData,
+    });
+  },
+
+  async addLegalTimeline(caseId, eventData) {
+    return await apiRequest(`/admin/legal-cases/${caseId}/timeline`, {
+      method: 'POST',
+      body: eventData,
+    });
+  },
+
+  async updateLegalTimeline(caseId, eventId, eventData) {
+    return await apiRequest(`/admin/legal-cases/${caseId}/timeline/${eventId}`, {
+      method: 'PATCH',
+      body: eventData,
+    });
+  },
+
+  // Authority Actions Tracking
+  async getAuthorityActions(complaintId) {
+    return await apiRequest(`/admin/complaints/${complaintId}/authority-actions`);
+  },
+
+  async addAuthorityAction(complaintId, actionData) {
+    return await apiRequest(`/admin/complaints/${complaintId}/authority-actions`, {
+      method: 'POST',
+      body: actionData,
+    });
+  },
+
+  async updateAuthorityAction(complaintId, actionId, updateData) {
+    return await apiRequest(`/admin/complaints/${complaintId}/authority-actions/${actionId}`, {
+      method: 'PATCH',
+      body: updateData,
+    });
+  },
+
+  // Reporter Legal Update Claims Review
+  async getLegalUpdateRequests(complaintId) {
+    return await apiRequest(`/admin/complaints/${complaintId}/legal-update-requests`);
+  },
+
+  async reviewLegalUpdateRequest(complaintId, requestId, reviewData) {
+    return await apiRequest(`/admin/complaints/${complaintId}/legal-update-requests/${requestId}/review`, {
+      method: 'POST',
+      body: reviewData,
+    });
+  },
 };
+

@@ -399,6 +399,75 @@ export async function renderComplaintDetailsPage(container, complaintId) {
               </details>
             </div>
           </div>
+
+          <!-- Official Authority Actions & Legal Updates -->
+          <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+              <div>
+                <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <span>🏛️ Official Authority & Legal Updates</span>
+                </h2>
+                <p class="text-xs text-slate-500 mt-0.5">Verified actions taken by legal authorities and police departments.</p>
+              </div>
+              <button type="button" id="open-legal-modal" class="px-3.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold rounded-lg text-xs border border-indigo-200 transition shadow-2xs">
+                + Submit Legal Update
+              </button>
+            </div>
+
+            ${
+              (!complaint.authorityActions || complaint.authorityActions.length === 0) &&
+              (!complaint.legalUpdateRequests || complaint.legalUpdateRequests.length === 0)
+                ? `
+              <div class="p-6 text-center text-slate-500 text-xs bg-slate-50 rounded-xl border border-dashed border-slate-300">
+                <p class="mb-1 font-medium text-slate-700">No authority actions or legal claims recorded yet.</p>
+                <p class="text-slate-500">If a General Diary (GD), FIR, or court proceeding has been initiated, click "+ Submit Legal Update" to submit details for verification.</p>
+              </div>
+            `
+                : `
+              <div class="space-y-3">
+                ${(complaint.authorityActions || [])
+                  .filter((a) => a.verified)
+                  .map(
+                    (a) => `
+                  <div class="p-3.5 bg-emerald-50/60 border border-emerald-200 rounded-xl text-xs space-y-1">
+                    <div class="flex items-center justify-between">
+                      <span class="font-bold text-slate-900">${a.authorityName || 'Authority'} (${a.authorityType || 'police'})</span>
+                      <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800">Verified Action</span>
+                    </div>
+                    <p class="text-slate-800 font-medium">${a.action || ''}</p>
+                    ${a.reference ? `<p class="text-slate-500 text-[11px]">Official Reference: ${a.reference}</p>` : ''}
+                  </div>
+                `
+                  )
+                  .join('')}
+
+                ${(complaint.legalUpdateRequests || [])
+                  .map(
+                    (r) => `
+                  <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-1">
+                    <div class="flex items-center justify-between">
+                      <span class="font-semibold text-slate-900">${r.claim}</span>
+                      <span class="px-2 py-0.5 rounded text-[10px] font-semibold ${
+                        r.status === 'verified'
+                          ? 'bg-emerald-100 text-emerald-800'
+                          : r.status === 'rejected'
+                          ? 'bg-red-100 text-red-800'
+                          : 'bg-amber-100 text-amber-800'
+                      } uppercase">
+                        ${r.status === 'pending' ? 'Pending Review' : r.status}
+                      </span>
+                    </div>
+                    ${r.name ? `<p class="text-slate-600 text-[11px]">Authority: ${r.name}</p>` : ''}
+                    ${r.reference ? `<p class="text-slate-500 text-[10px]">Reference: ${r.reference}</p>` : ''}
+                    ${r.adminNotes ? `<p class="text-slate-600 text-[11px] italic">Admin Note: ${r.adminNotes}</p>` : ''}
+                  </div>
+                `
+                  )
+                  .join('')}
+              </div>
+            `
+            }
+          </div>
         </div>
 
         <!-- Sidebar (Location + Timeline) (1 col) -->

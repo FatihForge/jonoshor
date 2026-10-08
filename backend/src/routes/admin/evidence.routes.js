@@ -12,6 +12,8 @@ router.get('/:evidenceId/download', requirePermission(PERMISSIONS.EVIDENCE_READ)
 
 router.post('/:evidenceId/review', requirePermission(PERMISSIONS.EVIDENCE_REVIEW), adminEvidenceController.review);
 router.post('/:evidenceId/publication', requirePermission(PERMISSIONS.EVIDENCE_PUBLISH), adminEvidenceController.publish);
+router.patch('/:evidenceId/publish', requirePermission(PERMISSIONS.EVIDENCE_PUBLISH), adminEvidenceController.publish);
+router.patch('/:evidenceId/publication', requirePermission(PERMISSIONS.EVIDENCE_PUBLISH), adminEvidenceController.publish);
 router.post('/:evidenceId/redaction', requirePermission(PERMISSIONS.EVIDENCE_PUBLISH), adminEvidenceController.publish);
 router.post('/:evidenceId/delete', requirePermission(PERMISSIONS.EVIDENCE_DELETE), adminEvidenceController.delete);
 

@@ -75,7 +75,10 @@ export const publicationService = {
     // 2. Anonymize/protect victims (respect minor protections & privacy decisions)
     const rawVictims = publicVictims && publicVictims.length > 0 ? publicVictims : (complaint.victims || []);
     const sanitizedVictims = rawVictims.map((v) => ({
-      name: v.minor || v.isAnonymous ? 'পরিচয় গোপনীয়' : (v.name || 'ভুক্তভোগী'),
+      name:
+        v.minor || v.isAnonymous || v.sensitivePerson || (v.identityVisibility && v.identityVisibility !== 'public_approved')
+          ? 'পরিচয় গোপনীয়'
+          : (v.name || 'ভুক্তভোগী'),
       category: v.category || v.relationshipToIncident || 'ভুক্তভোগী',
     }));
 

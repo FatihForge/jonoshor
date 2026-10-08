@@ -2,6 +2,7 @@ import { LegalCase } from '../../models/LegalCase.js';
 import { Complaint } from '../../models/Complaint.js';
 import { PublicReport } from '../../models/PublicReport.js';
 import { auditService } from '../audit/audit.service.js';
+import { LEGAL_STATUS } from '../../constants/legalStatus.js';
 import { NotFoundError, ValidationError } from '../../utils/errors.js';
 
 export class LegalService {
@@ -10,11 +11,13 @@ export class LegalService {
    */
   async createLegalCase({
     complaintId,
-    caseNumber,
+    caseNumber = null,
     caseType,
     authorities = [],
     courts = [],
-    currentLegalStatus,
+    currentLegalStatus = LEGAL_STATUS.PENDING,
+    outcomes = [],
+    officialReferences = [],
     adminId,
   }) {
     const complaint = await Complaint.findById(complaintId);
@@ -24,12 +27,13 @@ export class LegalService {
 
     const legalCase = await LegalCase.create({
       complaintId,
-      caseNumber,
-      caseType,
-      authorities,
-      courts,
-      currentLegalStatus: currentLegalStatus || 'gd_filed',
-      officialReferences: [],
+      caseNumber: caseNumber ? caseNumber.trim() : undefined,
+      caseType: caseType ? caseType.trim() : undefined,
+      authorities: Array.isArray(authorities) ? authorities : [],
+      courts: Array.isArray(courts) ? courts : [],
+      currentLegalStatus: currentLegalStatus || LEGAL_STATUS.PENDING,
+      outcomes: Array.isArray(outcomes) ? outcomes : [],
+      officialReferences: Array.isArray(officialReferences) ? officialReferences : [],
       timeline: [],
     });
 
@@ -61,7 +65,18 @@ export class LegalService {
       throw new NotFoundError('Legal case not found');
     }
 
-    Object.assign(legalCase, updateData);
+    if (updateData.caseNumber !== undefined) legalCase.caseNumber = updateData.caseNumber ? updateData.caseNumber.trim() : undefined;
+    if (updateData.caseType !== undefined) legalCase.caseType = updateData.caseType;
+    if (updateData.authorities !== undefined) legalCase.authorities = updateData.authorities;
+    if (updateData.courts !== undefined) legalCase.courts = updateData.courts;
+    if (updateData.arrestStatus !== undefined) legalCase.arrestStatus = updateData.arrestStatus;
+    if (updateData.bailStatus !== undefined) legalCase.bailStatus = updateData.bailStatus;
+    if (updateData.investigationStatus !== undefined) legalCase.investigationStatus = updateData.investigationStatus;
+    if (updateData.currentLegalStatus !== undefined) legalCase.currentLegalStatus = updateData.currentLegalStatus;
+    if (updateData.outcomes !== undefined) legalCase.outcomes = updateData.outcomes;
+    if (updateData.officialReferences !== undefined) legalCase.officialReferences = updateData.officialReferences;
+    if (updateData.publicDisclosure !== undefined) legalCase.publicDisclosure = updateData.publicDisclosure;
+
     await legalCase.save();
 
     await auditService.log({
@@ -85,16 +100,17 @@ export class LegalService {
       throw new NotFoundError('Legal case not found');
     }
 
-    legalCase.timeline.push({
-      date: eventData.date || new Date(),
-      eventType: eventData.eventType,
-      description: eventData.description,
-      source: eventData.source,
-      reference: eventData.reference,
-      verified: !!eventData.verified,
-      publicSummary: eventData.publicSummary,
-    });
+    const newEvent = {
+      date: eventData.date ? new Date(eventData.date) : new Date(),
+      eventType: eventData.eventType || 'court_session',
+      description: eventData.description || '',
+      source: eventData.source || '',
+      reference: eventData.reference || '',
+      verified: Boolean(eventData.verified),
+      publicSummary: eventData.publicSummary || '',
+    };
 
+    legalCase.timeline.push(newEvent);
     await legalCase.save();
 
     await auditService.log({
@@ -110,6 +126,53 @@ export class LegalService {
   }
 
   /**
+   * Update a timeline event in a legal case
+   */
+  async updateTimelineEvent(legalCaseId, eventId, eventData, adminId) {
+    const legalCase = await LegalCase.findById(legalCaseId);
+    if (!legalCase) {
+      throw new NotFoundError('Legal case not found');
+    }
+
+    const event = legalCase.timeline.id(eventId);
+    if (!event) {
+      throw new NotFoundError('Timeline event not found');
+    }
+
+    if (eventData.date !== undefined) event.date = new Date(eventData.date);
+    if (eventData.eventType !== undefined) event.eventType = eventData.eventType;
+    if (eventData.description !== undefined) event.description = eventData.description;
+    if (eventData.source !== undefined) event.source = eventData.source;
+    if (eventData.reference !== undefined) event.reference = eventData.reference;
+    if (eventData.verified !== undefined) event.verified = Boolean(eventData.verified);
+    if (eventData.publicSummary !== undefined) event.publicSummary = eventData.publicSummary;
+
+    await legalCase.save();
+
+    await auditService.log({
+      actorId: adminId,
+      actorType: 'admin',
+      action: 'LEGAL_TIMELINE_EVENT_UPDATED',
+      entity: 'LegalCase',
+      entityId: legalCase._id,
+      metadata: { eventId, eventType: event.eventType },
+    });
+
+    return legalCase;
+  }
+
+  /**
+   * Get authority actions for a complaint
+   */
+  async getAuthorityActions(complaintId) {
+    const complaint = await Complaint.findById(complaintId).select('authorityActions').lean();
+    if (!complaint) {
+      throw new NotFoundError('Complaint not found');
+    }
+    return complaint.authorityActions || [];
+  }
+
+  /**
    * Add authority action to complaint
    */
   async addAuthorityAction(complaintId, actionData, adminId) {
@@ -118,34 +181,33 @@ export class LegalService {
       throw new NotFoundError('Complaint not found');
     }
 
-    if (!complaint.legal) {
-      complaint.legal = { authorities: [] };
-    }
-    if (!Array.isArray(complaint.legal.authorities)) {
-      complaint.legal.authorities = [];
+    if (!Array.isArray(complaint.authorityActions)) {
+      complaint.authorityActions = [];
     }
 
-    complaint.legal.authorities.push({
-      type: actionData.authorityType || actionData.type || 'police',
-      name: actionData.authorityName || actionData.name || '',
+    const newAction = {
+      authorityType: actionData.authorityType || actionData.type || 'police',
+      authorityName: actionData.authorityName || actionData.name || '',
       action: actionData.action,
-      date: actionData.date || new Date(),
-      reference: actionData.reference,
-      verified: !!actionData.verified,
+      actionDate: actionData.actionDate || actionData.date || new Date(),
+      reference: actionData.reference || '',
+      verified: Boolean(actionData.verified),
+      notes: actionData.notes || '',
       publicSummary: actionData.publicSummary || actionData.action,
-    });
+    };
 
+    complaint.authorityActions.push(newAction);
     await complaint.save();
 
-    // If there is an existing public report, optionally update the authorityActionSummary
-    if (actionData.publicSummary) {
+    // If verified and has public summary, update public report if one exists
+    if (newAction.verified && newAction.publicSummary) {
       await PublicReport.findOneAndUpdate(
         { complaintId: complaint._id },
         {
-          authorityActionSummary: actionData.publicSummary,
+          authorityActionSummary: newAction.publicSummary,
           $set: {
-            'bn.authorityActionSummary': actionData.publicSummary,
-            'en.authorityActionSummary': actionData.publicSummaryEn || actionData.publicSummary,
+            'bn.authorityActionSummary': newAction.publicSummary,
+            'en.authorityActionSummary': actionData.publicSummaryEn || newAction.publicSummary,
           },
         }
       );
@@ -160,7 +222,57 @@ export class LegalService {
       metadata: { action: actionData.action },
     });
 
-    return complaint;
+    return complaint.authorityActions[complaint.authorityActions.length - 1];
+  }
+
+  /**
+   * Update authority action in complaint
+   */
+  async updateAuthorityAction(complaintId, actionId, updateData, adminId) {
+    const complaint = await Complaint.findById(complaintId);
+    if (!complaint) {
+      throw new NotFoundError('Complaint not found');
+    }
+
+    const action = complaint.authorityActions.id(actionId);
+    if (!action) {
+      throw new NotFoundError('Authority action not found');
+    }
+
+    if (updateData.authorityType !== undefined) action.authorityType = updateData.authorityType;
+    if (updateData.authorityName !== undefined) action.authorityName = updateData.authorityName;
+    if (updateData.action !== undefined) action.action = updateData.action;
+    if (updateData.actionDate !== undefined) action.actionDate = new Date(updateData.actionDate);
+    if (updateData.reference !== undefined) action.reference = updateData.reference;
+    if (updateData.verified !== undefined) action.verified = Boolean(updateData.verified);
+    if (updateData.notes !== undefined) action.notes = updateData.notes;
+    if (updateData.publicSummary !== undefined) action.publicSummary = updateData.publicSummary;
+
+    await complaint.save();
+
+    if (action.verified && action.publicSummary) {
+      await PublicReport.findOneAndUpdate(
+        { complaintId: complaint._id },
+        {
+          authorityActionSummary: action.publicSummary,
+          $set: {
+            'bn.authorityActionSummary': action.publicSummary,
+            'en.authorityActionSummary': updateData.publicSummaryEn || action.publicSummary,
+          },
+        }
+      );
+    }
+
+    await auditService.log({
+      actorId: adminId,
+      actorType: 'admin',
+      action: 'AUTHORITY_ACTION_UPDATED',
+      entity: 'Complaint',
+      entityId: complaint._id,
+      metadata: { actionId },
+    });
+
+    return action;
   }
 
   /**
@@ -176,23 +288,84 @@ export class LegalService {
       throw new ValidationError('You do not have access to this complaint');
     }
 
-    // Record user claim as unverified authority / legal item
-    if (!complaint.legal) complaint.legal = { authorities: [] };
-    if (!Array.isArray(complaint.legal.authorities)) complaint.legal.authorities = [];
+    if (!claimData.claim || !claimData.claim.trim()) {
+      throw new ValidationError('A description of the legal update claim is required');
+    }
 
-    complaint.legal.authorities.push({
-      type: claimData.type || 'other',
+    if (!Array.isArray(complaint.legalUpdateRequests)) {
+      complaint.legalUpdateRequests = [];
+    }
+
+    complaint.legalUpdateRequests.push({
+      claim: claimData.claim.trim(),
+      type: claimData.type || 'police',
       name: claimData.name || '',
-      action: claimData.claim,
-      date: new Date(),
       reference: claimData.reference || '',
-      verified: false, // Rule: Reporter-provided claims are NEVER auto-verified!
-      publicSummary: '',
+      status: 'pending',
+      submittedAt: new Date(),
     });
 
     await complaint.save();
     return { success: true, message: 'Legal update claim submitted for review' };
   }
+
+  /**
+   * Get reporter legal update requests for admin review
+   */
+  async getLegalUpdateRequests(complaintId) {
+    const complaint = await Complaint.findById(complaintId).select('legalUpdateRequests').lean();
+    if (!complaint) {
+      throw new NotFoundError('Complaint not found');
+    }
+    return complaint.legalUpdateRequests || [];
+  }
+
+  /**
+   * Review reporter legal update request
+   */
+  async reviewLegalUpdateRequest(complaintId, requestId, reviewData, adminId) {
+    const complaint = await Complaint.findById(complaintId);
+    if (!complaint) {
+      throw new NotFoundError('Complaint not found');
+    }
+
+    const reqItem = complaint.legalUpdateRequests.id(requestId);
+    if (!reqItem) {
+      throw new NotFoundError('Legal update request not found');
+    }
+
+    reqItem.status = reviewData.status || 'verified';
+    reqItem.adminNotes = reviewData.adminNotes || '';
+    reqItem.reviewedAt = new Date();
+    reqItem.reviewedBy = adminId;
+
+    if (reviewData.status === 'verified' && reviewData.addToAuthorityActions) {
+      complaint.authorityActions.push({
+        authorityType: reqItem.type || 'police',
+        authorityName: reqItem.name || '',
+        action: reqItem.claim,
+        actionDate: new Date(),
+        reference: reqItem.reference || '',
+        verified: true,
+        notes: `Verified from user legal update request: ${reqItem.adminNotes || ''}`,
+        publicSummary: reviewData.publicSummary || reqItem.claim,
+      });
+    }
+
+    await complaint.save();
+
+    await auditService.log({
+      actorId: adminId,
+      actorType: 'admin',
+      action: 'LEGAL_UPDATE_REQUEST_REVIEWED',
+      entity: 'Complaint',
+      entityId: complaint._id,
+      metadata: { requestId, status: reqItem.status },
+    });
+
+    return reqItem;
+  }
 }
 
 export const legalService = new LegalService();
+

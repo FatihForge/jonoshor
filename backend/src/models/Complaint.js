@@ -200,6 +200,23 @@ const complaintSchema = new mongoose.Schema(
       default: 0,
       max: 3,
     },
+    legalUpdateRequests: [
+      {
+        claim: { type: String, required: true },
+        type: { type: String },
+        name: { type: String },
+        reference: { type: String },
+        status: {
+          type: String,
+          enum: ['pending', 'verified', 'rejected'],
+          default: 'pending',
+        },
+        adminNotes: { type: String },
+        submittedAt: { type: Date, default: Date.now },
+        reviewedAt: { type: Date },
+        reviewedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
+      },
+    ],
     securityIdentifiers: {
       type: mongoose.Schema.Types.Mixed,
       default: {},

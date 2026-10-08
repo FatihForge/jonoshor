@@ -99,7 +99,12 @@ router.post('/complaints/:id/legal-cases', requirePermission(PERMISSIONS.LEGAL_C
 router.get('/complaints/:id/legal-cases', requirePermission(PERMISSIONS.LEGAL_READ), adminLegalController.getCases);
 router.patch('/legal-cases/:id', requirePermission(PERMISSIONS.LEGAL_UPDATE), adminLegalController.updateCase);
 router.post('/legal-cases/:id/timeline', requirePermission(PERMISSIONS.LEGAL_UPDATE), adminLegalController.addTimeline);
+router.patch('/legal-cases/:id/timeline/:eventId', requirePermission(PERMISSIONS.LEGAL_UPDATE), adminLegalController.updateTimeline);
+router.get('/complaints/:id/authority-actions', requirePermission(PERMISSIONS.LEGAL_READ), adminLegalController.getAuthorityActions);
 router.post('/complaints/:id/authority-actions', requirePermission(PERMISSIONS.LEGAL_UPDATE), adminLegalController.addAuthorityAction);
+router.patch('/complaints/:id/authority-actions/:actionId', requirePermission(PERMISSIONS.LEGAL_UPDATE), adminLegalController.updateAuthorityAction);
+router.get('/complaints/:id/legal-update-requests', requirePermission(PERMISSIONS.LEGAL_READ), adminLegalController.getLegalUpdateRequests);
+router.post('/complaints/:id/legal-update-requests/:requestId/review', requirePermission(PERMISSIONS.LEGAL_UPDATE), adminLegalController.reviewLegalUpdateRequest);
 
 // Evidence Management (Phase 13 & 14)
 router.use('/evidence', evidenceRoutes);

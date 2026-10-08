@@ -463,9 +463,14 @@ export class EvidenceService {
       }
       evidence.publicStatus = publicStatus;
 
-      // When approved for public, organize into public-safe storage folder
+      // When approved for public, copy safe version into public storage folder while preserving private original
       if (publicStatus === EVIDENCE_PUBLIC_STATUS.APPROVED_PUBLIC && evidence.driveFileId) {
-        await storageAdapterService.moveToPublic(evidence.driveFileId);
+        const safeFilename = `public_safe_${evidence.originalFilename || 'evidence'}`;
+        const copyResult = await storageAdapterService.copyToPublic(evidence.driveFileId, safeFilename);
+        evidence.publicDriveFileId = copyResult.driveFileId;
+        evidence.safePublicNote = redactionStatus === REDACTION_STATUS.NONE
+          ? 'Approved safe public copy (unredacted)'
+          : `Approved safe public copy (${redactionStatus || 'redacted'})`;
       }
     }
 
@@ -530,18 +535,22 @@ export class EvidenceService {
   /**
    * Stream file for authorized private access or zero-tracking public delivery
    */
-  async streamEvidenceFile(evidenceId) {
+  async streamEvidenceFile(evidenceId, { preferPublic = false } = {}) {
     const evidence = await Evidence.findById(evidenceId);
     if (!evidence || evidence.deletionStatus?.deleted) {
       throw new NotFoundError('Evidence not found');
     }
 
-    if (!evidence.driveFileId) {
+    const targetFileId = (preferPublic && evidence.publicDriveFileId)
+      ? evidence.publicDriveFileId
+      : evidence.driveFileId;
+
+    if (!targetFileId) {
       throw new NotFoundError('No stored binary file associated with this evidence');
     }
 
     const { stream, mimeType, size, filename } = await storageAdapterService.getFileStream(
-      evidence.driveFileId
+      targetFileId
     );
 
     return {

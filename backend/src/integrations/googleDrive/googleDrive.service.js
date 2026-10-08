@@ -328,6 +328,51 @@ export class GoogleDriveService {
   }
 
   /**
+   * Copy file to Public folder (Preserves private original in clean/private folder)
+   */
+  async copyToPublic(driveFileId, newFilename = null) {
+    if (!this.isConfigured() || !driveFileId || driveFileId.startsWith('gdrive_')) {
+      const mock = this._mockStore.get(driveFileId);
+      const publicCopyId = `gdrive_pub_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+      if (mock) {
+        this._mockStore.set(publicCopyId, {
+          ...mock,
+          id: publicCopyId,
+          filename: newFilename || `public_${mock.filename}`,
+          folder: 'public',
+        });
+      }
+      return { driveFileId: publicCopyId, folder: 'public' };
+    }
+
+    try {
+      if (!this.publicFolderId) {
+        await this.initializeStorageFolders();
+      }
+
+      const copyMetadata = {
+        parents: [this.publicFolderId],
+      };
+      if (newFilename) {
+        copyMetadata.name = newFilename;
+      }
+
+      const res = await this.driveClient.files.copy({
+        fileId: driveFileId,
+        requestBody: copyMetadata,
+        fields: 'id, name, parents',
+      });
+
+      return { driveFileId: res.data.id, folder: 'public' };
+    } catch (err) {
+      if (err.code === 404 || err.status === 404 || (err.message && err.message.includes('File not found'))) {
+        return { driveFileId, folder: 'public' };
+      }
+      throw err;
+    }
+  }
+
+  /**
    * Get file stream for backend proxying (Zero viewer tracking)
    */
   async getFileStream(driveFileId) {

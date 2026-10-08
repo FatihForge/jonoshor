@@ -29,13 +29,19 @@ export async function renderAdminComplaintDetailsPage(container, complaintId) {
     errorEl.classList.add('hidden');
 
     try {
-      const res = await adminComplaintService.getComplaintById(complaintId);
+      const [res, legalCasesRes, updateRequestsRes] = await Promise.all([
+        adminComplaintService.getComplaintById(complaintId),
+        adminComplaintService.getLegalCases(complaintId).catch(() => ({ data: [] })),
+        adminComplaintService.getLegalUpdateRequests(complaintId).catch(() => ({ data: [] })),
+      ]);
       const comp = res?.data;
       if (!comp) {
         throw new Error('Complaint record not found');
       }
+      const legalCases = legalCasesRes?.data || [];
+      const legalUpdateRequests = updateRequestsRes?.data || [];
 
-      renderComplaintUI(comp);
+      renderComplaintUI(comp, legalCases, legalUpdateRequests);
       loadingEl.classList.add('hidden');
       contentEl.classList.remove('hidden');
     } catch (err) {
@@ -53,7 +59,7 @@ export async function renderAdminComplaintDetailsPage(container, complaintId) {
     }
   }
 
-  function renderComplaintUI(comp) {
+  function renderComplaintUI(comp, legalCases = [], legalUpdateRequests = []) {
     const isConflict = comp.review?.conflictOfInterest;
     const assignedReviewer = comp.review?.assignedReviewerId;
     const evidenceList = comp.evidence || [];
@@ -309,6 +315,208 @@ export async function renderAdminComplaintDetailsPage(container, complaintId) {
               }
             </div>
           </div>
+
+          <!-- 4. Legal Cases & Judicial Proceedings Workspace -->
+          <div class="p-6 rounded-xl bg-white border border-slate-200 shadow-xs space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <span>⚖️ Legal Cases & Proceedings</span>
+                  <span class="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full font-normal border border-slate-200">
+                    ${legalCases.length} logged
+                  </span>
+                </h2>
+                <p class="text-xs text-slate-500 mt-0.5">Formal cases, courts, and timeline events tracked for this complaint.</p>
+              </div>
+              <button id="btn-add-legal-case" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-2xs transition flex items-center gap-1.5">
+                <span>+ Add Legal Case</span>
+              </button>
+            </div>
+
+            ${
+              legalCases.length === 0
+                ? `
+              <div class="p-6 text-center text-slate-500 text-xs bg-slate-50 rounded-xl border border-dashed border-slate-300">
+                No formal legal cases or court proceedings recorded yet.
+              </div>
+            `
+                : `
+              <div class="space-y-4">
+                ${legalCases
+                  .map(
+                    (lc) => `
+                  <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3" data-legal-case-id="${lc._id}">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-2.5">
+                      <div>
+                        <div class="flex items-center gap-2">
+                          <span class="font-bold text-slate-900 text-sm font-mono">${lc.caseNumber ? `Case #${lc.caseNumber}` : 'General Legal Case'}</span>
+                          <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase">${lc.caseType || 'General'}</span>
+                          <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200">${lc.currentLegalStatus || 'Pending'}</span>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2 text-[11px] text-slate-500 mt-1">
+                          ${lc.courts?.length ? `<span>Courts: ${lc.courts.map((c) => c.name).join(', ')}</span> • ` : ''}
+                          ${lc.authorities?.length ? `<span>Authorities: ${lc.authorities.map((a) => a.name).join(', ')}</span>` : ''}
+                        </div>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <button class="btn-edit-legal-case px-2.5 py-1 rounded bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-xs font-medium transition" data-id="${lc._id}">
+                          Edit Case
+                        </button>
+                        <button class="btn-add-timeline-event px-2.5 py-1 rounded bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-medium transition" data-id="${lc._id}">
+                          + Timeline Event
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Timeline Events -->
+                    <div class="space-y-2 pt-1">
+                      <span class="text-xs font-semibold text-slate-700 block">Case Timeline (${lc.timeline?.length || 0}):</span>
+                      ${
+                        !lc.timeline || lc.timeline.length === 0
+                          ? `
+                        <p class="text-[11px] text-slate-400 italic">No timeline events recorded.</p>
+                      `
+                          : `
+                        <div class="divide-y divide-slate-200/60 pl-2">
+                          ${lc.timeline
+                            .map(
+                              (ev) => `
+                            <div class="py-2 flex items-start justify-between gap-3 text-xs">
+                              <div class="space-y-0.5">
+                                <div class="flex items-center gap-2">
+                                  <span class="font-semibold text-slate-900">${formatDate(ev.date)}</span>
+                                  <span class="px-1.5 py-0.5 rounded text-[10px] bg-slate-200 text-slate-700 font-medium">${ev.eventType || 'Event'}</span>
+                                  ${ev.verified ? '<span class="text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-1 rounded border border-emerald-200">Verified</span>' : '<span class="text-[10px] text-slate-500">Unverified</span>'}
+                                </div>
+                                <p class="text-slate-700 text-xs">${ev.description || ''}</p>
+                                ${ev.publicSummary ? `<p class="text-[11px] text-emerald-700 font-medium">Public: "${ev.publicSummary}"</p>` : ''}
+                                ${ev.reference ? `<p class="text-[10px] text-slate-400">Ref: ${ev.reference}</p>` : ''}
+                              </div>
+                              <button class="btn-edit-timeline-event text-[11px] text-indigo-600 hover:text-indigo-800 font-medium whitespace-nowrap" data-case-id="${lc._id}" data-event-id="${ev._id}">
+                                Edit
+                              </button>
+                            </div>
+                          `
+                            )
+                            .join('')}
+                        </div>
+                      `
+                      }
+                    </div>
+                  </div>
+                `
+                  )
+                  .join('')}
+              </div>
+            `
+            }
+          </div>
+
+          <!-- 5. Authority Actions Workspace -->
+          <div class="p-6 rounded-xl bg-white border border-slate-200 shadow-xs space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <span>🏛️ Authority Actions & Interventions</span>
+                  <span class="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full font-normal border border-slate-200">
+                    ${authorityActions.length} recorded
+                  </span>
+                </h2>
+                <p class="text-xs text-slate-500 mt-0.5">Police inquiries, administrative notices, and department actions.</p>
+              </div>
+              <button id="btn-add-authority-action" class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-2xs transition flex items-center gap-1.5">
+                <span>+ Add Authority Action</span>
+              </button>
+            </div>
+
+            ${
+              authorityActions.length === 0
+                ? `
+              <div class="p-6 text-center text-slate-500 text-xs bg-slate-50 rounded-xl border border-dashed border-slate-300">
+                No authority interventions or official actions logged yet.
+              </div>
+            `
+                : `
+              <div class="space-y-3">
+                ${authorityActions
+                  .map(
+                    (act) => `
+                  <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs" data-action-id="${act._id}">
+                    <div class="space-y-1">
+                      <div class="flex items-center gap-2">
+                        <span class="font-bold text-slate-900">${act.authorityName || 'Authority'}</span>
+                        <span class="px-1.5 py-0.5 rounded text-[10px] bg-slate-200 text-slate-700 uppercase font-semibold">${act.authorityType || 'police'}</span>
+                        <span class="text-slate-500 text-[11px]">• ${formatDate(act.actionDate)}</span>
+                        ${act.verified ? '<span class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">Verified</span>' : '<span class="text-[10px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">Pending Verification</span>'}
+                      </div>
+                      <p class="text-slate-800 font-medium">${act.action || ''}</p>
+                      ${act.publicSummary ? `<p class="text-[11px] text-emerald-700">Public: "${act.publicSummary}"</p>` : ''}
+                      ${act.reference ? `<p class="text-[10px] text-slate-400">Ref: ${act.reference}</p>` : ''}
+                    </div>
+                    <button class="btn-edit-authority-action shrink-0 px-2.5 py-1 rounded bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-xs font-medium transition" data-id="${act._id}">
+                      Edit / Verify
+                    </button>
+                  </div>
+                `
+                  )
+                  .join('')}
+              </div>
+            `
+            }
+          </div>
+
+          <!-- 6. User / Reporter Legal Update Claims -->
+          <div class="p-6 rounded-xl bg-white border border-slate-200 shadow-xs space-y-4">
+            <div class="border-b border-slate-100 pb-3">
+              <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                <span>📝 Reporter Legal Update Claims</span>
+                <span class="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full font-normal border border-slate-200">
+                  ${legalUpdateRequests.length} submitted
+                </span>
+              </h2>
+              <p class="text-xs text-slate-500 mt-0.5">Claims submitted by the reporter. Claims must be reviewed and verified before becoming public facts.</p>
+            </div>
+
+            ${
+              legalUpdateRequests.length === 0
+                ? `
+              <p class="text-xs text-slate-500 py-2">No pending legal update claims submitted by the reporter.</p>
+            `
+                : `
+              <div class="space-y-3">
+                ${legalUpdateRequests
+                  .map(
+                    (req) => `
+                  <div class="p-3.5 rounded-xl ${req.status === 'pending' ? 'bg-amber-50/60 border-amber-200' : 'bg-slate-50 border-slate-200'} border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                    <div class="space-y-1">
+                      <div class="flex items-center gap-2">
+                        <span class="font-bold text-slate-900">${req.claim}</span>
+                        <span class="px-2 py-0.5 rounded text-[10px] font-semibold ${req.status === 'verified' ? 'bg-emerald-100 text-emerald-800' : (req.status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800')} uppercase">
+                          ${req.status}
+                        </span>
+                        <span class="text-slate-500 text-[10px]">${formatDateTime(req.submittedAt)}</span>
+                      </div>
+                      ${req.name ? `<p class="text-slate-600 text-[11px]">Authority/Entity: ${req.name} (${req.type || 'police'})</p>` : ''}
+                      ${req.reference ? `<p class="text-slate-400 text-[10px]">Reference: ${req.reference}</p>` : ''}
+                      ${req.adminNotes ? `<p class="text-slate-600 text-[11px] italic">Admin Review: "${req.adminNotes}"</p>` : ''}
+                    </div>
+                    ${
+                      req.status === 'pending'
+                        ? `
+                      <button class="btn-review-legal-claim shrink-0 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-2xs transition" data-id="${req._id}">
+                        Review Claim
+                      </button>
+                    `
+                        : ''
+                    }
+                  </div>
+                `
+                  )
+                  .join('')}
+              </div>
+            `
+            }
+          </div>
         </div>
 
         <!-- Right Column: Review State & Reporter Details -->
@@ -458,10 +666,10 @@ export async function renderAdminComplaintDetailsPage(container, complaintId) {
       </div>
     `;
 
-    setupActionModals(comp);
+    setupActionModals(comp, legalCases, legalUpdateRequests, authorityActions);
   }
 
-  function setupActionModals(comp) {
+  function setupActionModals(comp, legalCases = [], legalUpdateRequests = [], authorityActions = []) {
     // 1. Assign Reviewer
     const assignBtn = container.querySelector('#btn-assign-reviewer');
     if (assignBtn) {
@@ -720,6 +928,469 @@ export async function renderAdminComplaintDetailsPage(container, complaintId) {
         });
       });
     }
+
+    // 7. Add Legal Case
+    const addLegalCaseBtn = container.querySelector('#btn-add-legal-case');
+    if (addLegalCaseBtn) {
+      addLegalCaseBtn.addEventListener('click', () => {
+        showModal({
+          title: 'Add Formal Legal Case',
+          description: 'Record a new legal case, court proceeding, or official inquiry linked to this complaint.',
+          contentHtml: `
+            <div class="space-y-3 text-xs">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label for="input-case-number" class="block font-semibold text-slate-700 mb-1">Case / GD Number (Optional)</label>
+                  <input id="input-case-number" type="text" placeholder="e.g. 14(08)2024 or GD-512" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600" />
+                </div>
+                <div>
+                  <label for="input-case-type" class="block font-semibold text-slate-700 mb-1">Case Type</label>
+                  <input id="input-case-type" type="text" placeholder="e.g. Criminal, Writ, GD" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600" />
+                </div>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label for="input-case-court" class="block font-semibold text-slate-700 mb-1">Court Name & Location</label>
+                  <input id="input-case-court" type="text" placeholder="e.g. Dhaka Metropolitan Sessions Court" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600" />
+                </div>
+                <div>
+                  <label for="input-case-authority" class="block font-semibold text-slate-700 mb-1">Investigating Authority / Thana</label>
+                  <input id="input-case-authority" type="text" placeholder="e.g. Kotwali Police Station" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600" />
+                </div>
+              </div>
+              <div>
+                <label for="input-case-status" class="block font-semibold text-slate-700 mb-1">Current Legal Status *</label>
+                <select id="input-case-status" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600">
+                  <option value="pending">Pending</option>
+                  <option value="under_investigation">Under Investigation</option>
+                  <option value="case_filed">Case Filed</option>
+                  <option value="trial">In Trial</option>
+                  <option value="appeal">In Appeal</option>
+                  <option value="resolved">Resolved</option>
+                  <option value="closed">Closed</option>
+                </select>
+              </div>
+            </div>
+          `,
+          confirmText: 'Create Legal Case',
+          confirmColor: 'bg-emerald-600 hover:bg-emerald-700',
+          onConfirm: async (modal) => {
+            const caseNumber = modal.querySelector('#input-case-number').value.trim();
+            const caseType = modal.querySelector('#input-case-type').value.trim();
+            const courtName = modal.querySelector('#input-case-court').value.trim();
+            const authorityName = modal.querySelector('#input-case-authority').value.trim();
+            const currentLegalStatus = modal.querySelector('#input-case-status').value;
+
+            const courts = courtName ? [{ name: courtName }] : [];
+            const authorities = authorityName ? [{ name: authorityName, type: 'police' }] : [];
+
+            await adminComplaintService.createLegalCase(comp._id, {
+              caseNumber,
+              caseType,
+              courts,
+              authorities,
+              currentLegalStatus,
+            });
+
+            await loadDetails();
+          },
+        });
+      });
+    }
+
+    // 8. Edit Legal Case
+    container.querySelectorAll('.btn-edit-legal-case').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const caseId = btn.dataset.id;
+        const currentCase = legalCases.find((c) => String(c._id) === String(caseId));
+        if (!currentCase) return;
+
+        showModal({
+          title: `Edit Case ${currentCase.caseNumber ? '#' + currentCase.caseNumber : ''}`,
+          description: 'Update the judicial status, case number, or investigation phase.',
+          contentHtml: `
+            <div class="space-y-3 text-xs">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label for="edit-case-number" class="block font-semibold text-slate-700 mb-1">Case Number</label>
+                  <input id="edit-case-number" type="text" value="${currentCase.caseNumber || ''}" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600" />
+                </div>
+                <div>
+                  <label for="edit-case-type" class="block font-semibold text-slate-700 mb-1">Case Type</label>
+                  <input id="edit-case-type" type="text" value="${currentCase.caseType || ''}" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600" />
+                </div>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label for="edit-case-status" class="block font-semibold text-slate-700 mb-1">Legal Status *</label>
+                  <select id="edit-case-status" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600">
+                    <option value="pending" ${currentCase.currentLegalStatus === 'pending' ? 'selected' : ''}>Pending</option>
+                    <option value="under_investigation" ${currentCase.currentLegalStatus === 'under_investigation' ? 'selected' : ''}>Under Investigation</option>
+                    <option value="case_filed" ${currentCase.currentLegalStatus === 'case_filed' ? 'selected' : ''}>Case Filed</option>
+                    <option value="trial" ${currentCase.currentLegalStatus === 'trial' ? 'selected' : ''}>In Trial</option>
+                    <option value="appeal" ${currentCase.currentLegalStatus === 'appeal' ? 'selected' : ''}>In Appeal</option>
+                    <option value="resolved" ${currentCase.currentLegalStatus === 'resolved' ? 'selected' : ''}>Resolved</option>
+                    <option value="closed" ${currentCase.currentLegalStatus === 'closed' ? 'selected' : ''}>Closed</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="edit-case-arrest" class="block font-semibold text-slate-700 mb-1">Arrest / Bail Status</label>
+                  <input id="edit-case-arrest" type="text" value="${currentCase.arrestStatus || ''}" placeholder="e.g. Accused detained, Bail denied" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600" />
+                </div>
+              </div>
+            </div>
+          `,
+          confirmText: 'Save Case Changes',
+          confirmColor: 'bg-emerald-600 hover:bg-emerald-700',
+          onConfirm: async (modal) => {
+            const caseNumber = modal.querySelector('#edit-case-number').value.trim();
+            const caseType = modal.querySelector('#edit-case-type').value.trim();
+            const currentLegalStatus = modal.querySelector('#edit-case-status').value;
+            const arrestStatus = modal.querySelector('#edit-case-arrest').value.trim();
+
+            await adminComplaintService.updateLegalCase(caseId, {
+              caseNumber,
+              caseType,
+              currentLegalStatus,
+              arrestStatus,
+            });
+
+            await loadDetails();
+          },
+        });
+      });
+    });
+
+    // 9. Add Timeline Event
+    container.querySelectorAll('.btn-add-timeline-event').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const caseId = btn.dataset.id;
+        showModal({
+          title: 'Add Judicial Timeline Event',
+          description: 'Add a new hearing, order, charge sheet, or procedural event to this case.',
+          contentHtml: `
+            <div class="space-y-3 text-xs">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label for="input-ev-date" class="block font-semibold text-slate-700 mb-1">Event Date *</label>
+                  <input id="input-ev-date" type="date" value="${new Date().toISOString().split('T')[0]}" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600" />
+                </div>
+                <div>
+                  <label for="input-ev-type" class="block font-semibold text-slate-700 mb-1">Event Type</label>
+                  <input id="input-ev-type" type="text" placeholder="e.g. FIR Filed, Bail Hearing, Charge Sheet" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600" />
+                </div>
+              </div>
+              <div>
+                <label for="input-ev-desc" class="block font-semibold text-slate-700 mb-1">Detailed Description *</label>
+                <textarea id="input-ev-desc" rows="2" placeholder="Procedural details, court orders, or outcomes..." class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"></textarea>
+              </div>
+              <div>
+                <label for="input-ev-public" class="block font-semibold text-slate-700 mb-1">Public Summary (Safe for Disclosure)</label>
+                <input id="input-ev-public" type="text" placeholder="Brief public description (optional)..." class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600" />
+              </div>
+              <div class="flex items-center gap-2 pt-1">
+                <input id="input-ev-verified" type="checkbox" class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
+                <label for="input-ev-verified" class="font-semibold text-slate-700">Verified by Admin / Field Corroboration</label>
+              </div>
+            </div>
+          `,
+          confirmText: 'Record Timeline Event',
+          confirmColor: 'bg-indigo-600 hover:bg-indigo-700',
+          onConfirm: async (modal) => {
+            const date = modal.querySelector('#input-ev-date').value;
+            const eventType = modal.querySelector('#input-ev-type').value.trim();
+            const description = modal.querySelector('#input-ev-desc').value.trim();
+            const publicSummary = modal.querySelector('#input-ev-public').value.trim();
+            const verified = modal.querySelector('#input-ev-verified').checked;
+
+            if (!description) {
+              throw new Error('Description is required');
+            }
+
+            await adminComplaintService.addLegalTimeline(caseId, {
+              date,
+              eventType: eventType || 'Court Session',
+              description,
+              publicSummary,
+              verified,
+            });
+
+            await loadDetails();
+          },
+        });
+      });
+    });
+
+    // 10. Edit Timeline Event
+    container.querySelectorAll('.btn-edit-timeline-event').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const caseId = btn.dataset.caseId;
+        const eventId = btn.dataset.eventId;
+        const legalCase = legalCases.find((c) => String(c._id) === String(caseId));
+        const ev = legalCase?.timeline?.find((e) => String(e._id) === String(eventId));
+        if (!ev) return;
+
+        showModal({
+          title: 'Edit Timeline Event',
+          description: 'Update the judicial timeline event and verification status.',
+          contentHtml: `
+            <div class="space-y-3 text-xs">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label for="edit-ev-date" class="block font-semibold text-slate-700 mb-1">Date</label>
+                  <input id="edit-ev-date" type="date" value="${ev.date ? new Date(ev.date).toISOString().split('T')[0] : ''}" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600" />
+                </div>
+                <div>
+                  <label for="edit-ev-type" class="block font-semibold text-slate-700 mb-1">Event Type</label>
+                  <input id="edit-ev-type" type="text" value="${ev.eventType || ''}" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600" />
+                </div>
+              </div>
+              <div>
+                <label for="edit-ev-desc" class="block font-semibold text-slate-700 mb-1">Description</label>
+                <textarea id="edit-ev-desc" rows="2" class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600">${ev.description || ''}</textarea>
+              </div>
+              <div>
+                <label for="edit-ev-public" class="block font-semibold text-slate-700 mb-1">Public Summary</label>
+                <input id="edit-ev-public" type="text" value="${ev.publicSummary || ''}" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600" />
+              </div>
+              <div class="flex items-center gap-2 pt-1">
+                <input id="edit-ev-verified" type="checkbox" ${ev.verified ? 'checked' : ''} class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
+                <label for="edit-ev-verified" class="font-semibold text-slate-700">Verified Status</label>
+              </div>
+            </div>
+          `,
+          confirmText: 'Save Event Changes',
+          confirmColor: 'bg-indigo-600 hover:bg-indigo-700',
+          onConfirm: async (modal) => {
+            const date = modal.querySelector('#edit-ev-date').value;
+            const eventType = modal.querySelector('#edit-ev-type').value.trim();
+            const description = modal.querySelector('#edit-ev-desc').value.trim();
+            const publicSummary = modal.querySelector('#edit-ev-public').value.trim();
+            const verified = modal.querySelector('#edit-ev-verified').checked;
+
+            await adminComplaintService.updateLegalTimeline(caseId, eventId, {
+              date,
+              eventType,
+              description,
+              publicSummary,
+              verified,
+            });
+
+            await loadDetails();
+          },
+        });
+      });
+    });
+
+    // 11. Add Authority Action
+    const addAuthActionBtn = container.querySelector('#btn-add-authority-action');
+    if (addAuthActionBtn) {
+      addAuthActionBtn.addEventListener('click', () => {
+        showModal({
+          title: 'Record Authority Action',
+          description: 'Document police investigation, administrative notice, or department action.',
+          contentHtml: `
+            <div class="space-y-3 text-xs">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label for="input-auth-type" class="block font-semibold text-slate-700 mb-1">Authority Type *</label>
+                  <select id="input-auth-type" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600">
+                    <option value="police">Police Department</option>
+                    <option value="court">Court / Judiciary</option>
+                    <option value="government">Government Ministry / District Admin</option>
+                    <option value="other_legal_authority">Other Legal Authority</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="input-auth-name" class="block font-semibold text-slate-700 mb-1">Authority Name *</label>
+                  <input id="input-auth-name" type="text" placeholder="e.g. Mirpur Model Thana, Rapid Action Battalion" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600" />
+                </div>
+              </div>
+              <div>
+                <label for="input-auth-action" class="block font-semibold text-slate-700 mb-1">Action Description *</label>
+                <textarea id="input-auth-action" rows="2" placeholder="Details of action taken (e.g. Investigation officer appointed, Notice served)..." class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"></textarea>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label for="input-auth-date" class="block font-semibold text-slate-700 mb-1">Action Date</label>
+                  <input id="input-auth-date" type="date" value="${new Date().toISOString().split('T')[0]}" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600" />
+                </div>
+                <div>
+                  <label for="input-auth-ref" class="block font-semibold text-slate-700 mb-1">Official Reference / Memo No</label>
+                  <input id="input-auth-ref" type="text" placeholder="e.g. Ref: DMP/2024/78" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600" />
+                </div>
+              </div>
+              <div>
+                <label for="input-auth-public" class="block font-semibold text-slate-700 mb-1">Public Summary (Safe for Reports)</label>
+                <input id="input-auth-public" type="text" placeholder="Neutral summary for public reports..." class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600" />
+              </div>
+              <div class="flex items-center gap-2 pt-1">
+                <input id="input-auth-verified" type="checkbox" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                <label for="input-auth-verified" class="font-semibold text-slate-700">Verified Official Action</label>
+              </div>
+            </div>
+          `,
+          confirmText: 'Record Authority Action',
+          confirmColor: 'bg-blue-600 hover:bg-blue-700',
+          onConfirm: async (modal) => {
+            const authorityType = modal.querySelector('#input-auth-type').value;
+            const authorityName = modal.querySelector('#input-auth-name').value.trim();
+            const action = modal.querySelector('#input-auth-action').value.trim();
+            const actionDate = modal.querySelector('#input-auth-date').value;
+            const reference = modal.querySelector('#input-auth-ref').value.trim();
+            const publicSummary = modal.querySelector('#input-auth-public').value.trim();
+            const verified = modal.querySelector('#input-auth-verified').checked;
+
+            if (!authorityName || !action) {
+              throw new Error('Authority name and action description are required');
+            }
+
+            await adminComplaintService.addAuthorityAction(comp._id, {
+              authorityType,
+              authorityName,
+              action,
+              actionDate,
+              reference,
+              publicSummary,
+              verified,
+            });
+
+            await loadDetails();
+          },
+        });
+      });
+    }
+
+    // 12. Edit Authority Action
+    container.querySelectorAll('.btn-edit-authority-action').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const actionId = btn.dataset.id;
+        const act = authorityActions.find((a) => String(a._id) === String(actionId));
+        if (!act) return;
+
+        showModal({
+          title: `Edit Authority Action: ${act.authorityName || 'Action'}`,
+          description: 'Update official action details, verification status, and public disclosure summary.',
+          contentHtml: `
+            <div class="space-y-3 text-xs">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label for="edit-auth-name" class="block font-semibold text-slate-700 mb-1">Authority Name</label>
+                  <input id="edit-auth-name" type="text" value="${act.authorityName || ''}" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600" />
+                </div>
+                <div>
+                  <label for="edit-auth-type" class="block font-semibold text-slate-700 mb-1">Authority Type</label>
+                  <select id="edit-auth-type" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600">
+                    <option value="police" ${act.authorityType === 'police' ? 'selected' : ''}>Police Department</option>
+                    <option value="court" ${act.authorityType === 'court' ? 'selected' : ''}>Court / Judiciary</option>
+                    <option value="government" ${act.authorityType === 'government' ? 'selected' : ''}>Government / Administration</option>
+                    <option value="other_legal_authority" ${act.authorityType === 'other_legal_authority' ? 'selected' : ''}>Other Legal Authority</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label for="edit-auth-action" class="block font-semibold text-slate-700 mb-1">Action Description</label>
+                <textarea id="edit-auth-action" rows="2" class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600">${act.action || ''}</textarea>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label for="edit-auth-date" class="block font-semibold text-slate-700 mb-1">Date</label>
+                  <input id="edit-auth-date" type="date" value="${act.actionDate ? new Date(act.actionDate).toISOString().split('T')[0] : ''}" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600" />
+                </div>
+                <div>
+                  <label for="edit-auth-ref" class="block font-semibold text-slate-700 mb-1">Reference</label>
+                  <input id="edit-auth-ref" type="text" value="${act.reference || ''}" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600" />
+                </div>
+              </div>
+              <div>
+                <label for="edit-auth-public" class="block font-semibold text-slate-700 mb-1">Public Summary</label>
+                <input id="edit-auth-public" type="text" value="${act.publicSummary || ''}" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600" />
+              </div>
+              <div class="flex items-center gap-2 pt-1">
+                <input id="edit-auth-verified" type="checkbox" ${act.verified ? 'checked' : ''} class="rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                <label for="edit-auth-verified" class="font-semibold text-slate-700">Verified Action</label>
+              </div>
+            </div>
+          `,
+          confirmText: 'Save Action Changes',
+          confirmColor: 'bg-blue-600 hover:bg-blue-700',
+          onConfirm: async (modal) => {
+            const authorityType = modal.querySelector('#edit-auth-type').value;
+            const authorityName = modal.querySelector('#edit-auth-name').value.trim();
+            const action = modal.querySelector('#edit-auth-action').value.trim();
+            const actionDate = modal.querySelector('#edit-auth-date').value;
+            const reference = modal.querySelector('#edit-auth-ref').value.trim();
+            const publicSummary = modal.querySelector('#edit-auth-public').value.trim();
+            const verified = modal.querySelector('#edit-auth-verified').checked;
+
+            await adminComplaintService.updateAuthorityAction(comp._id, actionId, {
+              authorityType,
+              authorityName,
+              action,
+              actionDate,
+              reference,
+              publicSummary,
+              verified,
+            });
+
+            await loadDetails();
+          },
+        });
+      });
+    });
+
+    // 13. Review Reporter Legal Update Claim
+    container.querySelectorAll('.btn-review-legal-claim').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const requestId = btn.dataset.id;
+        const claimReq = legalUpdateRequests.find((r) => String(r._id) === String(requestId));
+        if (!claimReq) return;
+
+        showModal({
+          title: 'Review Reporter Legal Claim',
+          description: 'Evaluate user-submitted legal claims. User claims must be verified before inclusion in official reports.',
+          contentHtml: `
+            <div class="space-y-3 text-xs">
+              <div class="p-3 rounded-lg bg-slate-100 border border-slate-200">
+                <p class="font-semibold text-slate-900">${claimReq.claim}</p>
+                ${claimReq.name ? `<p class="text-slate-600 text-[11px] mt-1">Authority: ${claimReq.name} (${claimReq.type || 'police'})</p>` : ''}
+                ${claimReq.reference ? `<p class="text-slate-500 text-[10px]">Reference: ${claimReq.reference}</p>` : ''}
+              </div>
+              <div>
+                <label for="input-claim-status" class="block font-semibold text-slate-700 mb-1">Review Decision *</label>
+                <select id="input-claim-status" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600">
+                  <option value="verified">Verified (Claim Authenticated)</option>
+                  <option value="rejected">Rejected (Unsubstantiated / Inaccurate)</option>
+                </select>
+              </div>
+              <div>
+                <label for="input-claim-notes" class="block font-semibold text-slate-700 mb-1">Review Notes / Verification Basis</label>
+                <textarea id="input-claim-notes" rows="2" placeholder="Record verification source, court record check, or rationale..." class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"></textarea>
+              </div>
+              <div class="flex items-center gap-2 pt-1">
+                <input id="input-claim-add-action" type="checkbox" checked class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
+                <label for="input-claim-add-action" class="font-semibold text-slate-700">Add to Official Authority Actions (if verified)</label>
+              </div>
+            </div>
+          `,
+          confirmText: 'Submit Claim Review',
+          confirmColor: 'bg-emerald-600 hover:bg-emerald-700',
+          onConfirm: async (modal) => {
+            const status = modal.querySelector('#input-claim-status').value;
+            const adminNotes = modal.querySelector('#input-claim-notes').value.trim();
+            const addToAuthorityActions = modal.querySelector('#input-claim-add-action').checked;
+
+            await adminComplaintService.reviewLegalUpdateRequest(comp._id, requestId, {
+              status,
+              adminNotes,
+              addToAuthorityActions,
+            });
+
+            await loadDetails();
+          },
+        });
+      });
+    });
   }
 
   await loadDetails();
