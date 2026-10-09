@@ -15,6 +15,7 @@ import {
 } from '../../constants/evidenceStatus.js';
 import { auditService } from '../audit/audit.service.js';
 import { AuditLog } from '../../models/AuditLog.js';
+import { logger } from '../../utils/logger.js';
 import {
   NotFoundError,
   ValidationError,
@@ -130,49 +131,106 @@ export class EvidenceService {
       );
     }
 
+    // Security check 1: Empty or missing file buffer must NEVER be marked CLEAN
+    if (!buffer || !Buffer.isBuffer(buffer) || buffer.length === 0) {
+      evidence.uploadStatus = UPLOAD_STATUS.REJECTED;
+      evidence.malwareScanStatus = MALWARE_SCAN_STATUS.FAILED;
+      evidence.publicStatus = EVIDENCE_PUBLIC_STATUS.PRIVATE;
+      await evidence.save().catch(() => {});
+      throw new ValidationError('Evidence file buffer is required and cannot be empty');
+    }
+
     if (sha256) {
       evidence.sha256 = sha256;
     }
 
-    evidence.uploadStatus = UPLOAD_STATUS.UPLOADED;
+    // Security check 2: Upload to Quarantine (fail closed on any error)
+    try {
+      const qRes = await storageAdapterService.uploadToQuarantine({
+        filename: evidence.originalFilename || 'evidence_file',
+        mimeType: evidence.mimeType || 'application/octet-stream',
+        bufferOrStream: buffer,
+        size: buffer.length,
+      });
 
-    if (buffer && buffer.length > 0) {
-      try {
-        const qRes = await storageAdapterService.uploadToQuarantine({
-          filename: evidence.originalFilename,
-          mimeType: evidence.mimeType,
-          bufferOrStream: buffer,
-          size: buffer.length,
-        });
-        if (qRes?.driveFileId) {
-          evidence.driveFileId = qRes.driveFileId;
-        }
-      } catch {
-        // Log but proceed to malware inspection
+      if (!qRes?.driveFileId) {
+        throw new Error('Storage adapter failed to return a valid quarantine driveFileId');
       }
+      evidence.driveFileId = qRes.driveFileId;
+      evidence.uploadStatus = UPLOAD_STATUS.QUARANTINED;
+    } catch (uploadErr) {
+      logger.error('Failed to store evidence in quarantine storage', {
+        error: uploadErr.message,
+        evidenceId: evidence._id,
+      });
+      evidence.uploadStatus = UPLOAD_STATUS.REJECTED;
+      evidence.malwareScanStatus = MALWARE_SCAN_STATUS.FAILED;
+      evidence.publicStatus = EVIDENCE_PUBLIC_STATUS.PRIVATE;
+      await evidence.save().catch(() => {});
+      throw new Error(`Failed to store evidence in quarantine: ${uploadErr.message}`);
     }
 
-    // Execute real malware scanning inspection (magic-byte, executable headers, polyglots, EICAR, ClamAV)
-    const scanResult = await malwareScanService.scanBuffer({
-      buffer: buffer || Buffer.alloc(0),
-      filename: evidence.originalFilename,
-      mimeType: evidence.mimeType,
-    });
+    // Security check 3: Execute real malware scanning inspection
+    let scanResult;
+    try {
+      scanResult = await malwareScanService.scanBuffer({
+        buffer,
+        filename: evidence.originalFilename,
+        mimeType: evidence.mimeType,
+      });
+    } catch (scanErr) {
+      logger.error('Malware scanner threw an unhandled exception', { error: scanErr.message });
+      scanResult = {
+        status: MALWARE_SCAN_STATUS.FAILED,
+        threats: ['SCANNER_EXCEPTION'],
+        details: scanErr.message,
+      };
+    }
 
+    // Handle malicious threats
     if (scanResult.status === MALWARE_SCAN_STATUS.MALICIOUS) {
       evidence.malwareScanStatus = MALWARE_SCAN_STATUS.MALICIOUS;
       evidence.uploadStatus = UPLOAD_STATUS.REJECTED;
       evidence.reviewStatus = EVIDENCE_REVIEW_STATUS.REJECTED;
-      await evidence.save();
+      evidence.publicStatus = EVIDENCE_PUBLIC_STATUS.PRIVATE;
+      await evidence.save().catch(() => {});
 
       throw new ValidationError(
-        `Malware scan rejected file: ${scanResult.threats.join(', ')}`
+        `Malware scan rejected file: ${scanResult.threats?.join(', ') || 'Malicious signature detected'}`
       );
     }
 
-    // Passed malware inspection -> move from Quarantine into Clean/Private Evidence folder
+    // Handle failed, scanner unavailable, timeout, or inconclusive scans (fail closed)
+    if (scanResult.status !== MALWARE_SCAN_STATUS.CLEAN) {
+      evidence.malwareScanStatus = MALWARE_SCAN_STATUS.FAILED;
+      evidence.uploadStatus = UPLOAD_STATUS.QUARANTINED;
+      evidence.reviewStatus = EVIDENCE_REVIEW_STATUS.PENDING;
+      evidence.publicStatus = EVIDENCE_PUBLIC_STATUS.PRIVATE;
+      await evidence.save().catch(() => {});
+
+      throw new ValidationError(
+        `Malware scanning failed or inconclusive: ${scanResult.details || (scanResult.threats && scanResult.threats.join(', ')) || 'Inconclusive scan'}`
+      );
+    }
+
+    // Security check 4: Move from Quarantine to Clean (Private Evidence) folder
+    try {
+      await storageAdapterService.moveToClean(evidence.driveFileId);
+    } catch (moveErr) {
+      logger.error('Failed to move evidence from quarantine to clean folder', {
+        error: moveErr.message,
+        driveFileId: evidence.driveFileId,
+        evidenceId: evidence._id,
+      });
+      evidence.uploadStatus = UPLOAD_STATUS.QUARANTINED;
+      evidence.malwareScanStatus = MALWARE_SCAN_STATUS.FAILED;
+      evidence.publicStatus = EVIDENCE_PUBLIC_STATUS.PRIVATE;
+      await evidence.save().catch(() => {});
+      throw new Error(`Failed to move evidence to verified clean storage: ${moveErr.message}`);
+    }
+
+    // Passed all security checks and storage operations -> store clean
     evidence.malwareScanStatus = MALWARE_SCAN_STATUS.CLEAN;
-    await storageAdapterService.moveToClean(evidence.driveFileId);
     evidence.uploadStatus = UPLOAD_STATUS.STORED;
 
     await evidence.save();
@@ -401,6 +459,11 @@ export class EvidenceService {
       throw new ValidationError('Cannot accept or approve evidence flagged as malicious');
     }
 
+    // Cannot mark as reviewed if malware scan has not passed clean
+    if (reviewStatus === EVIDENCE_REVIEW_STATUS.REVIEWED && evidence.malwareScanStatus !== MALWARE_SCAN_STATUS.CLEAN) {
+      throw new ValidationError('Cannot accept or review evidence that has not passed malware scan');
+    }
+
     if (reviewStatus) {
       if (!Object.values(EVIDENCE_REVIEW_STATUS).includes(reviewStatus)) {
         throw new ValidationError(`Invalid review status: ${reviewStatus}`);
@@ -411,6 +474,9 @@ export class EvidenceService {
     if (malwareScanStatus) {
       if (!Object.values(MALWARE_SCAN_STATUS).includes(malwareScanStatus)) {
         throw new ValidationError(`Invalid malware scan status: ${malwareScanStatus}`);
+      }
+      if (evidence.malwareScanStatus === MALWARE_SCAN_STATUS.MALICIOUS && malwareScanStatus === MALWARE_SCAN_STATUS.CLEAN) {
+        throw new ValidationError('Cannot override malicious evidence scan status to clean');
       }
       evidence.malwareScanStatus = malwareScanStatus;
       if (malwareScanStatus === MALWARE_SCAN_STATUS.MALICIOUS) {
@@ -453,25 +519,45 @@ export class EvidenceService {
       }
     }
 
-    if (evidence.malwareScanStatus !== MALWARE_SCAN_STATUS.CLEAN) {
-      throw new ValidationError('Cannot publish evidence that has not passed malware scan');
+    if (publicStatus === EVIDENCE_PUBLIC_STATUS.APPROVED_PUBLIC) {
+      if (evidence.malwareScanStatus !== MALWARE_SCAN_STATUS.CLEAN) {
+        throw new ValidationError('Cannot publish evidence that has not passed malware scan');
+      }
+
+      if (evidence.type !== EVIDENCE_TYPES.EXTERNAL_LINK && evidence.uploadStatus !== UPLOAD_STATUS.STORED) {
+        throw new ValidationError('Cannot publish evidence whose storage operation has not completed');
+      }
     }
 
     if (publicStatus) {
       if (!Object.values(EVIDENCE_PUBLIC_STATUS).includes(publicStatus)) {
         throw new ValidationError(`Invalid public status: ${publicStatus}`);
       }
-      evidence.publicStatus = publicStatus;
 
       // When approved for public, copy safe version into public storage folder while preserving private original
       if (publicStatus === EVIDENCE_PUBLIC_STATUS.APPROVED_PUBLIC && evidence.driveFileId) {
         const safeFilename = `public_safe_${evidence.originalFilename || 'evidence'}`;
-        const copyResult = await storageAdapterService.copyToPublic(evidence.driveFileId, safeFilename);
-        evidence.publicDriveFileId = copyResult.driveFileId;
-        evidence.safePublicNote = redactionStatus === REDACTION_STATUS.NONE
-          ? 'Approved safe public copy (unredacted)'
-          : `Approved safe public copy (${redactionStatus || 'redacted'})`;
+        try {
+          const copyResult = await storageAdapterService.copyToPublic(evidence.driveFileId, safeFilename);
+          if (!copyResult?.driveFileId) {
+            throw new Error('Storage adapter failed to create public copy');
+          }
+          evidence.publicDriveFileId = copyResult.driveFileId;
+          evidence.safePublicNote = redactionStatus === REDACTION_STATUS.NONE
+            ? 'Approved safe public copy (unredacted)'
+            : `Approved safe public copy (${redactionStatus || 'redacted'})`;
+        } catch (copyErr) {
+          logger.error('Failed to copy evidence to public storage folder', {
+            error: copyErr.message,
+            evidenceId: evidence._id,
+          });
+          evidence.publicStatus = EVIDENCE_PUBLIC_STATUS.PRIVATE;
+          await evidence.save().catch(() => {});
+          throw new Error(`Failed to copy evidence to public storage: ${copyErr.message}`);
+        }
       }
+
+      evidence.publicStatus = publicStatus;
     }
 
     if (redactionStatus) {
@@ -509,6 +595,10 @@ export class EvidenceService {
       throw new ForbiddenError('Evidence is not approved for public viewing');
     }
 
+    if (evidence.malwareScanStatus !== MALWARE_SCAN_STATUS.CLEAN) {
+      throw new ForbiddenError('Evidence did not pass malware verification');
+    }
+
     let publicUrl = null;
     if (evidence.driveFileId) {
       // Zero-tracking proxy endpoint: client never touches Google Drive directly!
@@ -539,6 +629,15 @@ export class EvidenceService {
     const evidence = await Evidence.findById(evidenceId);
     if (!evidence || evidence.deletionStatus?.deleted) {
       throw new NotFoundError('Evidence not found');
+    }
+
+    if (preferPublic) {
+      if (evidence.publicStatus !== EVIDENCE_PUBLIC_STATUS.APPROVED_PUBLIC) {
+        throw new ForbiddenError('Evidence is not approved for public viewing');
+      }
+      if (evidence.malwareScanStatus !== MALWARE_SCAN_STATUS.CLEAN) {
+        throw new ForbiddenError('Evidence did not pass malware verification');
+      }
     }
 
     const targetFileId = (preferPublic && evidence.publicDriveFileId)

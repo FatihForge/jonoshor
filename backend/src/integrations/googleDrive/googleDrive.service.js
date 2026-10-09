@@ -194,6 +194,10 @@ export class GoogleDriveService {
    * Upload file into Quarantine folder
    */
   async uploadToQuarantine({ filename, mimeType, bufferOrStream, size }) {
+    if (!bufferOrStream || (Buffer.isBuffer(bufferOrStream) && bufferOrStream.length === 0)) {
+      throw new Error('File buffer or stream is required and cannot be empty for uploadToQuarantine');
+    }
+
     const driveFileId = `drive_${crypto.randomUUID()}`;
 
     if (!this.isConfigured()) {
@@ -263,12 +267,19 @@ export class GoogleDriveService {
    * Move file from Quarantine to Clean (Private Evidence) folder
    */
   async moveToClean(driveFileId) {
-    if (!this.isConfigured() || !driveFileId || driveFileId.startsWith('gdrive_')) {
-      const mock = this._mockStore.get(driveFileId);
-      if (mock) {
-        mock.folder = 'clean';
-        this._mockStore.set(driveFileId, mock);
-      }
+    if (!driveFileId) {
+      throw new Error('driveFileId is required to move file to clean folder');
+    }
+
+    if (!this.isConfigured() || driveFileId.startsWith('gdrive_') || driveFileId.startsWith('drive_') || driveFileId.startsWith('mock_')) {
+      const mock = this._mockStore.get(driveFileId) || {
+        id: driveFileId,
+        filename: 'mock_file',
+        folder: 'quarantine',
+        buffer: Buffer.from('Mock content for ' + driveFileId),
+      };
+      mock.folder = 'clean';
+      this._mockStore.set(driveFileId, mock);
       return { driveFileId, folder: 'clean' };
     }
 
@@ -286,9 +297,7 @@ export class GoogleDriveService {
 
       return { driveFileId, folder: 'clean' };
     } catch (err) {
-      if (err.code === 404 || err.status === 404 || (err.message && err.message.includes('File not found'))) {
-        return { driveFileId, folder: 'clean' };
-      }
+      logger.error('Failed to move file to clean folder in Google Drive', { error: err.message, driveFileId });
       throw err;
     }
   }
@@ -297,12 +306,19 @@ export class GoogleDriveService {
    * Move file to Public folder
    */
   async moveToPublic(driveFileId) {
-    if (!this.isConfigured() || !driveFileId || driveFileId.startsWith('gdrive_')) {
-      const mock = this._mockStore.get(driveFileId);
-      if (mock) {
-        mock.folder = 'public';
-        this._mockStore.set(driveFileId, mock);
-      }
+    if (!driveFileId) {
+      throw new Error('driveFileId is required to move file to public folder');
+    }
+
+    if (!this.isConfigured() || driveFileId.startsWith('gdrive_') || driveFileId.startsWith('drive_') || driveFileId.startsWith('mock_')) {
+      const mock = this._mockStore.get(driveFileId) || {
+        id: driveFileId,
+        filename: 'mock_file',
+        folder: 'clean',
+        buffer: Buffer.from('Mock content for ' + driveFileId),
+      };
+      mock.folder = 'public';
+      this._mockStore.set(driveFileId, mock);
       return { driveFileId, folder: 'public' };
     }
 
@@ -320,9 +336,7 @@ export class GoogleDriveService {
 
       return { driveFileId, folder: 'public' };
     } catch (err) {
-      if (err.code === 404 || err.status === 404 || (err.message && err.message.includes('File not found'))) {
-        return { driveFileId, folder: 'public' };
-      }
+      logger.error('Failed to move file to public folder in Google Drive', { error: err.message, driveFileId });
       throw err;
     }
   }
@@ -331,17 +345,24 @@ export class GoogleDriveService {
    * Copy file to Public folder (Preserves private original in clean/private folder)
    */
   async copyToPublic(driveFileId, newFilename = null) {
-    if (!this.isConfigured() || !driveFileId || driveFileId.startsWith('gdrive_')) {
-      const mock = this._mockStore.get(driveFileId);
+    if (!driveFileId) {
+      throw new Error('driveFileId is required to copy file to public folder');
+    }
+
+    if (!this.isConfigured() || driveFileId.startsWith('gdrive_') || driveFileId.startsWith('drive_') || driveFileId.startsWith('mock_')) {
+      const mock = this._mockStore.get(driveFileId) || {
+        id: driveFileId,
+        filename: newFilename || 'mock_file',
+        folder: 'clean',
+        buffer: Buffer.from('Mock content for ' + driveFileId),
+      };
       const publicCopyId = `gdrive_pub_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-      if (mock) {
-        this._mockStore.set(publicCopyId, {
-          ...mock,
-          id: publicCopyId,
-          filename: newFilename || `public_${mock.filename}`,
-          folder: 'public',
-        });
-      }
+      this._mockStore.set(publicCopyId, {
+        ...mock,
+        id: publicCopyId,
+        filename: newFilename || `public_${mock.filename || 'file'}`,
+        folder: 'public',
+      });
       return { driveFileId: publicCopyId, folder: 'public' };
     }
 
@@ -365,9 +386,7 @@ export class GoogleDriveService {
 
       return { driveFileId: res.data.id, folder: 'public' };
     } catch (err) {
-      if (err.code === 404 || err.status === 404 || (err.message && err.message.includes('File not found'))) {
-        return { driveFileId, folder: 'public' };
-      }
+      logger.error('Failed to copy file to public folder in Google Drive', { error: err.message, driveFileId });
       throw err;
     }
   }
@@ -376,21 +395,23 @@ export class GoogleDriveService {
    * Get file stream for backend proxying (Zero viewer tracking)
    */
   async getFileStream(driveFileId) {
-    if (!this.isConfigured() || !driveFileId || driveFileId.startsWith('gdrive_')) {
-      const mock = this._mockStore.get(driveFileId);
-      if (!mock) {
-        // Return a fallback mock buffer stream
-        const fallback = Buffer.from('Mock content for ' + driveFileId);
-        return {
-          stream: Readable.from(fallback),
-          mimeType: 'application/octet-stream',
-          size: fallback.length,
-        };
-      }
+    if (!driveFileId) {
+      throw new Error('driveFileId is required to get file stream');
+    }
+
+    if (!this.isConfigured() || driveFileId.startsWith('gdrive_') || driveFileId.startsWith('drive_') || driveFileId.startsWith('mock_')) {
+      const mock = this._mockStore.get(driveFileId) || {
+        id: driveFileId,
+        filename: 'mock_file',
+        buffer: Buffer.from('Mock content for ' + driveFileId),
+        mimeType: 'application/octet-stream',
+        size: 24,
+      };
       return {
         stream: Readable.from(mock.buffer),
-        mimeType: mock.mimeType,
-        size: mock.size,
+        mimeType: mock.mimeType || 'application/octet-stream',
+        size: mock.size || mock.buffer.length,
+        filename: mock.filename || 'mock_file',
       };
     }
 
@@ -414,14 +435,7 @@ export class GoogleDriveService {
         filename: meta.data.name,
       };
     } catch (err) {
-      if (err.code === 404 || err.status === 404 || (err.message && err.message.includes('File not found'))) {
-        const fallback = Buffer.from('Mock content for ' + driveFileId);
-        return {
-          stream: Readable.from(fallback),
-          mimeType: 'application/octet-stream',
-          size: fallback.length,
-        };
-      }
+      logger.error('Failed to get file stream from Google Drive', { error: err.message, driveFileId });
       throw err;
     }
   }

@@ -198,13 +198,13 @@ test('Phase 13, 14, 15 — Google Drive Evidence Infrastructure, Review & Public
   });
 
   await t.test('3. Complete upload executes malware scan and moves file to clean folder', async () => {
+    const safeBuffer = Buffer.from('Safe test evidence file content for protest photograph verification.');
     const res = await request(app)
       .post(`/api/v1/user/complaints/${testComplaintId}/evidence/complete`)
       .set('Cookie', [`access_token=${userToken}`])
-      .send({
-        evidenceId: testEvidenceId,
-        sha256: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-      });
+      .attach('file', safeBuffer, 'protest_photo.jpg')
+      .field('evidenceId', testEvidenceId)
+      .field('sha256', 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
 
     assert.equal(res.status, 200);
     assert.equal(res.body.success, true);

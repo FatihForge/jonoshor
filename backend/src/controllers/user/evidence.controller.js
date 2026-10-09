@@ -1,7 +1,9 @@
 import { evidenceService } from '../../services/evidence/evidence.service.js';
 import { complaintService } from '../../services/complaints/complaint.service.js';
+import { Evidence } from '../../models/Evidence.js';
+import { MALWARE_SCAN_STATUS } from '../../constants/evidenceStatus.js';
 import { sendSuccess } from '../../utils/response.js';
-import { ForbiddenError } from '../../utils/errors.js';
+import { ForbiddenError, NotFoundError } from '../../utils/errors.js';
 
 export const userEvidenceController = {
   async createUploadSession(req, res, next) {
@@ -92,11 +94,20 @@ export const userEvidenceController = {
       const userId = req.user._id || req.user.id;
       await complaintService.getUserComplaintById(id, userId);
 
-      const { stream, mimeType, size, filename, evidence } = await evidenceService.streamEvidenceFile(evidenceId);
+      const evidenceRecord = await Evidence.findById(evidenceId);
+      if (!evidenceRecord || evidenceRecord.deletionStatus?.deleted) {
+        throw new NotFoundError('Evidence not found');
+      }
 
-      if (evidence && evidence.complaintId && evidence.complaintId.toString() !== id.toString()) {
+      if (evidenceRecord.complaintId && evidenceRecord.complaintId.toString() !== id.toString()) {
         throw new ForbiddenError('Evidence does not belong to the specified complaint');
       }
+
+      if (evidenceRecord.malwareScanStatus === MALWARE_SCAN_STATUS.MALICIOUS) {
+        throw new ForbiddenError('Cannot download evidence flagged as malicious');
+      }
+
+      const { stream, mimeType, size, filename } = await evidenceService.streamEvidenceFile(evidenceId);
 
       res.setHeader('Content-Type', mimeType);
       if (size) res.setHeader('Content-Length', size);

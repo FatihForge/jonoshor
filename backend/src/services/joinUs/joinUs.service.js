@@ -111,13 +111,14 @@ export const joinUsService = {
         mimeType: file.mimetype,
       });
 
-      if (scanResult.status === 'malicious') {
+      if (scanResult.status !== 'clean') {
         logger.warn('Uploaded Join Us document failed security scan', {
           filename: file.originalname,
           threats: scanResult.threats,
+          status: scanResult.status,
         });
         throw new ValidationError(
-          `Uploaded document "${file.originalname}" failed security scan: ${scanResult.details || 'Malicious signature detected'}`
+          `Uploaded document "${file.originalname}" failed security scan: ${scanResult.details || (scanResult.threats && scanResult.threats.join(', ')) || 'Security verification failed'}`
         );
       }
 
