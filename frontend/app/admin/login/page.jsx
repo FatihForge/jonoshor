@@ -4,8 +4,12 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Lock, Mail, KeyRound, AlertCircle } from 'lucide-react';
+import { useLanguage } from '../../components/LanguageContext';
 
 export default function AdminLoginPage() {
+  const { lang } = useLanguage();
+  const isBn = lang === 'bn';
+
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({ email: '', password: '', totpCode: '' });
@@ -29,7 +33,7 @@ export default function AdminLoginPage() {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data?.error?.message || 'অ্যাডমিন ক্রিডেনশিয়াল সঠিক নয়।');
+      if (!res.ok) throw new Error(data?.error?.message || (isBn ? 'অ্যাডমিন ক্রিডেনশিয়াল সঠিক নয়।' : 'Invalid admin credentials.'));
 
       setTemp2FAToken(data.data?.temp2FAToken);
       setStep(2);
@@ -56,7 +60,7 @@ export default function AdminLoginPage() {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data?.error?.message || '২-এফ-এ কোড সঠিক নয়।');
+      if (!res.ok) throw new Error(data?.error?.message || (isBn ? '২-এফ-এ কোড সঠিক নয়।' : 'Invalid 2FA code.'));
 
       if (data.data?.account) {
         localStorage.setItem('jonoshor_user', JSON.stringify(data.data.account));
@@ -75,10 +79,16 @@ export default function AdminLoginPage() {
       <div className="container mx-auto px-4 max-w-md space-y-6">
         <div className="text-center space-y-1.5">
           <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-brand-blue dark:text-blue-400">
-            CASEWORKER CONSOLE
+            {isBn ? 'কেসওয়ার্ক কনসোল' : 'CASEWORKER CONSOLE'}
           </span>
-          <h1 className="text-2xl font-extrabold text-brand-navy dark:text-white">অ্যাডমিন রিভিউ কনসোল</h1>
-          <p className="text-xs text-slate-600 dark:text-slate-400">তদন্ত কর্মকর্তা ও পর্যবেক্ষকদের জন্য দ্বি-স্তরীয় ২-এফ-এ ভেরিফিকেশন।</p>
+          <h1 className="text-2xl font-extrabold text-brand-navy dark:text-white">
+            {isBn ? 'অ্যাডমিন রিভিউ কনসোল' : 'Admin Review Console'}
+          </h1>
+          <p className="text-xs text-slate-600 dark:text-slate-400">
+            {isBn
+              ? 'তদন্ত কর্মকর্তা ও পর্যবেক্ষকদের জন্য দ্বি-স্তরীয় ২-এফ-এ ভেরিফিকেশন।'
+              : 'Two-factor authentication required for investigators and moderators.'}
+          </p>
         </div>
 
         <div className="dossier-card-elevated p-6 sm:p-8 rounded-3xl border-t-4 border-t-brand-blue space-y-5 text-xs">
@@ -92,7 +102,9 @@ export default function AdminLoginPage() {
           {step === 1 ? (
             <form onSubmit={handleStep1} className="space-y-4">
               <div>
-                <label className="block text-brand-navy dark:text-slate-200 font-semibold mb-1.5">অ্যাডমিন ইমেইল</label>
+                <label className="block text-brand-navy dark:text-slate-200 font-semibold mb-1.5">
+                  {isBn ? 'অ্যাডমিন ইমেইল' : 'Admin Email'}
+                </label>
                 <div className="relative">
                   <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input type="email" required value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="admin@jonoshor.org" className="editorial-input pl-9 pr-3.5 py-2.5" />
@@ -100,25 +112,31 @@ export default function AdminLoginPage() {
               </div>
 
               <div>
-                <label className="block text-brand-navy dark:text-slate-200 font-semibold mb-1.5">পাসওয়ার্ড</label>
+                <label className="block text-brand-navy dark:text-slate-200 font-semibold mb-1.5">
+                  {isBn ? 'পাসওয়ার্ড' : 'Password'}
+                </label>
                 <div className="relative">
                   <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input type="password" required value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} placeholder="অ্যাডমিন পাসওয়ার্ড" className="editorial-input pl-9 pr-3.5 py-2.5" />
+                  <input type="password" required value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} placeholder={isBn ? 'অ্যাডমিন পাসওয়ার্ড' : 'Admin password'} className="editorial-input pl-9 pr-3.5 py-2.5" />
                 </div>
               </div>
 
               <button type="submit" disabled={loading} className="w-full py-3 px-4 rounded-full bg-brand-blue hover:bg-brand-blueDark text-white font-bold text-xs shadow-md transition-all disabled:opacity-50">
-                {loading ? <span>যাচাই হচ্ছে...</span> : <span>পরবর্তী ধাপ: ২-এফ-এ (TOTP)</span>}
+                {loading ? <span>{isBn ? 'যাচাই হচ্ছে...' : 'Verifying...'}</span> : <span>{isBn ? 'পরবর্তী ধাপ: ২-এফ-এ (TOTP)' : 'Next Step: 2FA (TOTP)'}</span>}
               </button>
             </form>
           ) : (
             <form onSubmit={handleStep2} className="space-y-4">
               <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900 text-slate-600 dark:text-slate-300 text-[11px]">
-                আপনার Authenticator App-এ প্রদর্শিত ৬-সংখ্যার সাময়িক কোডটি লিখুন।
+                {isBn
+                  ? 'আপনার Authenticator App-এ প্রদর্শিত ৬-সংখ্যার সাময়িক কোডটি লিখুন।'
+                  : 'Enter the 6-digit temporary code shown in your Authenticator app.'}
               </div>
 
               <div>
-                <label className="block text-brand-navy dark:text-slate-200 font-semibold mb-1.5">TOTP কোড (৬-সংখ্যা)</label>
+                <label className="block text-brand-navy dark:text-slate-200 font-semibold mb-1.5">
+                  {isBn ? 'TOTP কোড (৬-সংখ্যা)' : 'TOTP Code (6-digit)'}
+                </label>
                 <div className="relative">
                   <KeyRound className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input type="text" required maxLength={6} value={formData.totpCode} onChange={(e) => setFormData({ ...formData, totpCode: e.target.value.trim() })} placeholder="123456" className="editorial-input pl-9 pr-3.5 py-2.5 text-center font-mono tracking-widest text-lg font-bold" />
@@ -126,14 +144,14 @@ export default function AdminLoginPage() {
               </div>
 
               <button type="submit" disabled={loading} className="w-full py-3 px-4 rounded-full bg-brand-blue hover:bg-brand-blueDark text-white font-bold text-xs shadow-md transition-all disabled:opacity-50">
-                {loading ? <span>যাচাই হচ্ছে...</span> : <span>২-এফ-এ যাচাই ও সেশন শুরু</span>}
+                {loading ? <span>{isBn ? 'যাচাই হচ্ছে...' : 'Verifying...'}</span> : <span>{isBn ? '২-এফ-এ যাচাই ও সেশন শুরু' : 'Verify 2FA & Start Session'}</span>}
               </button>
             </form>
           )}
 
           <div className="pt-2 text-center text-[11px] border-t border-slate-100 dark:border-slate-800">
             <Link href="/login" className="text-brand-blue dark:text-blue-400 font-semibold hover:underline">
-              সাধারণ নাগরিক লগইনে ফিরুন
+              {isBn ? 'সাধারণ নাগরিক লগইনে ফিরুন' : 'Return to Citizen Login'}
             </Link>
           </div>
         </div>

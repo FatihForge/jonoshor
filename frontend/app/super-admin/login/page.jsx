@@ -4,8 +4,12 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Lock, Mail, KeyRound, AlertCircle } from 'lucide-react';
+import { useLanguage } from '../../components/LanguageContext';
 
 export default function SuperAdminLoginPage() {
+  const { lang } = useLanguage();
+  const isBn = lang === 'bn';
+
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({ email: '', password: '', totpCode: '' });
@@ -29,7 +33,7 @@ export default function SuperAdminLoginPage() {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data?.error?.message || 'সুপার অ্যাডমিন ক্রিডেনশিয়াল সঠিক নয়।');
+      if (!res.ok) throw new Error(data?.error?.message || (isBn ? 'সুপার অ্যাডমিন ক্রিডেনশিয়াল সঠিক নয়।' : 'Invalid super admin credentials.'));
 
       setTemp2FAToken(data.data?.temp2FAToken);
       setStep(2);
@@ -56,7 +60,7 @@ export default function SuperAdminLoginPage() {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data?.error?.message || 'সুপার অ্যাডমিন ২-এফ-এ কোড সঠিক নয়।');
+      if (!res.ok) throw new Error(data?.error?.message || (isBn ? 'সুপার অ্যাডমিন ২-এফ-এ কোড সঠিক নয়।' : 'Invalid super admin 2FA code.'));
 
       if (data.data?.account) {
         localStorage.setItem('jonoshor_user', JSON.stringify(data.data.account));
@@ -75,10 +79,14 @@ export default function SuperAdminLoginPage() {
       <div className="container mx-auto px-4 max-w-md space-y-6">
         <div className="text-center space-y-1.5">
           <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-brand-blue dark:text-blue-400">
-            ROOT GOVERNANCE GATEWAY
+            {isBn ? 'রুট গভর্ন্যান্স গেটওয়ে' : 'ROOT GOVERNANCE GATEWAY'}
           </span>
-          <h1 className="text-2xl font-extrabold text-brand-navy dark:text-white">রুট সুপার অ্যাডমিন কনসোল</h1>
-          <p className="text-xs text-slate-600 dark:text-slate-400">সর্বোচ্চ নির্বাহী ও নিরাপত্তা প্রবেশদ্বার।</p>
+          <h1 className="text-2xl font-extrabold text-brand-navy dark:text-white">
+            {isBn ? 'রুট সুপার অ্যাডমিন কনসোল' : 'Root Super Admin Console'}
+          </h1>
+          <p className="text-xs text-slate-600 dark:text-slate-400">
+            {isBn ? 'সর্বোচ্চ নির্বাহী ও নিরাপত্তা প্রবেশদ্বার।' : 'Highest executive and system security gateway.'}
+          </p>
         </div>
 
         <div className="dossier-card-elevated p-6 sm:p-8 rounded-3xl border-t-4 border-t-brand-navy dark:border-t-blue-500 space-y-5 text-xs">
@@ -92,7 +100,9 @@ export default function SuperAdminLoginPage() {
           {step === 1 ? (
             <form onSubmit={handleStep1} className="space-y-4">
               <div>
-                <label className="block text-brand-navy dark:text-slate-200 font-semibold mb-1.5">সুপার অ্যাডমিন ইমেইল</label>
+                <label className="block text-brand-navy dark:text-slate-200 font-semibold mb-1.5">
+                  {isBn ? 'সুপার অ্যাডমিন ইমেইল' : 'Super Admin Email'}
+                </label>
                 <div className="relative">
                   <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input type="email" required value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="superadmin@jonoshor.org" className="editorial-input pl-9 pr-3.5 py-2.5" />
@@ -100,21 +110,25 @@ export default function SuperAdminLoginPage() {
               </div>
 
               <div>
-                <label className="block text-brand-navy dark:text-slate-200 font-semibold mb-1.5">মাস্টার পাসওয়ার্ড</label>
+                <label className="block text-brand-navy dark:text-slate-200 font-semibold mb-1.5">
+                  {isBn ? 'মাস্টার পাসওয়ার্ড' : 'Master Password'}
+                </label>
                 <div className="relative">
                   <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input type="password" required value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} placeholder="মাস্টার পাসওয়ার্ড" className="editorial-input pl-9 pr-3.5 py-2.5" />
+                  <input type="password" required value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} placeholder={isBn ? 'মাস্টার পাসওয়ার্ড' : 'Master password'} className="editorial-input pl-9 pr-3.5 py-2.5" />
                 </div>
               </div>
 
               <button type="submit" disabled={loading} className="w-full py-3 px-4 rounded-full bg-brand-blue hover:bg-brand-blueDark text-white font-bold text-xs shadow-md transition-all disabled:opacity-50">
-                {loading ? <span>যাচাই হচ্ছে...</span> : <span>পরবর্তী ধাপ: রুট ২-এফ-এ</span>}
+                {loading ? <span>{isBn ? 'যাচাই হচ্ছে...' : 'Verifying...'}</span> : <span>{isBn ? 'পরবর্তী ধাপ: রুট ২-এফ-এ' : 'Next Step: Root 2FA'}</span>}
               </button>
             </form>
           ) : (
             <form onSubmit={handleStep2} className="space-y-4">
               <div>
-                <label className="block text-brand-navy dark:text-slate-200 font-semibold mb-1.5">Super Admin TOTP Authenticator কোড</label>
+                <label className="block text-brand-navy dark:text-slate-200 font-semibold mb-1.5">
+                  {isBn ? 'Super Admin TOTP Authenticator কোড' : 'Super Admin TOTP Authenticator Code'}
+                </label>
                 <div className="relative">
                   <KeyRound className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input type="text" required maxLength={6} value={formData.totpCode} onChange={(e) => setFormData({ ...formData, totpCode: e.target.value.trim() })} placeholder="123456" className="editorial-input pl-9 pr-3.5 py-2.5 text-center font-mono tracking-widest text-lg font-bold" />
@@ -122,14 +136,14 @@ export default function SuperAdminLoginPage() {
               </div>
 
               <button type="submit" disabled={loading} className="w-full py-3 px-4 rounded-full bg-brand-blue hover:bg-brand-blueDark text-white font-bold text-xs shadow-md transition-all disabled:opacity-50">
-                {loading ? <span>যাচাই হচ্ছে...</span> : <span>এক্সিকিউটিভ কনসোলে প্রবেশ</span>}
+                {loading ? <span>{isBn ? 'যাচাই হচ্ছে...' : 'Verifying...'}</span> : <span>{isBn ? 'এক্সিকিউটিভ কনসোলে প্রবেশ' : 'Enter Executive Console'}</span>}
               </button>
             </form>
           )}
 
           <div className="pt-2 text-center text-[11px] border-t border-slate-100 dark:border-slate-800">
             <Link href="/login" className="text-brand-blue dark:text-blue-400 font-semibold hover:underline">
-              সাধারণ লগইনে ফিরুন
+              {isBn ? 'সাধারণ লগইনে ফিরুন' : 'Return to Standard Login'}
             </Link>
           </div>
         </div>

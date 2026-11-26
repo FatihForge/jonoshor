@@ -3,8 +3,12 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Mail, CheckCircle2, AlertCircle } from 'lucide-react';
+import { useLanguage } from '../components/LanguageContext';
 
 function VerifyEmailContent() {
+  const { lang } = useLanguage();
+  const isBn = lang === 'bn';
+
   const router = useRouter();
   const searchParams = useSearchParams();
   const emailParam = searchParams.get('email') || '';
@@ -37,9 +41,9 @@ function VerifyEmailContent() {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data?.error?.message || 'ভেরিফিকেশন কোড সঠিক নয়।');
+      if (!res.ok) throw new Error(data?.error?.message || (isBn ? 'ভেরিফিকেশন কোড সঠিক নয়।' : 'Invalid verification code.'));
 
-      setMessage('ইমেইল সফলভাবে ভেরিফাই হয়েছে! লগইন পেজে নিয়ে যাওয়া হচ্ছে...');
+      setMessage(isBn ? 'ইমেইল সফলভাবে ভেরিফাই হয়েছে! লগইন পেজে নিয়ে যাওয়া হচ্ছে...' : 'Email verified! Redirecting to sign in...');
       setTimeout(() => router.push('/login'), 2000);
     } catch (err) {
       setError(err.message);
@@ -50,7 +54,7 @@ function VerifyEmailContent() {
 
   const handleResend = async () => {
     if (!email) {
-      setError('ইমেইল ঠিকানা প্রদান করুন।');
+      setError(isBn ? 'ইমেইল ঠিকানা প্রদান করুন।' : 'Please enter your email address.');
       return;
     }
     setResending(true);
@@ -68,9 +72,9 @@ function VerifyEmailContent() {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data?.error?.message || 'কোড পাঠানো সম্ভব হয়নি।');
+      if (!res.ok) throw new Error(data?.error?.message || (isBn ? 'কোড পাঠানো সম্ভব হয়নি।' : 'Could not resend code.'));
 
-      setMessage('নতুন ৬-সংখ্যার কোড আপনার ইমেইলে পাঠানো হয়েছে।');
+      setMessage(isBn ? 'নতুন ৬-সংখ্যার কোড আপনার ইমেইলে পাঠানো হয়েছে।' : 'A new 6-digit verification code has been sent to your email.');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -83,11 +87,15 @@ function VerifyEmailContent() {
       <div className="container mx-auto px-4 max-w-md space-y-6">
         <div className="text-center space-y-1.5">
           <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-brand-blue dark:text-blue-400">
-            IDENTITY VERIFICATION
+            {isBn ? 'পরিচয় যাচাইকরণ' : 'IDENTITY VERIFICATION'}
           </span>
-          <h1 className="text-2xl font-extrabold text-brand-navy dark:text-white">ইমেইল ভেরিফিকেশন</h1>
+          <h1 className="text-2xl font-extrabold text-brand-navy dark:text-white">
+            {isBn ? 'ইমেইল ভেরিফিকেশন' : 'Email Verification'}
+          </h1>
           <p className="text-xs text-slate-600 dark:text-slate-400">
-            আপনার ইনবক্সে প্রেরিত ৬-সংখ্যার ভেরিফিকেশন কোডটি প্রবেশ করান।
+            {isBn
+              ? 'আপনার ইনবক্সে প্রেরিত ৬-সংখ্যার ভেরিফিকেশন কোডটি প্রবেশ করান।'
+              : 'Enter the 6-digit verification code sent to your inbox.'}
           </p>
         </div>
 
@@ -108,7 +116,9 @@ function VerifyEmailContent() {
 
           <form onSubmit={handleVerify} className="space-y-4">
             <div>
-              <label className="block text-brand-navy dark:text-slate-200 font-semibold mb-1.5">ইমেইল ঠিকানা</label>
+              <label className="block text-brand-navy dark:text-slate-200 font-semibold mb-1.5">
+                {isBn ? 'ইমেইল ঠিকানা' : 'Email Address'}
+              </label>
               <div className="relative">
                 <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@example.com" className="editorial-input pl-9 pr-3.5 py-2.5" />
@@ -116,19 +126,21 @@ function VerifyEmailContent() {
             </div>
 
             <div>
-              <label className="block text-brand-navy dark:text-slate-200 font-semibold mb-1.5">৬-সংখ্যার কোড (OTP)</label>
+              <label className="block text-brand-navy dark:text-slate-200 font-semibold mb-1.5">
+                {isBn ? '৬-সংখ্যার কোড (OTP)' : '6-Digit Code (OTP)'}
+              </label>
               <input type="text" required maxLength={6} value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} placeholder="000000" className="editorial-input px-3.5 py-2.5 text-center font-mono text-lg tracking-widest font-bold" />
             </div>
 
             <button type="submit" disabled={loading} className="w-full py-3 px-4 rounded-full bg-brand-blue hover:bg-brand-blueDark text-white font-bold text-xs shadow-md transition-all disabled:opacity-50">
-              {loading ? <span>যাচাই হচ্ছে...</span> : <span>ইমেইল নিশ্চিত করুন</span>}
+              {loading ? <span>{isBn ? 'যাচাই হচ্ছে...' : 'Verifying...'}</span> : <span>{isBn ? 'ইমেইল নিশ্চিত করুন' : 'Verify Email'}</span>}
             </button>
           </form>
 
           <div className="pt-2 text-center text-slate-600 dark:text-slate-400 text-xs border-t border-slate-100 dark:border-slate-800">
-            কোড পাননি?{' '}
+            {isBn ? 'কোড পাননি? ' : "Didn't receive a code? "}
             <button type="button" disabled={resending} onClick={handleResend} className="text-brand-blue dark:text-blue-400 font-bold hover:underline disabled:opacity-50">
-              {resending ? 'পাঠানো হচ্ছে...' : 'পুনরায় কোড পাঠান'}
+              {resending ? (isBn ? 'পাঠানো হচ্ছে...' : 'Sending...') : (isBn ? 'পুনরায় কোড পাঠান' : 'Resend Code')}
             </button>
           </div>
         </div>
@@ -139,7 +151,7 @@ function VerifyEmailContent() {
 
 export default function VerifyEmailPage() {
   return (
-    <Suspense fallback={<div className="container mx-auto px-4 py-16 max-w-md text-center text-xs text-slate-500">লোড হচ্ছে...</div>}>
+    <Suspense fallback={<div className="container mx-auto px-4 py-16 max-w-md text-center text-xs text-slate-500">Loading...</div>}>
       <VerifyEmailContent />
     </Suspense>
   );

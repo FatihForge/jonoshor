@@ -4,8 +4,12 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Lock, Mail, AlertCircle } from 'lucide-react';
+import { useLanguage } from '../components/LanguageContext';
 
 export default function LoginPage() {
+  const { lang } = useLanguage();
+  const isBn = lang === 'bn';
+
   const router = useRouter();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
@@ -32,7 +36,7 @@ export default function LoginPage() {
           router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`);
           return;
         }
-        throw new Error(data?.error?.message || 'লগইন ব্যর্থ হয়েছে।');
+        throw new Error(data?.error?.message || (isBn ? 'লগইন ব্যর্থ হয়েছে।' : 'Login failed.'));
       }
 
       if (data.data?.account) {
@@ -52,13 +56,15 @@ export default function LoginPage() {
       <div className="container mx-auto px-4 max-w-md space-y-6">
         <div className="text-center space-y-1.5">
           <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-brand-blue dark:text-blue-400">
-            CITIZEN PORTAL ACCESS
+            {isBn ? 'নাগরিক পোর্টাল প্রবেশ' : 'CITIZEN PORTAL ACCESS'}
           </span>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-brand-navy dark:text-white">
-            নাগরিক অ্যাকাউন্টে লগইন
+            {isBn ? 'নাগরিক অ্যাকাউন্টে লগইন' : 'Citizen Account Sign In'}
           </h1>
           <p className="text-xs text-slate-600 dark:text-slate-400">
-            আপনার জমাকৃত অভিযোগ ও অগ্রগতি ট্র্যাক করতে সাইন ইন করুন।
+            {isBn
+              ? 'আপনার জমাকৃত অভিযোগ ও অগ্রগতি ট্র্যাক করতে সাইন ইন করুন।'
+              : 'Sign in to track your submitted complaints and review progress.'}
           </p>
         </div>
 
@@ -72,7 +78,9 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-brand-navy dark:text-slate-200 font-semibold mb-1.5">ইমেইল ঠিকানা</label>
+              <label className="block text-brand-navy dark:text-slate-200 font-semibold mb-1.5">
+                {isBn ? 'ইমেইল ঠিকানা' : 'Email Address'}
+              </label>
               <div className="relative">
                 <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input type="email" required value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="name@example.com" className="editorial-input pl-9 pr-3.5 py-2.5" />
@@ -81,19 +89,21 @@ export default function LoginPage() {
 
             <div>
               <div className="flex justify-between items-center mb-1.5">
-                <label className="text-brand-navy dark:text-slate-200 font-semibold">পাসওয়ার্ড</label>
+                <label className="text-brand-navy dark:text-slate-200 font-semibold">
+                  {isBn ? 'পাসওয়ার্ড' : 'Password'}
+                </label>
                 <Link href="/forgot-password" className="text-brand-blue dark:text-blue-400 hover:underline text-[11px] font-semibold">
-                  পাসওয়ার্ড ভুলে গেছেন?
+                  {isBn ? 'পাসওয়ার্ড ভুলে গেছেন?' : 'Forgot password?'}
                 </Link>
               </div>
               <div className="relative">
                 <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input type="password" required value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} placeholder="আপনার পাসওয়ার্ড" className="editorial-input pl-9 pr-3.5 py-2.5" />
+                <input type="password" required value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} placeholder={isBn ? 'আপনার পাসওয়ার্ড' : 'Your password'} className="editorial-input pl-9 pr-3.5 py-2.5" />
               </div>
             </div>
 
             <button type="submit" disabled={loading} className="w-full py-3 px-4 rounded-full bg-brand-blue hover:bg-brand-blueDark text-white font-bold text-xs shadow-md shadow-blue-600/20 transition-all disabled:opacity-50">
-              {loading ? <span>যাচাই হচ্ছে...</span> : <span>লগইন করুন</span>}
+              {loading ? <span>{isBn ? 'যাচাই হচ্ছে...' : 'Signing in...'}</span> : <span>{isBn ? 'লগইন করুন' : 'Sign In'}</span>}
             </button>
           </form>
 
@@ -102,7 +112,7 @@ export default function LoginPage() {
               <div className="w-full border-t border-slate-200 dark:border-slate-800" />
             </div>
             <div className="relative flex justify-center text-[10px] font-mono text-slate-400 uppercase">
-              <span className="bg-white dark:bg-[#111A2E] px-2">অথবা</span>
+              <span className="bg-white dark:bg-[#111A2E] px-2">{isBn ? 'অথবা' : 'OR'}</span>
             </div>
           </div>
 
@@ -116,22 +126,22 @@ export default function LoginPage() {
               <path fill="#FBBC05" d="M5.34 14.27c-.24-.72-.38-1.49-.38-2.27s.14-1.55.38-2.27V6.58H1.3C.47 8.24 0 10.06 0 12s.47 3.76 1.3 5.42l4.04-3.15z" />
               <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.37 0 3.32 2.64 1.3 6.58l4.04 3.15c.93-2.83 3.56-4.98 6.66-4.98z" />
             </svg>
-            <span>গুগল অ্যাকাউন্টের মাধ্যমে সাইন-ইন</span>
+            <span>{isBn ? 'গুগল অ্যাকাউন্টের মাধ্যমে সাইন-ইন' : 'Continue with Google'}</span>
           </a>
 
           <div className="pt-2 text-center text-slate-600 dark:text-slate-400 text-xs space-y-2.5">
             <div>
-              অ্যাকাউন্ট নেই?{' '}
+              {isBn ? 'অ্যাকাউন্ট নেই? ' : "Don't have an account? "}
               <Link href="/register" className="text-brand-blue dark:text-blue-400 font-bold hover:underline">
-                নতুন অ্যাকাউন্ট তৈরি করুন
+                {isBn ? 'নতুন অ্যাকাউন্ট তৈরি করুন' : 'Create an Account'}
               </Link>
             </div>
             <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800 flex justify-between text-[11px] font-mono">
               <Link href="/admin/login" className="text-slate-500 hover:text-brand-blue">
-                Admin Portal →
+                {isBn ? 'অ্যাডমিন পোর্টাল →' : 'Admin Portal →'}
               </Link>
               <Link href="/super-admin/login" className="text-slate-500 hover:text-brand-blue">
-                Super Admin →
+                {isBn ? 'সুপার অ্যাডমিন →' : 'Super Admin →'}
               </Link>
             </div>
           </div>

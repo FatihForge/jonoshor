@@ -3,8 +3,12 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { Mail, AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { useLanguage } from '../components/LanguageContext';
 
 export default function ForgotPasswordPage() {
+  const { lang } = useLanguage();
+  const isBn = lang === 'bn';
+
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
@@ -27,9 +31,13 @@ export default function ForgotPasswordPage() {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data?.error?.message || 'রিকুয়েস্ট সম্পন্ন করা যায়নি।');
+      if (!res.ok) throw new Error(data?.error?.message || (isBn ? 'রিকুয়েস্ট সম্পন্ন করা যায়নি।' : 'Request could not be completed.'));
 
-      setMessage('পাসওয়ার্ড রিসেট লিঙ্কটি আপনার ইমেইলে পাঠানো হয়েছে (যদি অ্যাকাউন্ট থাকে)।');
+      setMessage(
+        isBn
+          ? 'পাসওয়ার্ড রিসেট লিঙ্কটি আপনার ইমেইলে পাঠানো হয়েছে (যদি অ্যাকাউন্ট থাকে)।'
+          : 'A password reset link has been sent to your email (if an account exists).'
+      );
     } catch (err) {
       setError(err.message);
     } finally {
@@ -42,10 +50,14 @@ export default function ForgotPasswordPage() {
       <div className="container mx-auto px-4 max-w-md space-y-6">
         <div className="text-center space-y-1.5">
           <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-brand-blue dark:text-blue-400">
-            ACCOUNT RECOVERY
+            {isBn ? 'অ্যাকাউন্ট পুনরুদ্ধার' : 'ACCOUNT RECOVERY'}
           </span>
-          <h1 className="text-2xl font-extrabold text-brand-navy dark:text-white">পাসওয়ার্ড পুনরুদ্ধার</h1>
-          <p className="text-xs text-slate-600 dark:text-slate-400">আপনার অ্যাকাউন্টের নিবন্ধিত ইমেইল ঠিকানাটি প্রদান করুন।</p>
+          <h1 className="text-2xl font-extrabold text-brand-navy dark:text-white">
+            {isBn ? 'পাসওয়ার্ড পুনরুদ্ধার' : 'Password Recovery'}
+          </h1>
+          <p className="text-xs text-slate-600 dark:text-slate-400">
+            {isBn ? 'আপনার অ্যাকাউন্টের নিবন্ধিত ইমেইল ঠিকানাটি প্রদান করুন।' : 'Enter the registered email address for your account.'}
+          </p>
         </div>
 
         <div className="dossier-card-elevated p-6 sm:p-8 rounded-3xl space-y-5 text-xs">
@@ -65,7 +77,9 @@ export default function ForgotPasswordPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-brand-navy dark:text-slate-200 font-semibold mb-1.5">ইমেইল ঠিকানা</label>
+              <label className="block text-brand-navy dark:text-slate-200 font-semibold mb-1.5">
+                {isBn ? 'ইমেইল ঠিকানা' : 'Email Address'}
+              </label>
               <div className="relative">
                 <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@example.com" className="editorial-input pl-9 pr-3.5 py-2.5" />
@@ -73,14 +87,14 @@ export default function ForgotPasswordPage() {
             </div>
 
             <button type="submit" disabled={loading} className="w-full py-3 px-4 rounded-full bg-brand-blue hover:bg-brand-blueDark text-white font-bold text-xs shadow-md transition-all disabled:opacity-50">
-              {loading ? <span>পাঠানো হচ্ছে...</span> : <span>রিসেট লিঙ্ক পাঠান</span>}
+              {loading ? <span>{isBn ? 'পাঠানো হচ্ছে...' : 'Sending...'}</span> : <span>{isBn ? 'রিসেট লিঙ্ক পাঠান' : 'Send Reset Link'}</span>}
             </button>
           </form>
 
           <div className="pt-2 text-center text-xs border-t border-slate-100 dark:border-slate-800">
             <Link href="/login" className="inline-flex items-center gap-1 text-brand-blue dark:text-blue-400 font-bold hover:underline">
               <ArrowLeft className="w-3.5 h-3.5" />
-              <span>লগইন পেজে ফিরে যান</span>
+              <span>{isBn ? 'লগইন পেজে ফিরে যান' : 'Back to Sign In'}</span>
             </Link>
           </div>
         </div>

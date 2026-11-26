@@ -13,7 +13,7 @@ export const DICTIONARY = {
     navReports: 'যাচাইকৃত রিপোর্ট',
     navSubmitComplaint: 'অভিযোগ দাখিল',
     navStats: 'পরিসংখ্যান',
-    navJoinUs: 'যুক্ত হোন (Join Us)',
+    navJoinUs: 'যুক্ত হোন',
     navAbout: 'আমাদের লক্ষ্য',
     navLogin: 'লগইন',
     navRegister: 'নিবন্ধন',
@@ -54,13 +54,20 @@ export function LanguageProvider({ children }) {
     const saved = localStorage.getItem('jonoshor_lang');
     if (saved && (saved === 'bn' || saved === 'en')) {
       setLang(saved);
+      document.documentElement.lang = saved;
     }
   }, []);
 
   const toggleLanguage = (newLang) => {
-    const target = newLang || (lang === 'bn' ? 'en' : 'bn');
+    const target = typeof newLang === 'string' && (newLang === 'bn' || newLang === 'en')
+      ? newLang
+      : lang === 'bn'
+      ? 'en'
+      : 'bn';
     setLang(target);
     localStorage.setItem('jonoshor_lang', target);
+    document.cookie = `jonoshor_lang=${target}; path=/; max-age=31536000; SameSite=Lax`;
+    document.documentElement.lang = target;
   };
 
   const t = DICTIONARY[lang] || DICTIONARY.bn;

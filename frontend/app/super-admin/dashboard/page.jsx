@@ -30,7 +30,7 @@ export default function SuperAdminDashboardPage() {
           window.location.href = '/super-admin/login';
           return;
         }
-        throw new Error('সুপার অ্যাডমিন ড্যাশবোর্ড তথ্য লোড করা যায়নি');
+        throw new Error(isBn ? 'সুপার অ্যাডমিন ড্যাশবোর্ড তথ্য লোড করা যায়নি' : 'Failed to load Super Admin dashboard metrics');
       }
       const data = await res.json();
       setMetrics(data.data?.counts || data.counts || {});
@@ -97,7 +97,9 @@ export default function SuperAdminDashboardPage() {
               {isBn ? 'জনস্বর — সুপার অ্যাডমিন কমান্ড সেন্টার' : 'JonoShor — Super Admin Command Center'}
             </h1>
             <p className="text-blue-100 max-w-2xl leading-relaxed">
-              মানবাধিকার প্ল্যাটফর্মের অখণ্ডতা, অ্যাক্সেস পলিসি, এনক্রিপ্টেড প্রমাণাগার এবং শীর্ষ পর্যায়ের নিরাপত্তা নিয়ন্ত্রণ।
+              {isBn
+                ? 'মানবাধিকার প্ল্যাটফর্মের অখণ্ডতা, অ্যাক্সেস পলিসি, এনক্রিপ্টেড প্রমাণাগার এবং শীর্ষ পর্যায়ের নিরাপত্তা নিয়ন্ত্রণ।'
+                : 'Central governance for platform integrity, RBAC policies, encrypted evidence vaults, and root security telemetry.'}
             </p>
           </div>
 
@@ -126,7 +128,9 @@ export default function SuperAdminDashboardPage() {
               <Users className="w-4 h-4 text-brand-blue" />
             </div>
             <div className="font-mono text-2xl font-extrabold text-brand-navy dark:text-white">{loading ? '—' : (metrics?.totalAdmins ?? 0)}</div>
-            <div className="text-[11px] text-emerald-600 font-semibold">{metrics?.activeAdmins ?? 0} সক্রিয়</div>
+            <div className="text-[11px] text-emerald-600 font-semibold">
+              {metrics?.activeAdmins ?? 0} {isBn ? 'সক্রিয়' : 'Active'}
+            </div>
           </div>
 
           <div className="dossier-card p-5 rounded-2xl space-y-1">
@@ -135,7 +139,9 @@ export default function SuperAdminDashboardPage() {
               <ShieldAlert className="w-4 h-4 text-amber-500" />
             </div>
             <div className="font-mono text-2xl font-extrabold text-brand-navy dark:text-white">{loading ? '—' : ((metrics?.suspendedAdmins ?? 0) + (metrics?.blockedAdmins ?? 0))}</div>
-            <div className="text-[11px] text-rose-600 font-semibold">{metrics?.blockedAdmins ?? 0} ব্লকড</div>
+            <div className="text-[11px] text-rose-600 font-semibold">
+              {metrics?.blockedAdmins ?? 0} {isBn ? 'ব্লকড' : 'Blocked'}
+            </div>
           </div>
 
           <div className="dossier-card p-5 rounded-2xl space-y-1">
@@ -144,7 +150,9 @@ export default function SuperAdminDashboardPage() {
               <Activity className="w-4 h-4 text-rose-600" />
             </div>
             <div className="font-mono text-2xl font-extrabold text-brand-navy dark:text-white">{loading ? '—' : (metrics?.totalSecurityLogs ?? 0)}</div>
-            <div className="text-[11px] text-slate-500">সক্রিয় অনুপ্রবেশ মনিটরিং</div>
+            <div className="text-[11px] text-slate-500">
+              {isBn ? 'সক্রিয় অনুপ্রবেশ মনিটরিং' : 'Active intrusion monitoring'}
+            </div>
           </div>
 
           <div className="dossier-card p-5 rounded-2xl space-y-1">
@@ -153,7 +161,9 @@ export default function SuperAdminDashboardPage() {
               <Database className="w-4 h-4 text-emerald-600" />
             </div>
             <div className="font-mono text-2xl font-extrabold text-brand-navy dark:text-white">{loading ? '—' : (metrics?.totalAuditLogs ?? 0)}</div>
-            <div className="text-[11px] text-slate-500">অপরিবর্তনযোগ্য ইতিহাস</div>
+            <div className="text-[11px] text-slate-500">
+              {isBn ? 'অপরিবর্তনযোগ্য ইতিহাস' : 'Immutable audit trail'}
+            </div>
           </div>
         </div>
 
