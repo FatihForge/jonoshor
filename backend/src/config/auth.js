@@ -1,5 +1,29 @@
 import { ENV } from './env.js';
 
+function resolveCookieSameSite() {
+  if (ENV.COOKIE_SAME_SITE) {
+    return ENV.COOKIE_SAME_SITE;
+  }
+
+  if (ENV.NODE_ENV !== 'production') {
+    return 'lax';
+  }
+
+  // In production, cross-origin SPA (Cloudflare Pages) + API (Render) requires SameSite=None + Secure
+  try {
+    const frontendOrigin = new URL(ENV.FRONTEND_URL).origin;
+    const callbackOrigin = new URL(ENV.GOOGLE_CALLBACK_URL).origin;
+    if (frontendOrigin !== callbackOrigin) {
+      return 'none';
+    }
+  } catch {
+    // Fallback safely
+  }
+
+  // Never use 'strict' on auth cookies as it strips cookies on Google OAuth top-level redirects
+  return 'lax';
+}
+
 export const authConfig = {
   jwt: {
     accessTokenSecret: ENV.ACCESS_TOKEN_SECRET,
@@ -10,7 +34,7 @@ export const authConfig = {
   cookie: {
     httpOnly: true,
     secure: ENV.NODE_ENV === 'production',
-    sameSite: ENV.NODE_ENV === 'production' ? 'strict' : 'lax',
+    sameSite: resolveCookieSameSite(),
     domain: process.env.COOKIE_DOMAIN || undefined,
   },
   session: {

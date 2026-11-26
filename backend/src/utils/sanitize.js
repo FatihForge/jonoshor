@@ -3,8 +3,10 @@
  */
 
 /**
- * Remove MongoDB operators ($gt, $where, etc.) from user input objects
+ * Remove MongoDB operators ($gt, $where, etc.) and prototype pollution keys from user input objects
  */
+const FORBIDDEN_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+
 export function sanitizeMongoQuery(input) {
   if (!input || typeof input !== 'object') {
     return input;
@@ -16,12 +18,20 @@ export function sanitizeMongoQuery(input) {
 
   const cleaned = {};
   for (const [key, value] of Object.entries(input)) {
-    if (key.startsWith('$')) {
-      continue; // Drop operators from untrusted input
+    if (key.startsWith('$') || FORBIDDEN_KEYS.has(key)) {
+      continue; // Drop operators and prototype pollution keys from untrusted input
     }
     cleaned[key] = sanitizeMongoQuery(value);
   }
   return cleaned;
+}
+
+/**
+ * Escape special regex metacharacters for safe MongoDB $regex searches
+ */
+export function escapeRegex(str) {
+  if (typeof str !== 'string') return '';
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 /**

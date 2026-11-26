@@ -1,5 +1,5 @@
 import { app } from './app.js';
-import { ENV } from './config/env.js';
+import { ENV, validateProductionSecrets } from './config/env.js';
 import { logger } from './utils/logger.js';
 import { connectDatabase, disconnectDatabase } from './config/database.js';
 
@@ -7,10 +7,16 @@ let server;
 
 async function startServer() {
   try {
-    // Attempt database connection
+    validateProductionSecrets();
+
+    // Attempt database connection (fail-fast in production)
     try {
       await connectDatabase();
     } catch (dbErr) {
+      if (ENV.NODE_ENV === 'production') {
+        logger.error(`Database connection failed in production: ${dbErr.message}. Exiting.`);
+        process.exit(1);
+      }
       logger.warn(`Database connection failed: ${dbErr.message}. Starting server in offline-database mode.`);
     }
 

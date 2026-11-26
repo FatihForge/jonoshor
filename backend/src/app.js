@@ -1,6 +1,8 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
+import { ENV } from './config/env.js';
+import { isDatabaseConnected } from './config/database.js';
 import { corsOptions } from './config/cors.js';
 import { requestIdMiddleware } from './middlewares/requestId.middleware.js';
 import { helmetMiddleware, noSqlSanitizerMiddleware } from './middlewares/security.middleware.js';
@@ -17,6 +19,12 @@ import adminRoutes from './routes/admin/index.js';
 import superAdminRoutes from './routes/superAdmin/index.js';
 
 export const app = express();
+
+// Trust proxy headers (Render / Cloudflare) for accurate client IP & rate limiting
+const trustProxyValue = ENV.TRUST_PROXY === 'true'
+  ? 1
+  : (ENV.TRUST_PROXY === 'false' ? false : (Number.isNaN(Number(ENV.TRUST_PROXY)) ? ENV.TRUST_PROXY : Number(ENV.TRUST_PROXY)));
+app.set('trust proxy', trustProxyValue);
 
 // Security HTTP headers
 app.use(helmetMiddleware);
@@ -43,6 +51,18 @@ app.use(generalRateLimiter);
 // Health check endpoint (Phase 2 completion criteria)
 app.get('/api/v1/health', (_req, res) => {
   res.status(200).json({ success: true });
+});
+
+// Readiness check endpoint (verifies database connectivity)
+app.get('/api/v1/health/ready', (_req, res) => {
+  const dbReady = isDatabaseConnected();
+  if (!dbReady) {
+    return res.status(503).json({
+      success: false,
+      error: { code: 'SERVICE_UNAVAILABLE', message: 'Database connection is not ready' },
+    });
+  }
+  return res.status(200).json({ success: true, database: 'connected' });
 });
 
 // CSRF token retrieval endpoint

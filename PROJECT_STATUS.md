@@ -1,4 +1,4 @@
-# জনস্বর (JonoShor) — বর্তমান প্রজেক্ট অবস্থা ও বিস্তারিত ডকুমেন্টেশন (Current Project Status)
+﻿# জনস্বর (JonoShor) — বর্তমান প্রজেক্ট অবস্থা ও বিস্তারিত ডকুমেন্টেশন (Current Project Status)
 
 > **সর্বশেষ নিরীক্ষা ও আপডেট:** ৭ অক্টোবর ২০২৬  
 > **বর্তমান অবস্থা:** সম্পূর্ণ সক্রিয় ও প্রস্তুত (Active, Fully Integrated & Tested)  
@@ -177,4 +177,39 @@ npm run build --prefix frontend
    * কোনো কোড পরিবর্তন করার পর অবশ্যই `npm test --prefix backend` এবং `npm run lint` চালিয়ে নিশ্চিত করতে হবে যে পূর্বের কোনো কার্যকারিতা নষ্ট হয়নি।
 
 ---
+
+---
+
+## ৭. সিকিউরিটি অডিট ও হার্ডেনিং লগ (Security Audit & Hardening Log)
+
+### Phase 1 Security Audit — ২৬ নভেম্বর ২০২৬
+
+প্রজেক্টের পূর্ণাঙ্গ ব্যাকএন্ড সিকিউরিটি অডিট পরিচালিত হয়েছে। বিস্তারিত ফাইন্ডিংস ও প্রতিটি ইস্যুর বর্ণনা docs/SECURITY-AUDIT.md ফাইলে সংরক্ষিত আছে।
+
+#### প্রয়োগকৃত সিকিউরিটি ফিক্স (Applied Fixes)
+
+| ফাইল | পরিবর্তন | ক্যাটাগরি |
+| :--- | :--- | :--- |
+| ackend/src/config/env.js | Production secrets validation (alidateProductionSecrets), নতুন ENV keys: TRUST_PROXY, COOKIE_SAME_SITE, MAX_UPLOAD_FILE_SIZE_MB | P0 Hardening |
+| ackend/src/config/auth.js | Cross-origin SPA+API-র জন্য esolveCookieSameSite() — OAuth cookie drop ঠিক | P0 Hardening |
+| ackend/src/app.js | 	rust proxy সঠিকভাবে set, /api/v1/health/ready DB readiness endpoint যোগ | P0 Hardening |
+| ackend/src/server.js | Startup-এ alidateProductionSecrets() call; Production-এ DB failure-এ process.exit(1) | P0 Hardening |
+| ackend/src/utils/sanitize.js | Prototype pollution keys (__proto__, constructor, prototype) ব্লক; escapeRegex() helper | P0 Security |
+| ackend/src/utils/urlValidation.js | IPv6 bracketed form, IPv4-mapped IPv6, CGNAT, multicast, loopback সব ব্লক; DNS rebinding check; credentials-in-URL block | P0 Security |
+
+#### চিহ্নিত কিন্তু পরবর্তী ফেজে ফিক্স করতে হবে
+
+নিচের ইস্যুগুলো অডিটে চিহ্নিত হয়েছে এবং docs/SECURITY-AUDIT.md-এ বিস্তারিত বর্ণনা আছে। এগুলো পরবর্তী স্প্রিন্টে ঠিক করতে হবে:
+
+- **[CRITICAL]** Google Drive OAuth state bypass (Section 2.1) — সব env-এ equireSuperAdmin enforce করতে হবে
+- **[CRITICAL]** 2FA Setup Bypass — 	woFactorEnabled চেক ছাড়া 2FA secret overwrite হয় (Section 2.2)
+- **[CRITICAL]** Messaging IDOR — conversation participant verification নেই (Section 2.3)
+- **[HIGH]** Admin/SuperAdmin token refresh সবসময় 401 — শুধু User লুকআপ করে (Section 3.1)
+- **[HIGH]** AuditLog sort field mismatch — createdAt এর বদলে 	imestamp (Section 3.2)
+- **[HIGH]** Publication status enum bug — 'rejected' invalid; 'withheld' হওয়া উচিত (Section 3.4)
+- **[HIGH]** Validation error value echo — rejected password response-এ ফিরে আসে (Section 3.14)
+- **[MEDIUM]** Auth middleware accountStatus check নেই — suspended account JWT দিয়ে access পায় (Section 2.5)
+- **[MEDIUM]** CSRF timing-safe comparison নেই — timing attack সম্ভব (Section 3.17)
+
+> বিস্তারিত: [docs/SECURITY-AUDIT.md](./docs/SECURITY-AUDIT.md)
 *ডকুমেন্টটি ভবিষ্যতের ডেভেলপার ও কোলাবোরেটরদের জন্য প্রস্তুতকৃত।*
