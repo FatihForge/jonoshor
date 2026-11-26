@@ -280,6 +280,12 @@ export const authService = {
     let permissions = [];
     if (storedToken.accountType === ACCOUNT_TYPES.USER) {
       account = await userRepository.findById(storedToken.accountId);
+    } else if (storedToken.accountType === ACCOUNT_TYPES.ADMIN) {
+      account = await adminRepository.findById(storedToken.accountId);
+      permissions = account?.permissions || [];
+    } else if (storedToken.accountType === ACCOUNT_TYPES.SUPER_ADMIN) {
+      account = await superAdminRepository.findById(storedToken.accountId);
+      permissions = account?.permissions || [];
     }
 
     if (!account || account.accountStatus !== 'active') {

@@ -1,3 +1,4 @@
+import { NOTIFICATION_TYPES } from '../../constants/notificationTypes.js';
 import { notificationService } from '../../services/notification/notification.service.js';
 import { sendSuccess } from '../../utils/response.js';
 
@@ -9,7 +10,7 @@ export const adminNotificationController = {
       const result = await notificationService.createNotification({
         recipientId: id,
         recipientType: 'user',
-        type: type || 'admin_update',
+        type: type || NOTIFICATION_TYPES.GENERAL,
         title,
         message,
         targetUrl,

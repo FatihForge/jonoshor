@@ -36,8 +36,8 @@ export function buildSecurityIdentifiers({
   const platform = req?.headers?.['sec-ch-ua-platform'] || null;
   const acceptLanguage = req?.headers?.['accept-language'] || null;
 
-  // Non-sensitive fingerprint derived from client headers & user-agent
-  const fingerprintRaw = `${clientUserAgent}|${secChUa || ''}|${platform || ''}|${acceptLanguage || ''}`;
+  // Non-sensitive fingerprint derived from client IP, headers & user-agent
+  const fingerprintRaw = `${clientIp}|${clientUserAgent}|${secChUa || ''}|${platform || ''}|${acceptLanguage || ''}`;
   const sessionFingerprint = calculateSha256(fingerprintRaw);
 
   // 3. approximate area (from complaint location or client hints)

@@ -10,53 +10,10 @@ const router = Router();
 // OAuth callback accepts Google redirect (validates signed state or session)
 router.get('/storage/google-drive/callback', googleDriveStorageController.handleCallback);
 
-// Authorize endpoint: initiates Google OAuth (allows direct browser navigation in dev, requires superAdmin in prod)
-router.get('/storage/google-drive/authorize', (req, res, next) => {
-  authenticate(req, res, () => {
-    if (req.user) {
-      if (req.user.accountType === 'superAdmin') {
-        return googleDriveStorageController.getAuthUrl(req, res, next);
-      }
-      return res.status(403).json({ success: false, error: 'Forbidden: SuperAdmin access required' });
-    }
-    if (process.env.NODE_ENV !== 'production') {
-      return googleDriveStorageController.getAuthUrl(req, res, next);
-    }
-    return res.status(401).json({ success: false, error: 'Authentication required' });
-  });
-});
-
-// Storage status inspection
-router.get('/storage/google-drive/status', (req, res, next) => {
-  authenticate(req, res, () => {
-    if (req.user) {
-      if (req.user.accountType === 'superAdmin') {
-        return googleDriveStorageController.getStorageStatus(req, res, next);
-      }
-      return res.status(403).json({ success: false, error: 'Forbidden: SuperAdmin access required' });
-    }
-    if (process.env.NODE_ENV !== 'production') {
-      return googleDriveStorageController.getStorageStatus(req, res, next);
-    }
-    return res.status(401).json({ success: false, error: 'Authentication required' });
-  });
-});
-
-// Folder initialization
-router.post('/storage/google-drive/init-folders', (req, res, next) => {
-  authenticate(req, res, () => {
-    if (req.user) {
-      if (req.user.accountType === 'superAdmin') {
-        return googleDriveStorageController.initializeFolders(req, res, next);
-      }
-      return res.status(403).json({ success: false, error: 'Forbidden: SuperAdmin access required' });
-    }
-    if (process.env.NODE_ENV !== 'production') {
-      return googleDriveStorageController.initializeFolders(req, res, next);
-    }
-    return res.status(401).json({ success: false, error: 'Authentication required' });
-  });
-});
+// Storage management endpoints strictly enforce SuperAdmin authentication across all environments
+router.get('/storage/google-drive/authorize', authenticate, requireSuperAdmin, googleDriveStorageController.getAuthUrl);
+router.get('/storage/google-drive/status', authenticate, requireSuperAdmin, googleDriveStorageController.getStorageStatus);
+router.post('/storage/google-drive/init-folders', authenticate, requireSuperAdmin, googleDriveStorageController.initializeFolders);
 
 // Enforce authentication & superAdmin account type for administrative endpoints
 router.use(authenticate, requireSuperAdmin);

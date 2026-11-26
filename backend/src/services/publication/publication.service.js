@@ -83,7 +83,10 @@ export const publicationService = {
     }));
 
     // 3. Sanitize accused info (neutral terms; never label as convicted criminal without official outcome)
-    const rawAccused = publicAccused && publicAccused.length > 0 ? publicAccused : (complaint.accused || []);
+    const rawAccused =
+      publicAccused && publicAccused.length > 0
+        ? publicAccused
+        : (complaint.accused || []).filter((acc) => acc.visibility === 'public_approved');
     const sanitizedAccused = rawAccused.map((acc) => ({
       name: acc.name || 'অজ্ঞাত ব্যক্তি',
       role: acc.role || 'অভিযুক্ত ব্যক্তি',
@@ -114,7 +117,10 @@ export const publicationService = {
     const determinedAuthoritySummary =
       authorityActionSummary ||
       (complaint.authorityActions && complaint.authorityActions.length > 0
-        ? complaint.authorityActions.map((a) => `${a.authorityName}: ${a.action}`).join('; ')
+        ? complaint.authorityActions
+            .filter((a) => a.verified === true)
+            .map((a) => `${a.authorityName}: ${a.action}`)
+            .join('; ')
         : '');
 
     // Prepare public sanitized payload (zero internal notes, zero reviewer IDs, zero risk flags)

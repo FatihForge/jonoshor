@@ -293,7 +293,6 @@ export class EvidenceService {
         originalFilename: item.originalFilename,
         mimeType: item.mimeType,
         size: item.size,
-        driveFileId: item.driveFileId,
         uploadStatus: item.uploadStatus,
         malwareScanStatus: item.malwareScanStatus,
         reviewStatus: item.reviewStatus,

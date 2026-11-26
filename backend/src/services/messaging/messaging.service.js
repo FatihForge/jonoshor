@@ -18,14 +18,22 @@ export class MessagingService {
       throw new ValidationError('Message body cannot be empty');
     }
 
-    if (!recipientId && conversationId) {
-      const prior = await Message.findOne({
-        conversationId,
-        senderId: { $ne: senderId },
-      }).sort({ createdAt: -1 });
+    if (conversationId) {
+      const prior = await Message.findOne({ conversationId }).sort({ createdAt: -1 });
       if (prior) {
-        recipientId = prior.senderId;
-        if (!complaintId) complaintId = prior.complaintId;
+        // Enforce participant verification to prevent cross-user IDOR conversation hijacking
+        const isParticipant =
+          prior.senderId.toString() === senderId.toString() ||
+          prior.recipientId.toString() === senderId.toString();
+        if (!isParticipant) {
+          throw new ForbiddenError('You are not an authorized participant in this conversation');
+        }
+        if (!recipientId) {
+          recipientId = prior.senderId.toString() === senderId.toString() ? prior.recipientId : prior.senderId;
+        }
+        if (!complaintId) {
+          complaintId = prior.complaintId;
+        }
       }
     }
 

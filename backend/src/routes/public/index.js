@@ -7,6 +7,7 @@ import { publicJoinUsController } from '../../controllers/public/joinUs.controll
 import { createComplaintValidator } from '../../validators/complaints/complaint.validator.js';
 import { submitJoinUsValidator } from '../../validators/public/joinUs.validator.js';
 import { uploadMiddleware } from '../../middlewares/upload.middleware.js';
+import { noSqlSanitizerMiddleware } from '../../middlewares/security.middleware.js';
 import {
   complaintSubmissionRateLimiter,
   joinUsSubmissionRateLimiter,
@@ -36,6 +37,7 @@ router.post(
   '/join-us',
   joinUsSubmissionRateLimiter,
   uploadMiddleware.array('documents', 5),
+  noSqlSanitizerMiddleware,
   submitJoinUsValidator,
   publicJoinUsController.submit
 );

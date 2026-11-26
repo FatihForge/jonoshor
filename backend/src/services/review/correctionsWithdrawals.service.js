@@ -108,14 +108,18 @@ export class CorrectionsWithdrawalsService {
 
     if (approved) {
       complaint.status = COMPLAINT_STATUS.WITHDRAWN;
-      complaint.withdrawal.approved = true;
+      complaint.withdrawal.decision = 'approved';
       complaint.withdrawal.reviewedBy = adminId;
       complaint.withdrawal.reviewedAt = new Date();
       complaint.withdrawal.reason = decisionReason || complaint.withdrawal.reason;
     } else {
       complaint.withdrawal.requested = false;
+      complaint.withdrawal.decision = 'rejected';
       complaint.withdrawal.reviewedBy = adminId;
       complaint.withdrawal.reviewedAt = new Date();
+      if (decisionReason) {
+        complaint.withdrawal.reason = decisionReason;
+      }
     }
 
     await complaint.save();

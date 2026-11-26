@@ -191,25 +191,37 @@ npm run build --prefix frontend
 | ফাইল | পরিবর্তন | ক্যাটাগরি |
 | :--- | :--- | :--- |
 | ackend/src/config/env.js | Production secrets validation (alidateProductionSecrets), নতুন ENV keys: TRUST_PROXY, COOKIE_SAME_SITE, MAX_UPLOAD_FILE_SIZE_MB | P0 Hardening |
-| ackend/src/config/auth.js | Cross-origin SPA+API-র জন্য esolveCookieSameSite() — OAuth cookie drop ঠিক | P0 Hardening |
+| ackend/src/config/auth.js | Cross-origin SPA+API-র জন্য 
+esolveCookieSameSite() — OAuth cookie drop ঠিক | P0 Hardening |
 | ackend/src/app.js | 	rust proxy সঠিকভাবে set, /api/v1/health/ready DB readiness endpoint যোগ | P0 Hardening |
 | ackend/src/server.js | Startup-এ alidateProductionSecrets() call; Production-এ DB failure-এ process.exit(1) | P0 Hardening |
 | ackend/src/utils/sanitize.js | Prototype pollution keys (__proto__, constructor, prototype) ব্লক; escapeRegex() helper | P0 Security |
 | ackend/src/utils/urlValidation.js | IPv6 bracketed form, IPv4-mapped IPv6, CGNAT, multicast, loopback সব ব্লক; DNS rebinding check; credentials-in-URL block | P0 Security |
 
-#### চিহ্নিত কিন্তু পরবর্তী ফেজে ফিক্স করতে হবে
+#### সম্পূর্ণ ফিক্সড (All Section 2 & 3 Fixed):
 
-নিচের ইস্যুগুলো অডিটে চিহ্নিত হয়েছে এবং docs/SECURITY-AUDIT.md-এ বিস্তারিত বর্ণনা আছে। এগুলো পরবর্তী স্প্রিন্টে ঠিক করতে হবে:
+- **[CRITICAL 2.1] Google Drive OAuth Bypass & State Token:** সব পরিবেশে SuperAdmin অথেনটিকেশন বাধ্যতামূলক এবং state ভেরিফিকেশন কড়াকড়িভাবে এনফোর্স করা হয়েছে।
+- **[CRITICAL 2.2] 2FA Setup Bypass:** `twoFactorEnabled` চেক যুক্ত করা হয়েছে, সচল 2FA ওভাররাইট হওয়া সম্পূর্ণ ব্লকড।
+- **[CRITICAL 2.3] Cross-User Message IDOR:** মেসেজিং সার্ভিসে অংশগ্রহণকারী যাচাই (participant verification) বাধ্যতামূলক করা হয়েছে।
+- **[CRITICAL 2.4] Join Us Document Injection:** ক্লায়েন্ট ইনপুট থেকে `scanStatus` এবং `driveFileId` ইনজেকশন ব্লক করা হয়েছে।
+- **[CRITICAL 2.5] Session Revocation & Inactive Check:** অ্যাডমিন সাসপেন্ড/ব্লক হলে তাৎক্ষণিক সেশন ও রিফ্রেশ টোকেন বাতিল এবং লাইভ DB `accountStatus` চেক এনফোর্সড।
+- **[HIGH 3.1] Admin/SuperAdmin Token Refresh:** অ্যাডমিন ও সুপারঅ্যাডমিন টোকেন রিফ্রেশ ফিক্সড।
+- **[HIGH 3.2] AuditLog Sort Key:** `createdAt` এর বদলে `timestamp` দিয়ে সঠিক সর্টিং কার্যকর।
+- **[HIGH 3.3] Priority Filter:** `priority.level` দিয়ে ফিল্টারিং ফিক্সড।
+- **[HIGH 3.4] Publication Enum:** অবৈধ `'rejected'` পরিবর্তন করে বৈধ `'withheld'` এনফোর্সড।
+- **[HIGH 3.5] Notification Enum:** ডিফল্ট টাইপ `NOTIFICATION_TYPES.GENERAL` এনফোর্সড।
+- **[HIGH 3.6] Withdrawal Review:** স্কিমার `withdrawal.decision` দিয়ে অনুমোদন ও প্রত্যাখ্যান ফিক্সড।
+- **[HIGH 3.7] User Profile & Security:** `auto` ল্যাঙ্গুয়েজ সমর্থন, টু-ফ্যাক্টর স্ট্যাটাস এবং পাসওয়ার্ড পরিবর্তনে সেশন বাতিল কার্যকর।
+- **[HIGH 3.8 & 3.9] Re-Auth Replay Prevention:** `jti` ট্র্যাকিংয়ের মাধ্যমে রি-অথ টোকেন রি-প্লে আক্রমণ ব্লকড।
+- **[HIGH 3.12] Public Report Leakage:** অপ্রকাশিত অভিযুক্ত ও অসত্যায়িত অ্যাকশন পাবলিক রিপোর্টে প্রকাশ সম্পূর্ণ বন্ধ।
+- **[HIGH 3.13] Evidence Drive ID Masking:** সাধারণ ব্যবহারকারীর রেসপন্স থেকে ইন্টারনাল `driveFileId` লুকানো হয়েছে।
+- **[HIGH 3.14] Validation Sensitive Data Echo:** ভ্যালিডেশন এরর রেসপন্স থেকে পাসওয়ার্ড বা গোপন তথ্য ইকো বন্ধ।
+- **[HIGH 3.15] NoSQL Sanitizer for Multipart:** মাল্টিপার্ট ফাইল আপলোড রিকোয়েস্টেও রুট-লেভেলে নোএসকিউএল স্যানিটাইজার কার্যকর।
+- **[HIGH 3.16] Session Fingerprint:** ক্লায়েন্ট আইপি যুক্ত করে ব্রাউজার ফিঙ্গারপ্রিন্ট কলিশন দূর করা হয়েছে।
+- **[HIGH 3.17] CSRF Timing Attack:** `crypto.timingSafeEqual` দিয়ে কনস্ট্যান্ট-টাইম টোকেন তুলনা কার্যকর।
+- **[DEPS] ডিপেন্ডেন্সি ভালনারেবিলিটিজ:** Mongoose, qs, uuid এবং Nodemailer আপগ্রেড করে সম্পূর্ণ **০ ভালনারেবিলিটি** নিশ্চিত করা হয়েছে।
 
-- **[CRITICAL]** Google Drive OAuth state bypass (Section 2.1) — সব env-এ equireSuperAdmin enforce করতে হবে
-- **[CRITICAL]** 2FA Setup Bypass — 	woFactorEnabled চেক ছাড়া 2FA secret overwrite হয় (Section 2.2)
-- **[CRITICAL]** Messaging IDOR — conversation participant verification নেই (Section 2.3)
-- **[HIGH]** Admin/SuperAdmin token refresh সবসময় 401 — শুধু User লুকআপ করে (Section 3.1)
-- **[HIGH]** AuditLog sort field mismatch — createdAt এর বদলে 	imestamp (Section 3.2)
-- **[HIGH]** Publication status enum bug — 'rejected' invalid; 'withheld' হওয়া উচিত (Section 3.4)
-- **[HIGH]** Validation error value echo — rejected password response-এ ফিরে আসে (Section 3.14)
-- **[MEDIUM]** Auth middleware accountStatus check নেই — suspended account JWT দিয়ে access পায় (Section 2.5)
-- **[MEDIUM]** CSRF timing-safe comparison নেই — timing attack সম্ভব (Section 3.17)
+> বিস্তারিত অডিট ও সমাধান লগ: [docs/SECURITY-AUDIT.md](./docs/SECURITY-AUDIT.md)
 
-> বিস্তারিত: [docs/SECURITY-AUDIT.md](./docs/SECURITY-AUDIT.md)
-*ডকুমেন্টটি ভবিষ্যতের ডেভেলপার ও কোলাবোরেটরদের জন্য প্রস্তুতকৃত।*
+---
+*ডকুমেন্টটি ভবিষ্যতের ডেভেলপার ও কোলাবোরেটরদের জন্য প্রস্তুতকৃত。*

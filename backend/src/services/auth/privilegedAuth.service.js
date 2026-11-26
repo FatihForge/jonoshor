@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { authenticator } from 'otplib';
 import { adminRepository } from '../../repositories/admin.repository.js';
@@ -101,12 +102,18 @@ export const privilegedAuthService = {
     if (decoded.accountType === ACCOUNT_TYPES.ADMIN) {
       const admin = await adminRepository.findById(decoded.id);
       if (!admin) throw new NotFoundError('Admin not found');
+      if (admin.twoFactorEnabled) {
+        throw new ForbiddenError('2FA is already configured. Use the recovery workflow to reset 2FA.');
+      }
       await adminRepository.updateById(admin._id, { twoFactorSecret: secret });
       const otpauth = authenticator.keyuri(admin.email, serviceName, secret);
       return { secret, otpauth };
     } else if (decoded.accountType === ACCOUNT_TYPES.SUPER_ADMIN) {
       const superAdmin = await superAdminRepository.findById(decoded.id);
       if (!superAdmin) throw new NotFoundError('Super Admin not found');
+      if (superAdmin.twoFactorEnabled) {
+        throw new ForbiddenError('2FA is already configured. Use the recovery workflow to reset 2FA.');
+      }
       await superAdminRepository.updateById(superAdmin._id, { twoFactorSecret: secret });
       const otpauth = authenticator.keyuri(superAdmin.email, serviceName, secret);
       return { secret, otpauth };
@@ -200,12 +207,13 @@ export const privilegedAuthService = {
     const isTotpValid = authenticator.check(totpCode, account.twoFactorSecret);
     if (!isTotpValid) throw new UnauthorizedError('Invalid 2FA code for re-authentication');
 
-    // Issue short-lived reAuthToken (5 minutes)
+    // Issue short-lived reAuthToken (5 minutes) with unique jti
     const reAuthToken = jwt.sign(
       {
         id: account._id,
         accountType,
         purpose: 'critical_reauth',
+        jti: crypto.randomUUID(),
       },
       authConfig.jwt.accessTokenSecret,
       { expiresIn: '5m' }

@@ -55,6 +55,18 @@ const userSchema = new mongoose.Schema(
       enum: ['bn', 'en', 'auto'],
       default: 'bn',
     },
+    twoFactorSecret: {
+      type: String,
+      select: false,
+    },
+    twoFactorEnabled: {
+      type: Boolean,
+      default: false,
+    },
+    security: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
+    },
     accountStatus: {
       type: String,
       enum: Object.values(ACCOUNT_STATUS),

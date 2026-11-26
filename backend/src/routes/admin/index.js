@@ -152,7 +152,7 @@ router.get('/audit-logs', requirePermission(PERMISSIONS.AUDIT_READ), async (req,
     const skip = (page - 1) * limit;
 
     const [logs, total] = await Promise.all([
-      AuditLog.find({}).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      AuditLog.find({}).sort({ timestamp: -1 }).skip(skip).limit(limit).lean(),
       AuditLog.countDocuments({}),
     ]);
 

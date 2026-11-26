@@ -6,6 +6,7 @@ import { createComplaintValidator } from '../../validators/complaints/complaint.
 import { complaintSubmissionRateLimiter } from '../../middlewares/rateLimit.middleware.js';
 
 import { uploadMiddleware } from '../../middlewares/upload.middleware.js';
+import { noSqlSanitizerMiddleware } from '../../middlewares/security.middleware.js';
 
 const optionalUploadSingle = (req, res, next) => {
   if (req.headers['content-type'] && req.headers['content-type'].includes('multipart/form-data')) {
@@ -26,7 +27,7 @@ router.post('/:id/legal-update-request', userLegalController.requestUpdate);
 
 // Evidence routes (Phase 13)
 router.post('/:id/evidence/upload-session', userEvidenceController.createUploadSession);
-router.post('/:id/evidence/complete', optionalUploadSingle, userEvidenceController.completeUpload);
+router.post('/:id/evidence/complete', optionalUploadSingle, noSqlSanitizerMiddleware, userEvidenceController.completeUpload);
 router.post('/:id/evidence/external', userEvidenceController.addExternalLink);
 router.get('/:id/evidence', userEvidenceController.listEvidence);
 router.get('/:id/evidence/:evidenceId/download', userEvidenceController.downloadEvidence);

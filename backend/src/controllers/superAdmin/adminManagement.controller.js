@@ -2,6 +2,8 @@ import { Admin } from '../../models/Admin.js';
 import { SecurityLog } from '../../models/SecurityLog.js';
 import { AuditLog } from '../../models/AuditLog.js';
 import { SystemSetting } from '../../models/SystemSetting.js';
+import { sessionRepository } from '../../repositories/session.repository.js';
+import { refreshTokenRepository } from '../../repositories/refreshToken.repository.js';
 import { hashPassword } from '../../utils/crypto.js';
 import { auditService } from '../../services/audit/audit.service.js';
 import { sendSuccess } from '../../utils/response.js';
@@ -129,7 +131,16 @@ export const superAdminController = {
 
       if (fullName) admin.fullName = fullName;
       if (mobile !== undefined) admin.mobile = mobile;
-      if (accountStatus) admin.accountStatus = accountStatus;
+      if (accountStatus) {
+        admin.accountStatus = accountStatus;
+        // Revoke all active sessions and refresh tokens if admin is suspended or blocked
+        if (accountStatus !== 'active') {
+          await Promise.all([
+            sessionRepository.revokeAllForAccount(admin._id),
+            refreshTokenRepository.revokeAllForAccount(admin._id),
+          ]);
+        }
+      }
 
       await admin.save();
 
@@ -207,7 +218,7 @@ export const superAdminController = {
       const skip = (page - 1) * limit;
 
       const [logs, total] = await Promise.all([
-        AuditLog.find({}).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+        AuditLog.find({}).sort({ timestamp: -1 }).skip(skip).limit(limit).lean(),
         AuditLog.countDocuments({}),
       ]);
 

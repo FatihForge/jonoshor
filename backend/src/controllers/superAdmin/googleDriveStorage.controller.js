@@ -50,19 +50,20 @@ export const googleDriveStorageController = {
 
       let superAdminId = req.user?._id || req.user?.id;
 
-      // Verify signed state token if user is not already attached from session
-      if (state) {
-        try {
-          const decoded = jwt.verify(state, authConfig.jwt.accessTokenSecret);
-          if (decoded.purpose === 'gdrive_storage_oauth') {
-            superAdminId = superAdminId || decoded.superAdminId;
-          }
-        } catch {
-          // If state verification fails and no session user, reject
-          if (!superAdminId) {
-            throw new UnauthorizedError('Invalid or expired OAuth state parameter');
-          }
+      // Verify signed state token (mandatory for CSRF protection)
+      if (!state) {
+        throw new UnauthorizedError('OAuth state parameter is required');
+      }
+
+      try {
+        const decoded = jwt.verify(state, authConfig.jwt.accessTokenSecret);
+        if (decoded.purpose !== 'gdrive_storage_oauth') {
+          throw new UnauthorizedError('Invalid OAuth state purpose');
         }
+        superAdminId = superAdminId || decoded.superAdminId;
+      } catch (stateErr) {
+        if (stateErr instanceof UnauthorizedError) throw stateErr;
+        throw new UnauthorizedError('Invalid or expired OAuth state parameter');
       }
 
       // Exchange authorization code for offline refresh token

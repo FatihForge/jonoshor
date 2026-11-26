@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { Buffer } from 'buffer';
 import { ForbiddenError } from '../utils/errors.js';
 import { ENV } from '../config/env.js';
 
@@ -36,7 +37,14 @@ export function csrfProtection(req, res, next) {
     return next();
   }
 
-  if (!clientToken || !cookieToken || clientToken !== cookieToken) {
+  if (!clientToken || !cookieToken) {
+    return next(new ForbiddenError('Invalid or missing CSRF token', 'CSRF_ERROR'));
+  }
+
+  const clientBuf = Buffer.from(String(clientToken));
+  const cookieBuf = Buffer.from(String(cookieToken));
+
+  if (clientBuf.length !== cookieBuf.length || !crypto.timingSafeEqual(clientBuf, cookieBuf)) {
     return next(new ForbiddenError('Invalid or missing CSRF token', 'CSRF_ERROR'));
   }
 

@@ -21,7 +21,7 @@ export const adminComplaintReviewController = {
       if (status) filter.status = status;
       if (category) filter['category.primary'] = category;
       if (districtId) filter['location.districtId'] = districtId;
-      if (priority) filter.priority = priority;
+      if (priority) filter['priority.level'] = priority;
 
       const skip = (page - 1) * limit;
       const [items, total] = await Promise.all([
@@ -173,7 +173,7 @@ export const adminComplaintReviewController = {
       await complaintRepository.updateStatus(id, nextStatus, req.user._id, reason);
       await complaintRepository.updateById(id, {
         publication: {
-          status: approved ? 'approved' : 'rejected',
+          status: approved ? 'approved' : 'withheld',
           reviewedBy: req.user._id,
           reviewedAt: new Date(),
           reason,

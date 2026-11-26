@@ -37,7 +37,7 @@ const joinUsDocumentSchema = new mongoose.Schema(
     scanStatus: {
       type: String,
       enum: ['clean', 'quarantined', 'infected', 'pending'],
-      default: 'clean',
+      default: 'pending',
     },
     reviewStatus: {
       type: String,

@@ -163,7 +163,7 @@ export const joinUsService = {
             checksum: doc.checksum,
             driveFileId: doc.driveFileId,
             storageReference: doc.storageReference || `clean/${doc.driveFileId}`,
-            scanStatus: doc.scanStatus || 'clean',
+            scanStatus: 'pending',
             reviewStatus: doc.reviewStatus || 'pending',
             uploadedAt: doc.uploadedAt || new Date(),
           });

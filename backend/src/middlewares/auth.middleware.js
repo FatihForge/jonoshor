@@ -1,8 +1,12 @@
 import jwt from 'jsonwebtoken';
 import { authConfig } from '../config/auth.js';
 import { UnauthorizedError } from '../utils/errors.js';
+import { isDatabaseConnected } from '../config/database.js';
+import { User } from '../models/User.js';
+import { Admin } from '../models/Admin.js';
+import { SuperAdmin } from '../models/SuperAdmin.js';
 
-export function authenticate(req, _res, next) {
+export async function authenticate(req, _res, next) {
   let token = null;
 
   // 1. Check HttpOnly cookie
@@ -22,6 +26,22 @@ export function authenticate(req, _res, next) {
     const decoded = jwt.verify(token, authConfig.jwt.accessTokenSecret);
     // Ensure both id and _id are available
     decoded._id = decoded._id || decoded.id;
+
+    // Check account status in database if connection is available
+    if (isDatabaseConnected()) {
+      let account = null;
+      if (decoded.accountType === 'admin') {
+        account = await Admin.findById(decoded.id).select('accountStatus').lean();
+      } else if (decoded.accountType === 'superAdmin') {
+        account = await SuperAdmin.findById(decoded.id).select('accountStatus').lean();
+      } else if (decoded.accountType === 'user') {
+        account = await User.findById(decoded.id).select('accountStatus').lean();
+      }
+      if (account && account.accountStatus !== 'active') {
+        return next(new UnauthorizedError(`Account is ${account.accountStatus}`));
+      }
+    }
+
     req.auth = decoded; // { id, _id, email, accountType, permissions, ... }
     
     // Assign role-specific accessor for convenience, and generic req.actor

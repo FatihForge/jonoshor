@@ -1,3 +1,4 @@
+import { URL } from 'url';
 import { ENV } from './env.js';
 
 function resolveCookieSameSite() {

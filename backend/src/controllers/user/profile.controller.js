@@ -1,4 +1,6 @@
 import { User } from '../../models/User.js';
+import { sessionRepository } from '../../repositories/session.repository.js';
+import { refreshTokenRepository } from '../../repositories/refreshToken.repository.js';
 import { hashPassword, verifyPassword } from '../../utils/crypto.js';
 import { sendSuccess } from '../../utils/response.js';
 import { NotFoundError, ValidationError } from '../../utils/errors.js';
@@ -26,7 +28,7 @@ export const userProfileController = {
 
       if (fullName) user.fullName = fullName.trim();
       if (mobile !== undefined) user.mobile = mobile?.trim();
-      if (languagePreference && ['bn', 'en'].includes(languagePreference)) {
+      if (languagePreference && ['bn', 'en', 'auto'].includes(languagePreference)) {
         user.languagePreference = languagePreference;
       }
 
@@ -52,7 +54,7 @@ export const userProfileController = {
       sendSuccess(res, 200, {
         email: user.email,
         emailVerified: user.emailVerified,
-        twoFactorEnabled: !!user.twoFactor?.enabled,
+        twoFactorEnabled: Boolean(user.twoFactorSecret || user.twoFactorEnabled),
         lastPasswordChange: user.security?.passwordChangedAt,
       });
     } catch (err) {
@@ -81,6 +83,12 @@ export const userProfileController = {
         user.passwordHash = await hashPassword(newPassword);
         if (!user.security) user.security = {};
         user.security.passwordChangedAt = new Date();
+
+        // Revoke existing sessions and refresh tokens after password change
+        await Promise.all([
+          sessionRepository.revokeAllForAccount(user._id),
+          refreshTokenRepository.revokeAllForAccount(user._id),
+        ]);
       }
 
       await user.save();
