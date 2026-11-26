@@ -177,7 +177,7 @@ JonoShor/
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/your-username/JonoShor.git
+git clone https://github.com/FatihForge/jonoshor.git
 cd JonoShor
 ```
 
@@ -241,9 +241,9 @@ Ran all test suites.
 
 ## ⚖️ Licensing, Partnership & Acquisition
 
-**Copyright © 2026 Alvi S. All Rights Reserved.**
+**Copyright © 2026 FatihForge. All Rights Reserved.**
 
-This platform, including its software architecture, implementation, data models, and system concepts, represents original work created by **Alvi S**.
+This platform, including its software architecture, implementation, data models, and system concepts, represents original work created by **FatihForge**.
 
 ### Ownership & Usage Terms
 - **No Unauthorized Replication or Use**: No individual, organization, or entity is permitted to freely copy, reproduce, clone, host, redistribute, or deploy this project or its components without explicit written permission from the copyright holder.
@@ -252,13 +252,13 @@ This platform, including its software architecture, implementation, data models,
 
 ### Inquiries & Proposals
 For any partnership proposals, acquisition discussions, or licensing questions, please reach out via:
-- **Email**: [sfna5900@gmail.com](mailto:sfna5900@gmail.com)
+- **Email**: [sfnaim.work@gmail.com](mailto:sfnaim.work@gmail.com)
 
 ---
 
 ## 👤 Author
 
-**Alvi S**  
+**FatihForge**  
 - **Role**: Full-Stack Software Engineer & Platform Architect  
-- **Email**: [sfna5900@gmail.com](mailto:sfna5900@gmail.com)  
-- **GitHub**: [github.com/your-username](https://github.com/)  
+- **Email**: [sfnaim.work@gmail.com](mailto:sfnaim.work@gmail.com)  
+- **GitHub**: [github.com/FatihForge](https://github.com/FatihForge)  
