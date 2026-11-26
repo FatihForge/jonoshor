@@ -1,6 +1,17 @@
 import React from 'react';
 import HomeView from './components/HomeView';
 
+export const metadata = {
+  title: 'JonoShor — Independent Human Rights & Citizen Grievance Documentation Platform',
+  description:
+    'Securely document, independently verify, and archive human rights violations, abuse, and citizen grievances in Bangladesh with complete whistleblower protection.',
+  openGraph: {
+    title: 'JonoShor — Citizen Human Rights Documentation & Verification',
+    description:
+      'Securely document, independently verify, and archive human rights violations, abuse, and citizen grievances in Bangladesh.',
+  },
+};
+
 async function getLiveStats() {
   try {
     const res = await fetch('http://localhost:5000/api/v1/public/statistics', {

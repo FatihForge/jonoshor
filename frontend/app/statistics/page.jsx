@@ -2,8 +2,14 @@ import React from 'react';
 import StatisticsView from '../components/StatisticsView';
 
 export const metadata = {
-  title: 'লাইভ পরিসংখ্যান ও প্রবণতা',
-  description: 'বাংলাদেশের মানবাধিকার পরিস্থিতি ও জনস্বর প্ল্যাটফর্মের যাচাইকৃত অভিযোগের স্বচ্ছ লাইভ ডেটা।',
+  title: 'National Telemetry & Human Rights Statistics Dashboard',
+  description:
+    'Real-time national telemetry and aggregated analytics on reported human rights violations, geographic hotspots, and legal case outcomes across Bangladesh.',
+  openGraph: {
+    title: 'National Human Rights Telemetry & Statistics | JonoShor',
+    description:
+      'Real-time national telemetry and aggregated analytics on reported human rights violations, geographic hotspots, and legal case outcomes across Bangladesh.',
+  },
 };
 
 async function getStats() {

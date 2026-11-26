@@ -24,7 +24,7 @@ export default function UserMessagesPage() {
         setConversations(list);
         if (list.length > 0) setActiveConvId(list[0].conversationId);
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoading(false));
   }, []);
 
@@ -33,7 +33,7 @@ export default function UserMessagesPage() {
       fetch(`/api/v1/user/messages/${activeConvId}`, { credentials: 'include' })
         .then((r) => r.json())
         .then((d) => setMessages(d.data || []))
-        .catch(() => {});
+        .catch(() => { });
     }
   }, [activeConvId]);
 
@@ -92,11 +92,10 @@ export default function UserMessagesPage() {
                   <button
                     key={conv.conversationId}
                     onClick={() => setActiveConvId(conv.conversationId)}
-                    className={`w-full p-3 rounded-xl text-left transition-colors border ${
-                      activeConvId === conv.conversationId
-                        ? 'bg-brand-blue text-white border-brand-blue'
-                        : 'bg-slate-50 dark:bg-slate-900 border-slate-100 dark:border-slate-800 text-brand-navy dark:text-slate-200 hover:bg-blue-50/50'
-                    }`}
+                    className={`w-full p-3 rounded-xl text-left transition-colors border ${activeConvId === conv.conversationId
+                      ? 'bg-brand-blue text-white border-brand-blue'
+                      : 'bg-slate-50 dark:bg-slate-900 border-slate-100 dark:border-slate-800 text-brand-navy dark:text-slate-200 hover:bg-blue-50/50'
+                      }`}
                   >
                     <div className="font-mono font-semibold truncate">{conv.conversationId}</div>
                     <div className="text-[11px] opacity-80 truncate mt-1">{conv.lastMessage}</div>
@@ -114,11 +113,10 @@ export default function UserMessagesPage() {
             <div className="flex-1 overflow-y-auto p-2 space-y-3">
               {messages.map((m, i) => (
                 <div key={i} className={`flex flex-col ${m.senderType === 'user' ? 'items-end' : 'items-start'}`}>
-                  <div className={`max-w-md p-3.5 rounded-2xl leading-relaxed border ${
-                    m.senderType === 'user'
-                      ? 'bg-brand-blue text-white border-brand-blue'
-                      : 'bg-slate-50 dark:bg-slate-900 text-brand-navy dark:text-slate-200 border-slate-100 dark:border-slate-800'
-                  }`}>
+                  <div className={`max-w-md p-3.5 rounded-2xl leading-relaxed border ${m.senderType === 'user'
+                    ? 'bg-brand-blue text-white border-brand-blue'
+                    : 'bg-slate-50 dark:bg-slate-900 text-brand-navy dark:text-slate-200 border-slate-100 dark:border-slate-800'
+                    }`}>
                     <p>{m.body}</p>
                     <span className={`text-[10px] font-mono mt-1 block text-right ${m.senderType === 'user' ? 'text-blue-100' : 'text-slate-400'}`}>
                       {new Date(m.createdAt).toLocaleTimeString(isBn ? 'bn-BD' : 'en-US', { hour: '2-digit', minute: '2-digit' })}

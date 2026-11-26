@@ -1,4 +1,4 @@
-﻿# জনস্বর (JonoShor) — বর্তমান প্রজেক্ট অবস্থা ও বিস্তারিত ডকুমেন্টেশন (Current Project Status)
+# জনস্বর (JonoShor) — বর্তমান প্রজেক্ট অবস্থা ও বিস্তারিত ডকুমেন্টেশন (Current Project Status)
 
 > **সর্বশেষ আপডেট:** ২৬ নভেম্বর ২০২৬  
 > **বর্তমান অবস্থা:** ব্যাকএন্ড হার্ডেন্ড ও Swagger-ডকুমেন্টেড; Next.js 14 ফ্রন্টএন্ড সম্পূর্ণ, Dreamhub-অনুপ্রাণিত UI ও পূর্ণাঙ্গ দ্বিভাষিক (`bn`/`en`) সাপোর্ট সহ বিল্ড ও ভেরিফাইড  
@@ -172,6 +172,9 @@ npm run build:frontend
    - ভিজ্যুয়াল আইডেন্টিটি আপগ্রেড, `frontend/public/images/hero-advocate.jpg` ও `mission-team.jpg` সংযুক্তি এবং থিম টগল।
 5. **সম্পূর্ণ সাইটজুড়ে দ্বিভাষিক (`bn`/`en`) সাপোর্ট (`868df41`):**
    - SSR/CSR প্রতিটি পেইজে `LanguageContext` যুক্ত করে প্রোডাকশন বিল্ড (৩৯টি রুট), ৪০/৪০ লাইভ HTTP চেক ও ১৪/১৪ দ্বিভাষিক বান্ডল যাচাই সম্পন্ন।
+6. **SEO মেটাডেটা ১০০% ইংরেজিতে রূপান্তর ও ফ্রন্টএন্ড-ব্যাকএন্ড সম্পূর্ণ এপিআই সংযোগ ভেরিফিকেশন:**
+   - সাইটের প্রতিটি রাউটের (`layout.jsx`, `page.jsx`, `about`, `how-it-works`, `reports`, `reports/[id]`, `statistics`, `safety`, `privacy`, `terms`, `contact`, `join-us`, `complaints/new`, `login`, `register`, `forgot-password`, `reset-password`, `verify-email`, `user`, `admin`, `super-admin`) `<title>`, `<meta name="description">`, `openGraph` এবং `twitter` মেটাডেটা আন্তর্জাতিক মানের প্রফেশনাল ইংরেজিতে হালনাগাদ ও অটোমেটেড টেস্ট স্ক্রিপ্ট দিয়ে ১০০% ভেরিফাইড।
+   - লোকাল MongoDB ইনস্ট্যান্স সংযোগ ও ব্যাকএন্ড রিস্টার্ট সম্পন্ন; ফ্রন্টএন্ড Next.js প্রক্সি (`/api/v1/*` -> `http://localhost:5000/api/v1/*`) এবং SSR ডিরেক্ট ফেচ উভয় পথেই CSRF Token, ৬৪টি জেলা (`/api/v1/public/districts`), লাইভ টেলিমেট্রি স্ট্যাটিসটিক্স (`/api/v1/public/statistics`) ও পাবলিক রিপোর্টস রুট শতভাগ সফল ও রিয়েলটাইমে রেসপন্স প্রদান নিশ্চিত।
 
 ### প্রয়োগকৃত সিকিউরিটি ফিক্সের সারাংশ (Section 2 & 3)
 

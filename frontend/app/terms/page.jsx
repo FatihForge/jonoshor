@@ -2,8 +2,14 @@ import React from 'react';
 import { TermsView } from '../components/InfoPagesViews';
 
 export const metadata = {
-  title: 'ব্যবহারের শর্তাবলী ও আইনি দায়মুক্তি',
-  description: 'জনস্বর ব্যবহারের আইনি শর্তাবলী ও দায়মুক্তি দলিল।',
+  title: 'Terms of Service & Legal Disclaimer',
+  description:
+    'Legal terms, verification criteria, evidence archiving policies, and user agreements for the JonoShor civic platform.',
+  openGraph: {
+    title: 'Terms of Service & Legal Disclaimer | JonoShor',
+    description:
+      'Legal terms, verification criteria, evidence archiving policies, and user agreements for the JonoShor civic platform.',
+  },
 };
 
 export default function TermsPage() {

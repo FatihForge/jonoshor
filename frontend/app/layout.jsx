@@ -7,34 +7,34 @@ import Footer from './components/Footer';
 export const metadata = {
   metadataBase: new URL('https://jonoshor.org'),
   title: {
-    default: 'জনস্বর (JonoShor) — স্বাধীন মানবাধিকার ও নাগরিক অভিযোগ প্ল্যাটফর্ম',
-    template: '%s | জনস্বর (JonoShor)',
+    default: 'JonoShor — Independent Human Rights & Citizen Grievance Documentation Platform',
+    template: '%s | JonoShor',
   },
   description:
-    'বাংলাদেশের মানবাধিকার লঙ্ঘন, নির্যাতন ও নাগরিক অভিযোগ নিরাপদে নথিভুক্ত, যাচাই ও জনস্বার্থে উন্মুক্ত করার নিরপেক্ষ স্বাধীন নাগরিক প্ল্যাটফর্ম।',
+    'An independent civic platform for securely documenting, verifying, and publishing human rights violations and citizen grievances in Bangladesh.',
   keywords: [
     'JonoShor',
-    'জনস্বর',
     'Human Rights Bangladesh',
-    'মানবাধিকার বাংলাদেশ',
     'Citizen Complaints',
     'Verified Reports',
     'Whistleblower Protection',
+    'Human Rights Telemetry',
+    'Legal Aid Bangladesh',
   ],
   authors: [{ name: 'JonoShor Human Rights Initiative', url: 'https://jonoshor.org' }],
   openGraph: {
-    title: 'জনস্বর (JonoShor) — মানবাধিকার ও নাগরিক অভিযোগ প্ল্যাটফর্ম',
+    title: 'JonoShor — Human Rights Documentation & Verification Platform',
     description:
-      'নথিভুক্ত করুন। যাচাই করুন। সুরক্ষা দিন। প্রকাশ করুন। অভিযোগকারীর পরিচয় সর্বদা সম্পূর্ণ সুরক্ষিত।',
+      'Document. Verify. Protect. Inform. Secure, confidential, and verified public archive for human rights advocacy in Bangladesh.',
     url: 'https://jonoshor.org',
-    siteName: 'জনস্বর (JonoShor)',
-    locale: 'bn_BD',
+    siteName: 'JonoShor',
+    locale: 'en_US',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'জনস্বর (JonoShor) — Human Rights Archive',
-    description: 'Document. Verify. Protect. Inform.',
+    title: 'JonoShor — Human Rights Archive',
+    description: 'Document, verify, and archive human rights violations with whistleblower protection in Bangladesh.',
   },
   robots: {
     index: true,

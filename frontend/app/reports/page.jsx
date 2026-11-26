@@ -2,8 +2,12 @@ import React from 'react';
 import ReportsView from '../components/ReportsView';
 
 export const metadata = {
-  title: 'যাচাইকৃত রিপোর্ট ডিরেক্টরি',
-  description: 'জনস্বার্থে অনুমোদিত ও সত্যতা যাচাইকৃত মানবাধিকার লঙ্ঘন ও নাগরিক অভিযোগের নিরপেক্ষ আর্কাইভ।',
+  title: 'Verified Reports Directory & Public Archive',
+  description: 'Search and filter independently verified human rights incident reports, categorized by division, district, and legal status.',
+  openGraph: {
+    title: 'Verified Human Rights Reports Directory | JonoShor',
+    description: 'Search and filter independently verified human rights incident reports, categorized by division, district, and legal status.',
+  },
 };
 
 async function fetchReports(searchParams) {

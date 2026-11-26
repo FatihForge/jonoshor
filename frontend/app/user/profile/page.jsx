@@ -21,7 +21,7 @@ export default function UserProfilePage() {
       .then((d) => {
         if (d.data) setProfile(d.data);
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const handleUpdateProfile = async (e) => {

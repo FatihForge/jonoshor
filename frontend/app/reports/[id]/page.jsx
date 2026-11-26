@@ -19,26 +19,32 @@ async function fetchReportById(id) {
 export async function generateMetadata({ params }) {
   const report = await fetchReportById(params.id);
   if (!report) {
-    return { title: 'রিপোর্ট পাওয়া যায়নি' };
+    return {
+      title: 'Report Not Found',
+      description: 'The requested verified incident report does not exist or has not been published.',
+    };
   }
 
-  const title = report.bn?.title || report.en?.title || 'মানবাধিকার যাচাইকৃত প্রতিবেদন';
-  const description = report.bn?.summary || report.en?.summary || 'জনস্বার্থে যাচাইকৃত ঘটনা প্রতিবেদন';
+  const title = report.en?.title || report.bn?.title || 'Verified Incident Report';
+  const description =
+    report.en?.summary ||
+    report.bn?.summary ||
+    'Independently verified human rights investigation report archived for public record.';
 
   return {
-    title,
+    title: `${title} — Verified Report`,
     description,
     openGraph: {
-      title,
+      title: `${title} | JonoShor Human Rights Archive`,
       description,
       type: 'article',
       url: `https://jonoshor.org/reports/${params.id}`,
       publishedTime: report.publishedAt || report.createdAt,
-      authors: ['JonoShor Independent Citizen Voice'],
+      authors: ['JonoShor Human Rights Editorial Desk'],
     },
     twitter: {
       card: 'summary_large_image',
-      title,
+      title: `${title} | JonoShor`,
       description,
     },
   };

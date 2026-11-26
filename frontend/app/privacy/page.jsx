@@ -2,8 +2,14 @@ import React from 'react';
 import { PrivacyView } from '../components/InfoPagesViews';
 
 export const metadata = {
-  title: 'গোপনীয়তা ও ডেটা পলিসি',
-  description: 'জনস্বর প্ল্যাটফর্মের তথ্য সুরক্ষা, পরিচয় গোপনীয়তা ও ক্রিপ্টোগ্রাফিক সুরক্ষা নীতিমালা।',
+  title: 'Privacy Policy & Zero-Knowledge Data Protection',
+  description:
+    'Our commitment to informant confidentiality, metadata stripping, end-to-end cryptographic protection, and zero-tracking analytics.',
+  openGraph: {
+    title: 'Privacy Policy & Data Protection | JonoShor',
+    description:
+      'Our commitment to informant confidentiality, metadata stripping, end-to-end cryptographic protection, and zero-tracking analytics.',
+  },
 };
 
 export default function PrivacyPolicyPage() {
