@@ -106,15 +106,15 @@ function VerifyEmailContent() {
       <div className="container mx-auto px-4 max-w-md space-y-6">
         <div className="text-center space-y-1.5">
           <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-brand-blue dark:text-blue-400">
-            {isBn ? 'পরিচয় যাচাইকরণ' : 'IDENTITY VERIFICATION'}
+            {isBn ? 'ইমেইল ভেরিফিকেশন' : 'EMAIL VERIFICATION'}
           </span>
           <h1 className="text-2xl font-extrabold text-brand-navy dark:text-white">
-            {isBn ? 'ইমেইল ভেরিফিকেশন' : 'Email Verification'}
+            {isBn ? 'ইমেইল নিশ্চিত করুন' : 'Verify Email Address'}
           </h1>
           <p className="text-xs text-slate-600 dark:text-slate-400">
             {isBn
-              ? 'আপনার ইনবক্সে প্রেরিত ৬-সংখ্যার ভেরিফিকেশন কোডটি প্রবেশ করান।'
-              : 'Enter the 6-digit verification code sent to your inbox.'}
+              ? 'আপনার ইমেইলে প্রেরিত ৬-সংখ্যার ভেরিফিকেশন কোডটি দিন।'
+              : 'Enter the 6-digit verification code sent to your email.'}
           </p>
         </div>
 

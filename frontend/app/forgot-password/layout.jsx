@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'Forgot Password Recovery',
+  title: 'Forgot Password',
   description: 'Recover access to your account via one-time secure verification token.',
 };
 

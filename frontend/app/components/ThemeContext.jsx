@@ -11,19 +11,38 @@ export function ThemeProvider({ children }) {
   useEffect(() => {
     setMounted(true);
     const saved = localStorage.getItem('jonoshor_theme');
-    if (saved === 'dark' || saved === 'light') {
-      setTheme(saved);
-      document.documentElement.classList.toggle('dark', saved === 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const isDark = saved === 'dark' || (!saved && prefersDark);
+    const activeTheme = isDark ? 'dark' : 'light';
+
+    setTheme(activeTheme);
+    document.documentElement.classList.toggle('dark', isDark);
+    document.documentElement.style.colorScheme = activeTheme;
+
+    // Listen for system/device theme changes when user has no manual override
+    const mediaQuery = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+    if (mediaQuery && mediaQuery.addEventListener) {
+      const handleSystemChange = (e) => {
+        const userSaved = localStorage.getItem('jonoshor_theme');
+        if (!userSaved) {
+          const sysTheme = e.matches ? 'dark' : 'light';
+          setTheme(sysTheme);
+          document.documentElement.classList.toggle('dark', e.matches);
+          document.documentElement.style.colorScheme = sysTheme;
+        }
+      };
+      mediaQuery.addEventListener('change', handleSystemChange);
+      return () => mediaQuery.removeEventListener('change', handleSystemChange);
     }
   }, []);
 
   const toggleTheme = () => {
-    const next = theme === 'light' ? 'dark' : 'light';
-    setTheme(next);
-    localStorage.setItem('jonoshor_theme', next);
-    document.documentElement.classList.toggle('dark', next === 'dark');
+    const isCurrentlyDark = document.documentElement.classList.contains('dark');
+    const nextTheme = isCurrentlyDark ? 'light' : 'dark';
+    setTheme(nextTheme);
+    localStorage.setItem('jonoshor_theme', nextTheme);
+    document.documentElement.classList.toggle('dark', nextTheme === 'dark');
+    document.documentElement.style.colorScheme = nextTheme;
   };
 
   return (

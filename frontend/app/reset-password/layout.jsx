@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'Set New Password',
+  title: 'Reset Password',
   description: 'Set a new secure password for your JonoShor account.',
 };
 

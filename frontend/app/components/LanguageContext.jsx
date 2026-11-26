@@ -15,12 +15,12 @@ export const DICTIONARY = {
     navStats: 'পরিসংখ্যান',
     navJoinUs: 'যুক্ত হোন',
     navAbout: 'আমাদের লক্ষ্য',
-    navLogin: 'লগইন',
-    navRegister: 'নিবন্ধন',
+    navLogin: 'সাইন ইন',
+    navRegister: 'অ্যাকাউন্ট তৈরি',
     navDashboard: 'ড্যাশবোর্ড',
     navAdmin: 'অ্যাডমিন পোর্টাল',
-    navSuperAdmin: 'এক্সিকিউটিভ কনসোল',
-    navLogout: 'লগআউট',
+    navSuperAdmin: 'সুপার অ্যাডমিন',
+    navLogout: 'সাইন আউট',
     verifiedReportsTitle: 'যাচাইকৃত মানবাধিকার লঙ্ঘন ও নাগরিক অভিযোগের জনস্বার্থ রেকর্ড',
     verifiedReportsSub: 'প্রতিটি প্রকাশনা বহুস্তরীয় যাচাই, কোয়ারেন্টাইন নিরাপত্তা স্ক্যান এবং নিরপেক্ষ পর্যালোচনা সম্পন্ন।',
     anonymousNotice: 'আপনার পরিচয় সম্পূর্ণ এনক্রিপ্টেড ও সুরক্ষিত। কোনো পাবলিক রিপোর্টে অভিযোগকারীর নাম প্রকাশ করা হয় না।',
@@ -40,21 +40,26 @@ export const DICTIONARY = {
     navDashboard: 'Dashboard',
     navAdmin: 'Admin Portal',
     navSuperAdmin: 'Super Admin',
-    navLogout: 'Logout',
+    navLogout: 'Sign Out',
     verifiedReportsTitle: 'Public Voice & Human Rights Verified Public Documentation',
     verifiedReportsSub: 'All reports undergo rigorous multi-stage verification, quarantine malware scanning, and legal scrutiny.',
     anonymousNotice: 'Citizen reporter identity is always protected by default. Raw complaints are never publicly published.',
   },
 };
 
-export function LanguageProvider({ children }) {
-  const [lang, setLang] = useState('bn');
+export function LanguageProvider({ children, initialLang = 'bn' }) {
+  const [lang, setLang] = useState(initialLang);
 
   useEffect(() => {
     const saved = localStorage.getItem('jonoshor_lang');
     if (saved && (saved === 'bn' || saved === 'en')) {
-      setLang(saved);
-      document.documentElement.lang = saved;
+      if (saved !== lang) {
+        setLang(saved);
+        document.documentElement.lang = saved;
+      }
+      document.cookie = `jonoshor_lang=${saved}; path=/; max-age=31536000; SameSite=Lax`;
+    } else if (initialLang && (initialLang === 'bn' || initialLang === 'en')) {
+      localStorage.setItem('jonoshor_lang', initialLang);
     }
   }, []);
 

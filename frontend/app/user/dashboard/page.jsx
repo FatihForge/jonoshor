@@ -32,15 +32,15 @@ export default function UserDashboardPage() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 border-b border-slate-200 dark:border-slate-800 pb-6">
           <div>
             <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-brand-blue dark:text-blue-400 block">
-              {isBn ? 'নাগরিক কেস ট্র্যাকার' : 'CITIZEN CASE TRACKER'}
+              {isBn ? 'কেস ও অভিযোগ ট্র্যাকার' : 'CASE TRACKER'}
             </span>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-brand-navy dark:text-white mt-1">
-              {isBn ? 'নাগরিক ড্যাশবোর্ড' : 'Citizen Dashboard'}
+              {isBn ? 'ড্যাশবোর্ড' : 'Dashboard'}
             </h1>
             <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
               {isBn
                 ? 'আপনার জমাকৃত অভিযোগের লাইভ অবস্থা, বার্তা ও আইনি অগ্রগতি পর্যবেক্ষণ করুন।'
-                : 'Monitor live review status, encrypted messages, and legal progress of your filings.'}
+                : 'Monitor live review status, messages, and legal progress of your filings.'}
             </p>
           </div>
 

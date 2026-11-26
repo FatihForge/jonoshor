@@ -39,8 +39,9 @@ export default function LoginPage() {
         throw new Error(data?.error?.message || (isBn ? 'লগইন ব্যর্থ হয়েছে।' : 'Login failed.'));
       }
 
-      if (data.data?.account) {
-        localStorage.setItem('jonoshor_user', JSON.stringify(data.data.account));
+      const accountData = data.data?.user || data.data?.account;
+      if (accountData) {
+        localStorage.setItem('jonoshor_user', JSON.stringify({ ...accountData, accountType: 'user' }));
       }
 
       router.push('/user/dashboard');
@@ -56,15 +57,15 @@ export default function LoginPage() {
       <div className="container mx-auto px-4 max-w-md space-y-6">
         <div className="text-center space-y-1.5">
           <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-brand-blue dark:text-blue-400">
-            {isBn ? 'নাগরিক পোর্টাল প্রবেশ' : 'CITIZEN PORTAL ACCESS'}
+            {isBn ? 'নিরাপদ সাইন ইন' : 'SECURE SIGN IN'}
           </span>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-brand-navy dark:text-white">
-            {isBn ? 'নাগরিক অ্যাকাউন্টে লগইন' : 'Citizen Account Sign In'}
+            {isBn ? 'অ্যাকাউন্টে সাইন ইন করুন' : 'Sign In to Your Account'}
           </h1>
           <p className="text-xs text-slate-600 dark:text-slate-400">
             {isBn
-              ? 'আপনার জমাকৃত অভিযোগ ও অগ্রগতি ট্র্যাক করতে সাইন ইন করুন।'
-              : 'Sign in to track your submitted complaints and review progress.'}
+              ? 'আপনার অভিযোগের অগ্রগতি পর্যবেক্ষণ ও আপডেট দেখতে সাইন ইন করুন।'
+              : 'Sign in to track your reports, view updates, and communicate securely.'}
           </p>
         </div>
 

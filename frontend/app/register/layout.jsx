@@ -1,6 +1,6 @@
 export const metadata = {
-  title: 'Create Citizen Account',
-  description: 'Register for a confidential citizen account to securely follow up on lodged complaints.',
+  title: 'Create Account',
+  description: 'Create an account on JonoShor to track submitted complaints and access your dashboard.',
 };
 
 export default function RegisterLayout({ children }) {

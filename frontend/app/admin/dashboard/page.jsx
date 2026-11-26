@@ -54,10 +54,10 @@ export default function AdminDashboardPage() {
       href: '/admin/users',
       icon: Users,
       code: '04 / CITIZENS',
-      title: isBn ? 'নাগরিক ব্যবহারকারী পরিচালনা' : 'Citizen User Management',
+      title: isBn ? 'ব্যবহারকারী পরিচালনা' : 'User Management',
       desc: isBn
-        ? 'নিবন্ধিত নাগরিক অ্যাকাউন্টের নিরাপত্তা স্থিতি ও সাসপেনশন নিয়ন্ত্রণ।'
-        : 'Monitor registered citizen account security status and suspension controls.',
+        ? 'নিবন্ধিত ব্যবহারকারীদের অ্যাকাউন্টের স্থিতি ও অ্যাক্সেস নিয়ন্ত্রণ।'
+        : 'Manage registered user accounts, security status, and access controls.',
     },
     {
       href: '/admin/contact',

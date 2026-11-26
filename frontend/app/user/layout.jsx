@@ -1,8 +1,10 @@
+import UserAuthGuard from '../components/UserAuthGuard';
+
 export const metadata = {
-  title: 'Citizen Dashboard & Case Tracker',
-  description: 'Private dashboard for citizens to view submitted grievances, evidence status, and legal assistance.',
+  title: 'Dashboard',
+  description: 'Private dashboard for users to view submitted grievances, evidence status, and case progress.',
 };
 
 export default function UserLayout({ children }) {
-  return children;
+  return <UserAuthGuard>{children}</UserAuthGuard>;
 }

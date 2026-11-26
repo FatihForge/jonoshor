@@ -62,8 +62,9 @@ export default function SuperAdminLoginPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error?.message || (isBn ? 'সুপার অ্যাডমিন ২-এফ-এ কোড সঠিক নয়।' : 'Invalid super admin 2FA code.'));
 
-      if (data.data?.account) {
-        localStorage.setItem('jonoshor_user', JSON.stringify(data.data.account));
+      const accountData = data.data?.account || data.data?.user;
+      if (accountData) {
+        localStorage.setItem('jonoshor_user', JSON.stringify({ ...accountData, accountType: 'superAdmin' }));
       }
 
       router.push('/super-admin/dashboard');
@@ -120,7 +121,7 @@ export default function SuperAdminLoginPage() {
               </div>
 
               <button type="submit" disabled={loading} className="w-full py-3 px-4 rounded-full bg-brand-blue hover:bg-brand-blueDark text-white font-bold text-xs shadow-md transition-all disabled:opacity-50">
-                {loading ? <span>{isBn ? 'যাচাই হচ্ছে...' : 'Verifying...'}</span> : <span>{isBn ? 'পরবর্তী ধাপ: রুট ২-এফ-এ' : 'Next Step: Root 2FA'}</span>}
+                {loading ? <span>{isBn ? 'যাচাই হচ্ছে...' : 'Verifying...'}</span> : <span>{isBn ? 'পরবর্তী ধাপ: ২-এফ-এ যাচাই' : 'Next Step: 2FA Verification'}</span>}
               </button>
             </form>
           ) : (
@@ -136,14 +137,14 @@ export default function SuperAdminLoginPage() {
               </div>
 
               <button type="submit" disabled={loading} className="w-full py-3 px-4 rounded-full bg-brand-blue hover:bg-brand-blueDark text-white font-bold text-xs shadow-md transition-all disabled:opacity-50">
-                {loading ? <span>{isBn ? 'যাচাই হচ্ছে...' : 'Verifying...'}</span> : <span>{isBn ? 'এক্সিকিউটিভ কনসোলে প্রবেশ' : 'Enter Executive Console'}</span>}
+                {loading ? <span>{isBn ? 'যাচাই হচ্ছে...' : 'Verifying...'}</span> : <span>{isBn ? 'যাচাই সম্পন্ন করে প্রবেশ করুন' : 'Verify & Access Console'}</span>}
               </button>
             </form>
           )}
 
           <div className="pt-2 text-center text-[11px] border-t border-slate-100 dark:border-slate-800">
             <Link href="/login" className="text-brand-blue dark:text-blue-400 font-semibold hover:underline">
-              {isBn ? 'সাধারণ লগইনে ফিরুন' : 'Return to Standard Login'}
+              {isBn ? 'ব্যবহারকারী সাইন ইনে ফিরুন' : 'Return to User Sign In'}
             </Link>
           </div>
         </div>

@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 :root {
+  color-scheme: light;
   --bg-page: #FFFFFF;
   --bg-subtle: #F4F8FF;
   --bg-card: #FFFFFF;
@@ -13,6 +14,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   --bg-page: #0B1120;
   --bg-subtle: #0F172A;
   --bg-card: #111A2E;
@@ -20,6 +22,10 @@
   --border-main: #1E293B;
   --text-main: #F8FAFC;
   --text-muted: #94A3B8;
+}
+
+html {
+  background-color: var(--bg-page);
 }
 
 body {

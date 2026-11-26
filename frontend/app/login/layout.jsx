@@ -1,6 +1,6 @@
 export const metadata = {
-  title: 'Citizen Sign In',
-  description: 'Access your citizen account to track cases and communicate with assigned case investigators.',
+  title: 'Sign In',
+  description: 'Sign in to your JonoShor account to track submitted complaints and access case updates.',
 };
 
 export default function LoginLayout({ children }) {

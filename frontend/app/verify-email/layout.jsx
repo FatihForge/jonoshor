@@ -1,6 +1,6 @@
 export const metadata = {
-  title: 'Verify Email Address',
-  description: 'Verify your email address to activate your confidential JonoShor account.',
+  title: 'Verify Email',
+  description: 'Verify your email address to activate your JonoShor account.',
 };
 
 export default function VerifyEmailLayout({ children }) {

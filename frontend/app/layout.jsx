@@ -1,4 +1,5 @@
 import './globals.css';
+import { cookies } from 'next/headers';
 import { LanguageProvider } from './components/LanguageContext';
 import { ThemeProvider } from './components/ThemeContext';
 import Navbar from './components/Navbar';
@@ -43,6 +44,10 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
+  const cookieStore = cookies();
+  const langCookie = cookieStore.get('jonoshor_lang')?.value;
+  const initialLang = langCookie === 'en' ? 'en' : 'bn';
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'NGO',
@@ -61,8 +66,32 @@ export default function RootLayout({ children }) {
   };
 
   return (
-    <html lang="bn" suppressHydrationWarning>
+    <html lang={initialLang} suppressHydrationWarning>
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var savedLang = localStorage.getItem('jonoshor_lang');
+                  if (savedLang && (savedLang === 'bn' || savedLang === 'en')) {
+                    document.cookie = 'jonoshor_lang=' + savedLang + '; path=/; max-age=31536000; SameSite=Lax';
+                  }
+                  var saved = localStorage.getItem('jonoshor_theme');
+                  var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                  var isDark = saved === 'dark' || (!saved && prefersDark);
+                  if (isDark) {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.style.colorScheme = 'dark';
+                  } else {
+                    document.documentElement.classList.remove('dark');
+                    document.documentElement.style.colorScheme = 'light';
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -70,7 +99,7 @@ export default function RootLayout({ children }) {
       </head>
       <body className="min-h-screen bg-white dark:bg-canvas-dark text-brand-navy dark:text-slate-100 font-sans flex flex-col antialiased selection:bg-brand-blue/15 selection:text-brand-blue">
         <ThemeProvider>
-          <LanguageProvider>
+          <LanguageProvider initialLang={initialLang}>
             <Navbar />
             <main className="flex-1">{children}</main>
             <Footer />

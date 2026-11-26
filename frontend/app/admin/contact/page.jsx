@@ -91,7 +91,7 @@ export default function AdminContactInboxPage() {
             </Link>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-brand-navy dark:text-white flex items-center gap-2">
               <Mail className="w-6 h-6 text-brand-blue" />
-              <span>{isBn ? 'যোগাযোগ ও নাগরিক অনুসন্ধান ইনবক্স' : 'Public Contact Inquiries Inbox'}</span>
+              <span>{isBn ? 'যোগাযোগ ও অনুসন্ধান ইনবক্স' : 'Inquiries & Feedback'}</span>
             </h1>
             <p className="text-slate-600 dark:text-slate-400">
               {isBn ? 'জনসাধারণের সাধারণ প্রশ্ন, ফিডব্যাক ও অনুসন্ধানের উত্তর পর্যালোচনা করুন।' : 'Review and respond to public questions, feedback, and inquiries.'}

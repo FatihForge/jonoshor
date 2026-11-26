@@ -48,15 +48,15 @@ export default function RegisterPage() {
       <div className="container mx-auto px-4 max-w-md space-y-6">
         <div className="text-center space-y-1.5">
           <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-brand-blue dark:text-blue-400">
-            {isBn ? 'নাগরিক নিবন্ধন' : 'CITIZEN REGISTRATION'}
+            {isBn ? 'নতুন অ্যাকাউন্ট' : 'CREATE ACCOUNT'}
           </span>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-brand-navy dark:text-white">
-            {isBn ? 'নাগরিক অ্যাকাউন্ট তৈরি করুন' : 'Create a Citizen Account'}
+            {isBn ? 'অ্যাকাউন্ট তৈরি করুন' : 'Create an Account'}
           </h1>
           <p className="text-xs text-slate-600 dark:text-slate-400">
             {isBn
-              ? 'নিরাপদ ড্যাশবোর্ড ও অভিযোগ ট্র্যাক করতে অ্যাকাউন্ট নিবন্ধন করুন।'
-              : 'Register an account to access your private dashboard and track submissions.'}
+              ? 'অভিযোগের অগ্রগতি পর্যবেক্ষণ এবং নিরাপদে যোগাযোগ করতে অ্যাকাউন্ট তৈরি করুন।'
+              : 'Create an account to track your submitted complaints and access your dashboard.'}
           </p>
         </div>
 
@@ -110,14 +110,14 @@ export default function RegisterPage() {
             </div>
 
             <button type="submit" disabled={loading} className="w-full py-3 px-4 rounded-full bg-brand-blue hover:bg-brand-blueDark text-white font-bold text-xs shadow-md shadow-blue-600/20 transition-all disabled:opacity-50">
-              {loading ? <span>{isBn ? 'অ্যাকাউন্ট তৈরি হচ্ছে...' : 'Creating account...'}</span> : <span>{isBn ? 'নিবন্ধন সম্পন্ন করুন' : 'Complete Registration'}</span>}
+              {loading ? <span>{isBn ? 'অ্যাকাউন্ট তৈরি হচ্ছে...' : 'Creating account...'}</span> : <span>{isBn ? 'অ্যাকাউন্ট তৈরি করুন' : 'Create Account'}</span>}
             </button>
           </form>
 
           <div className="pt-2 text-center text-slate-600 dark:text-slate-400 text-xs border-t border-slate-100 dark:border-slate-800">
             {isBn ? 'ইতিমধ্যে অ্যাকাউন্ট আছে? ' : 'Already have an account? '}
             <Link href="/login" className="text-brand-blue dark:text-blue-400 font-bold hover:underline">
-              {isBn ? 'লগইন করুন' : 'Sign In'}
+              {isBn ? 'সাইন ইন করুন' : 'Sign In'}
             </Link>
           </div>
         </div>

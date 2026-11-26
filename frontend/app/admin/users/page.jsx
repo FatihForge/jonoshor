@@ -92,10 +92,10 @@ export default function AdminUsersPage() {
             </Link>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-brand-navy dark:text-white flex items-center gap-2">
               <Users className="w-6 h-6 text-brand-blue" />
-              <span>{isBn ? 'নাগরিক ব্যবহারকারী অ্যাকাউন্ট পরিচালনা' : 'Citizen User Account Management'}</span>
+              <span>{isBn ? 'ব্যবহারকারী পরিচালনা' : 'User Management'}</span>
             </h1>
             <p className="text-slate-600 dark:text-slate-400">
-              {isBn ? 'নিবন্ধিত নাগরিক অ্যাকাউন্টের নিরাপত্তা স্থিতি ও অধিকার পর্যবেক্ষণ করুন।' : 'Monitor security posture and access controls of registered citizen accounts.'}
+              {isBn ? 'নিবন্ধিত ব্যবহারকারীদের অ্যাকাউন্টের অবস্থা ও অ্যাক্সেস নিয়ন্ত্রণ পর্যবেক্ষণ করুন।' : 'Manage user accounts, view verification status, and manage access controls.'}
             </p>
           </div>
 
@@ -145,7 +145,7 @@ export default function AdminUsersPage() {
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50 dark:bg-slate-900 text-brand-navy dark:text-slate-200 font-bold border-b border-slate-200 dark:border-slate-800 uppercase font-mono text-[10px] tracking-wider">
                 <tr>
-                  <th className="px-4 py-3.5">{isBn ? 'নাগরিকের তথ্য' : 'Citizen Info'}</th>
+                  <th className="px-4 py-3.5">{isBn ? 'ব্যবহারকারীর তথ্য' : 'User Information'}</th>
                   <th className="px-4 py-3.5">{isBn ? 'যোগাযোগ' : 'Contact'}</th>
                   <th className="px-4 py-3.5">{isBn ? 'স্ট্যাটাস' : 'Status'}</th>
                   <th className="px-4 py-3.5">{isBn ? 'নিবন্ধন তারিখ' : 'Joined Date'}</th>
@@ -161,7 +161,7 @@ export default function AdminUsersPage() {
                   users.map((u) => (
                     <tr key={u._id} className="hover:bg-blue-50/40 dark:hover:bg-slate-800/40 transition">
                       <td className="px-4 py-3">
-                        <div className="font-bold text-brand-navy dark:text-white">{u.fullName || (isBn ? 'বেনামী নাগরিক' : 'Anonymous Citizen')}</div>
+                        <div className="font-bold text-brand-navy dark:text-white">{u.fullName || (isBn ? 'নাম প্রকাশে অনিচ্ছুক' : 'Anonymous')}</div>
                         <div className="text-[10px] text-slate-400 font-mono">ID: {u._id.slice(-8)}</div>
                       </td>
                       <td className="px-4 py-3">

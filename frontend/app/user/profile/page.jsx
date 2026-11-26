@@ -72,8 +72,8 @@ export default function UserProfilePage() {
 
       setMsg(
         isBn
-          ? 'পাসওয়ার্ড সফলভাবে পরিবর্তন হয়েছে। অন্যান্য সব ডিভাইসের সেশন বাতিল করা হয়েছে।'
-          : 'Password changed successfully. Sessions on other devices have been revoked.'
+          ? 'পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে।'
+          : 'Password changed successfully.'
       );
       setPasswords({ currentPassword: '', newPassword: '' });
     } catch (err) {
@@ -137,7 +137,7 @@ export default function UserProfilePage() {
         <div className="dossier-card p-6 sm:p-8 rounded-3xl space-y-4">
           <h2 className="text-base font-bold text-brand-navy dark:text-white flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
             <Lock className="w-4 h-4 text-amber-500" />
-            <span>{isBn ? 'পাসওয়ার্ড পরিবর্তন (সিকিউরিটি লকআউট)' : 'Change Password (Security Revocation)'}</span>
+            <span>{isBn ? 'পাসওয়ার্ড পরিবর্তন' : 'Change Password'}</span>
           </h2>
 
           <form onSubmit={handleUpdatePassword} className="space-y-4">

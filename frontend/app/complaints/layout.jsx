@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'Lodge Human Rights Grievance or Violation Report',
+  title: 'Submit Complaint',
   description: 'Submit an incident report securely and anonymously with end-to-end evidence encryption.',
 };
 

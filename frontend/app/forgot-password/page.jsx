@@ -50,13 +50,13 @@ export default function ForgotPasswordPage() {
       <div className="container mx-auto px-4 max-w-md space-y-6">
         <div className="text-center space-y-1.5">
           <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-brand-blue dark:text-blue-400">
-            {isBn ? 'অ্যাকাউন্ট পুনরুদ্ধার' : 'ACCOUNT RECOVERY'}
+            {isBn ? 'পাসওয়ার্ড পুনরুদ্ধার' : 'PASSWORD RECOVERY'}
           </span>
           <h1 className="text-2xl font-extrabold text-brand-navy dark:text-white">
-            {isBn ? 'পাসওয়ার্ড পুনরুদ্ধার' : 'Password Recovery'}
+            {isBn ? 'পাসওয়ার্ড ভুলে গেছেন?' : 'Forgot Password?'}
           </h1>
           <p className="text-xs text-slate-600 dark:text-slate-400">
-            {isBn ? 'আপনার অ্যাকাউন্টের নিবন্ধিত ইমেইল ঠিকানাটি প্রদান করুন।' : 'Enter the registered email address for your account.'}
+            {isBn ? 'আপনার অ্যাকাউন্টের নিবন্ধিত ইমেইল ঠিকানাটি লিখুন।' : 'Enter your registered email address to receive password reset instructions.'}
           </p>
         </div>
 

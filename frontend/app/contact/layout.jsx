@@ -1,6 +1,6 @@
 export const metadata = {
-  title: 'Contact Editorial Desk & Secure Inquiries',
-  description: 'Reach out to the JonoShor human rights verification and editorial desk securely.',
+  title: 'Contact Us',
+  description: 'Reach out to the JonoShor verification and editorial desk.',
 };
 
 export default function ContactLayout({ children }) {

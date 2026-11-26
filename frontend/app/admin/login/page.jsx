@@ -62,8 +62,9 @@ export default function AdminLoginPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error?.message || (isBn ? '২-এফ-এ কোড সঠিক নয়।' : 'Invalid 2FA code.'));
 
-      if (data.data?.account) {
-        localStorage.setItem('jonoshor_user', JSON.stringify(data.data.account));
+      const accountData = data.data?.account || data.data?.user;
+      if (accountData) {
+        localStorage.setItem('jonoshor_user', JSON.stringify({ ...accountData, accountType: 'admin' }));
       }
 
       router.push('/admin/dashboard');
@@ -144,14 +145,14 @@ export default function AdminLoginPage() {
               </div>
 
               <button type="submit" disabled={loading} className="w-full py-3 px-4 rounded-full bg-brand-blue hover:bg-brand-blueDark text-white font-bold text-xs shadow-md transition-all disabled:opacity-50">
-                {loading ? <span>{isBn ? 'যাচাই হচ্ছে...' : 'Verifying...'}</span> : <span>{isBn ? '২-এফ-এ যাচাই ও সেশন শুরু' : 'Verify 2FA & Start Session'}</span>}
+                {loading ? <span>{isBn ? 'যাচাই হচ্ছে...' : 'Verifying...'}</span> : <span>{isBn ? '২-এফ-এ যাচাই ও সাইন ইন' : 'Verify 2FA & Sign In'}</span>}
               </button>
             </form>
           )}
 
           <div className="pt-2 text-center text-[11px] border-t border-slate-100 dark:border-slate-800">
             <Link href="/login" className="text-brand-blue dark:text-blue-400 font-semibold hover:underline">
-              {isBn ? 'সাধারণ নাগরিক লগইনে ফিরুন' : 'Return to Citizen Login'}
+              {isBn ? 'ব্যবহারকারী সাইন ইনে ফিরুন' : 'Return to User Sign In'}
             </Link>
           </div>
         </div>

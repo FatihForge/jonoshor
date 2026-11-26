@@ -1,6 +1,9 @@
 import { authService } from '../../services/auth/auth.service.js';
 import { sendSuccess } from '../../utils/response.js';
 import { authConfig } from '../../config/auth.js';
+import { userRepository } from '../../repositories/user.repository.js';
+import { adminRepository } from '../../repositories/admin.repository.js';
+import { superAdminRepository } from '../../repositories/superAdmin.repository.js';
 
 function setAuthCookies(res, accessToken, refreshToken) {
   // Access token cookie (15m)
@@ -127,7 +130,20 @@ export const authController = {
 
   async getCurrentUser(req, res, next) {
     try {
-      return sendSuccess(res, { user: req.auth });
+      let fullName = null;
+      if (req.auth?.id) {
+        if (req.auth.accountType === 'user') {
+          const u = await userRepository.findById(req.auth.id);
+          if (u) fullName = u.fullName;
+        } else if (req.auth.accountType === 'admin') {
+          const a = await adminRepository.findById(req.auth.id);
+          if (a) fullName = a.fullName;
+        } else if (req.auth.accountType === 'superAdmin') {
+          const sa = await superAdminRepository.findById(req.auth.id);
+          if (sa) fullName = sa.fullName;
+        }
+      }
+      return sendSuccess(res, { user: { ...req.auth, fullName } });
     } catch (err) {
       next(err);
     }
