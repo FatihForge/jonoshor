@@ -173,15 +173,8 @@ JonoShor/
 ### Prerequisites
 - **Node.js**: v18.17.0 or higher (v20+ recommended)
 - **MongoDB**: Local MongoDB instance running on port `27017` or MongoDB Atlas URI
-- **Git**
 
-### 1. Clone the Repository
-```bash
-git clone https://github.com/FatihForge/jonoshor.git
-cd JonoShor
-```
-
-### 2. Backend Setup
+### 1. Backend Setup
 ```bash
 cd backend
 npm install
@@ -198,7 +191,7 @@ npm run dev
 # Backend starts at: http://localhost:5000
 ```
 
-### 3. Frontend Setup
+### 2. Frontend Setup
 ```bash
 cd ../frontend
 npm install
