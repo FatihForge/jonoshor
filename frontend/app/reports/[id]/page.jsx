@@ -1,10 +1,11 @@
 import React from 'react';
 import { notFound } from 'next/navigation';
 import ReportDetailView from '../../components/ReportDetailView';
+import { apiUrl } from '../../../lib/api';
 
 async function fetchReportById(id) {
   try {
-    const res = await fetch(`http://localhost:5000/api/v1/public/reports/${id}`, {
+    const res = await fetch(apiUrl(`/api/v1/public/reports/${id}`), {
       cache: 'no-store',
       signal: AbortSignal.timeout(1500),
     });

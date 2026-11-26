@@ -1,5 +1,6 @@
 import React from 'react';
 import ReportsView from '../components/ReportsView';
+import { apiUrl } from '../../lib/api';
 
 export const metadata = {
   title: 'Verified Reports Directory & Public Archive',
@@ -13,7 +14,7 @@ export const metadata = {
 async function fetchReports(searchParams) {
   const query = new URLSearchParams(searchParams).toString();
   try {
-    const res = await fetch(`http://localhost:5000/api/v1/public/reports?${query}`, {
+    const res = await fetch(apiUrl(`/api/v1/public/reports?${query}`), {
       cache: 'no-store',
       signal: AbortSignal.timeout(1500),
     });
@@ -27,7 +28,7 @@ async function fetchReports(searchParams) {
 
 async function fetchDistricts() {
   try {
-    const res = await fetch('http://localhost:5000/api/v1/public/districts', {
+    const res = await fetch(apiUrl('/api/v1/public/districts'), {
       next: { revalidate: 86400 },
       signal: AbortSignal.timeout(1500),
     });

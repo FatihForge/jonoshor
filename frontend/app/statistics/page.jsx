@@ -1,5 +1,6 @@
 import React from 'react';
 import StatisticsView from '../components/StatisticsView';
+import { apiUrl } from '../../lib/api';
 
 export const metadata = {
   title: 'National Telemetry & Human Rights Statistics Dashboard',
@@ -14,7 +15,7 @@ export const metadata = {
 
 async function getStats() {
   try {
-    const res = await fetch('http://localhost:5000/api/v1/public/statistics', {
+    const res = await fetch(apiUrl('/api/v1/public/statistics'), {
       cache: 'no-store',
       signal: AbortSignal.timeout(1500),
     });

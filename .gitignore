@@ -1,12 +1,25 @@
 # JonoShor — .gitignore
 
 # ============================================================
-# Environment & Secrets
+# Environment & Secrets (NEVER commit credentials)
 # ============================================================
 .env
-.env.local
-.env.*.local
+.env.*
 *.env
+**/.env
+**/.env.*
+!**/.env.example
+!.env.example
+
+# Service Accounts, Private Keys, Certs
+*.pem
+*.key
+*.p12
+*.pfx
+*service-account*.json
+credentials.json
+token.json
+client_secret*.json
 
 # ============================================================
 # Node.js

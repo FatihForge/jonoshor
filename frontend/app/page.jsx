@@ -1,5 +1,6 @@
 import React from 'react';
 import HomeView from './components/HomeView';
+import { apiUrl } from '../lib/api';
 
 export const metadata = {
   title: 'JonoShor — Independent Human Rights & Citizen Grievance Documentation Platform',
@@ -14,7 +15,7 @@ export const metadata = {
 
 async function getLiveStats() {
   try {
-    const res = await fetch('http://localhost:5000/api/v1/public/statistics', {
+    const res = await fetch(apiUrl('/api/v1/public/statistics'), {
       next: { revalidate: 60 },
       signal: AbortSignal.timeout(1500),
     });
@@ -28,7 +29,7 @@ async function getLiveStats() {
 
 async function getRecentReports() {
   try {
-    const res = await fetch('http://localhost:5000/api/v1/public/reports?limit=4', {
+    const res = await fetch(apiUrl('/api/v1/public/reports?limit=4'), {
       next: { revalidate: 60 },
       signal: AbortSignal.timeout(1500),
     });

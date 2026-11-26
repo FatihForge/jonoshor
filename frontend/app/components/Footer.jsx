@@ -117,7 +117,7 @@ export default function Footer() {
               </li>
               <li>
                 <a
-                  href="http://localhost:5000/api-docs"
+                  href="/api-docs"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-brand-blue dark:text-blue-400 font-semibold hover:underline"
