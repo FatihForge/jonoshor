@@ -22,11 +22,11 @@ Core distinction:
 
 | Layer | Technology |
 |---|---|
-| Frontend | HTML5, Tailwind CSS, Vanilla JavaScript, Vite |
-| Backend | Node.js, Express.js |
+| Frontend | Next.js 14 (App Router, Hybrid SSR/CSR), React 18, Tailwind CSS |
+| Backend | Node.js (ESM), Express.js, Swagger OpenAPI 3.0 (`/api-docs`) |
 | Database | MongoDB (Atlas) |
-| Storage | Google Cloud Storage |
-| Frontend Hosting | Cloudflare Pages |
+| Storage | Google Drive API (Quarantine → Clean → Public Vaults) |
+| Frontend Hosting | Cloudflare Pages / Node Hosting |
 | Backend Hosting | Render |
 
 ---
@@ -35,9 +35,10 @@ Core distinction:
 
 ```text
 JonoShor/
-├── frontend/         # Frontend application (Vite + Tailwind + Vanilla JS)
-├── backend/          # Backend API (Node.js + Express.js)
-├── docs/             # Frozen project specification documents
+├── frontend/         # Next.js 14 App Router Frontend (Port 3000)
+├── backend/          # Express.js REST API + Swagger Docs (Port 5000)
+├── docs/             # Project specifications & Security Audit report
+├── PROJECT_STATUS.md # Current operational status & command guide
 ├── .env.example      # Environment variable template (no secrets)
 ├── .gitignore        # Git ignore rules
 └── README.md         # This file
@@ -123,18 +124,18 @@ npm run bootstrap:super-admin
 
 ### 4. Running the Platform
 ```bash
-# Start backend API (http://localhost:5000)
+# Start backend API + Swagger UI (http://localhost:5000/api-docs)
 npm run dev:backend
 
-# Start frontend application (http://localhost:5173)
+# Start Next.js frontend application (http://localhost:3000)
 npm run dev:frontend
 ```
 
 ### 5. Accessing Super Admin Console
-1. Navigate to: `http://localhost:5173/#/login`
+1. Navigate to: `http://localhost:3000/super-admin/login` (or `http://localhost:3000/login` for citizens and `/admin/login` for admins).
 2. Enter your bootstrapped Super Admin email and password.
 3. Enter the 6-digit TOTP code from your Authenticator app.
-4. You will be automatically redirected to the root executive console: `http://localhost:5173/#/super-admin/dashboard`.
+4. You will be redirected to the root executive console: `http://localhost:3000/super-admin/dashboard`.
 
 ---
 
