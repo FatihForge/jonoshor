@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { 
-  Database, ShieldAlert, ArrowLeft, RefreshCw, AlertTriangle, 
-  CheckCircle2, Filter, Search, Terminal, FileCode, Clock, Eye, X
+import {
+  Database, ShieldAlert, ArrowLeft, RefreshCw, Terminal, FileCode, Eye, X
 } from 'lucide-react';
 import { useLanguage } from '../../components/LanguageContext';
 
@@ -12,14 +11,11 @@ export default function SuperAdminAuditLogsPage() {
   const { language } = useLanguage();
   const isBn = language === 'bn';
 
-  const [activeTab, setActiveTab] = useState('audit'); // 'audit' or 'security'
+  const [activeTab, setActiveTab] = useState('audit');
   const [auditLogs, setAuditLogs] = useState([]);
   const [securityLogs, setSecurityLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
-
-  // Inspector modal
   const [inspectedLog, setInspectedLog] = useState(null);
 
   useEffect(() => {
@@ -29,250 +25,184 @@ export default function SuperAdminAuditLogsPage() {
   const fetchLogs = async () => {
     try {
       setLoading(true);
-      const url = activeTab === 'audit' 
-        ? `/api/v1/super-admin/audit-logs?page=${page}&limit=20` 
+      const url = activeTab === 'audit'
+        ? `/api/v1/super-admin/audit-logs?page=${page}&limit=20`
         : `/api/v1/super-admin/security/logs?page=${page}&limit=20`;
 
       const res = await fetch(url, { credentials: 'include' });
       if (!res.ok) throw new Error('লগ লোড করতে ব্যর্থ হয়েছে');
       const data = await res.json();
 
-      if (activeTab === 'audit') {
-        setAuditLogs(data.data || []);
-      } else {
-        setSecurityLogs(data.data || []);
-      }
-
-      if (data.meta) {
-        setTotal(data.meta.total || 0);
-      }
-    } catch (err) {
-      console.error(err);
+      if (activeTab === 'audit') setAuditLogs(data.data || []);
+      else setSecurityLogs(data.data || []);
+    } catch {
+      // ignore
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-canvas-dark text-slate-100 py-10 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Navigation & Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <Link
-              href="/super-admin/dashboard"
-              className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200 transition"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Link>
-            <div>
-              <h1 className="text-2xl font-bold text-slate-100 flex items-center gap-2">
-                <Database className="w-6 h-6 text-amber-400" />
-                {isBn ? 'মাস্টার অপরিবর্তনযোগ্য অডিট ও সিকিউরিটি লগ' : 'Master Immutable Audit & Intrusion Telemetry'}
-              </h1>
-              <p className="text-xs text-slate-400 mt-1">
-                {isBn 
-                  ? 'সকল প্রশাসনিক পরিবর্তন ও নিরাপত্তা ইভেন্টের ট্রেইসযোগ্য হিস্ট্রি পর্যবেক্ষণ করুন।' 
-                  : 'Tamper-evident system activity, mutation tracking, and forensic threat analysis.'}
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={fetchLogs}
-            className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200 transition self-start sm:self-auto"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          </button>
+    <div className="container mx-auto py-10 px-4 sm:px-6 lg:px-8 max-w-7xl space-y-6 text-xs">
+      <div className="editorial-rule-top pt-4 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div className="space-y-1">
+          <Link href="/super-admin/dashboard" className="inline-flex items-center gap-1.5 text-brand-slate hover:text-brand-text font-semibold mb-1">
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>কমান্ড সেন্টারে ফিরুন</span>
+          </Link>
+          <h1 className="font-serif text-2xl sm:text-3xl font-bold text-brand-text flex items-center gap-2">
+            <Database className="w-6 h-6 text-brand-ochre" />
+            <span>{isBn ? 'মাস্টার অপরিবর্তনযোগ্য অডিট ও সিকিউরিটি লগ' : 'Master Immutable Audit & Intrusion Telemetry'}</span>
+          </h1>
+          <p className="text-brand-slate">সকল প্রশাসনিক পরিবর্তন ও নিরাপত্তা ইভেন্টের ট্রেইসযোগ্য হিস্ট্রি পর্যবেক্ষণ করুন।</p>
         </div>
 
-        {/* Tab Switcher */}
-        <div className="flex gap-3 border-b border-slate-800 pb-3">
-          <button
-            onClick={() => { setActiveTab('audit'); setPage(1); }}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-2 ${
-              activeTab === 'audit'
-                ? 'bg-amber-600 text-slate-950 shadow-lg shadow-amber-950/40'
-                : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
-            }`}
-          >
-            <Database className="w-4 h-4" />
-            {isBn ? 'সিস্টেম অডিট ট্রেইল (Audit Logs)' : 'Immutable Audit Trail'}
-          </button>
-          <button
-            onClick={() => { setActiveTab('security'); setPage(1); }}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-2 ${
-              activeTab === 'security'
-                ? 'bg-rose-600 text-white shadow-lg shadow-rose-950/40'
-                : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
-            }`}
-          >
-            <ShieldAlert className="w-4 h-4" />
-            {isBn ? 'নিরাপত্তা ও ঝুঁকি লগ (Security Logs)' : 'Intrusion & Security Logs'}
-          </button>
-        </div>
-
-        {/* Table Content */}
-        <div className="glass-panel rounded-2xl border border-slate-800 bg-slate-900/50 overflow-hidden shadow-xl">
-          <div className="overflow-x-auto">
-            {activeTab === 'audit' ? (
-              <table className="w-full text-left text-xs text-slate-300">
-                <thead className="bg-slate-950/80 text-slate-400 font-semibold border-b border-slate-800">
-                  <tr>
-                    <th className="px-4 py-3.5">{isBn ? 'সময়' : 'Timestamp'}</th>
-                    <th className="px-4 py-3.5">{isBn ? 'অ্যাক্টর (কর্তা)' : 'Actor'}</th>
-                    <th className="px-4 py-3.5">{isBn ? 'অ্যাকশন' : 'Action'}</th>
-                    <th className="px-4 py-3.5">{isBn ? 'এনটিটি / রিসোর্স' : 'Entity'}</th>
-                    <th className="px-4 py-3.5">{isBn ? 'আইপি অ্যাড্রেস' : 'IP'}</th>
-                    <th className="px-4 py-3.5 text-right">{isBn ? 'মেটাডাটা' : 'Metadata'}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/60 font-mono">
-                  {loading ? (
-                    <tr>
-                      <td colSpan="6" className="py-12 text-center text-slate-500 font-sans">
-                        <div className="w-6 h-6 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-                        {isBn ? 'অডিট লগ লোড হচ্ছে...' : 'Streaming immutable logs...'}
-                      </td>
-                    </tr>
-                  ) : auditLogs.length === 0 ? (
-                    <tr>
-                      <td colSpan="6" className="py-12 text-center text-slate-500 font-sans">
-                        {isBn ? 'কোনো অডিট লগ রেকর্ড নেই' : 'No audit records found'}
-                      </td>
-                    </tr>
-                  ) : (
-                    auditLogs.map((log) => (
-                      <tr key={log._id} className="hover:bg-slate-850/40 transition">
-                        <td className="px-4 py-3 text-slate-400 text-[11px]">
-                          {new Date(log.timestamp || log.createdAt).toLocaleString()}
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className="text-amber-400">{log.actorType || 'system'}</span>
-                          <span className="text-[10px] text-slate-500 block">{log.actorId ? log.actorId.toString().slice(-8) : 'N/A'}</span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className="px-2 py-0.5 rounded bg-slate-950 border border-slate-800 text-emerald-400 text-[10px] font-semibold">
-                            {log.action}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-slate-300">
-                          {log.entity || 'Resource'}
-                        </td>
-                        <td className="px-4 py-3 text-slate-500 text-[10px]">
-                          {log.ip || log.ipAddress || '127.0.0.1'}
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <button
-                            onClick={() => setInspectedLog(log)}
-                            className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-amber-400 transition"
-                            title="Inspect JSON Payload"
-                          >
-                            <FileCode className="w-4 h-4" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            ) : (
-              <table className="w-full text-left text-xs text-slate-300">
-                <thead className="bg-slate-950/80 text-slate-400 font-semibold border-b border-slate-800">
-                  <tr>
-                    <th className="px-4 py-3.5">{isBn ? 'সময়' : 'Timestamp'}</th>
-                    <th className="px-4 py-3.5">{isBn ? 'ইভেন্টের ধরন' : 'Event Type'}</th>
-                    <th className="px-4 py-3.5">{isBn ? 'তীব্রতা' : 'Severity'}</th>
-                    <th className="px-4 py-3.5">{isBn ? 'আইপি ও ইউজার এজেন্ট' : 'Origin'}</th>
-                    <th className="px-4 py-3.5 text-right">{isBn ? 'বিবরণ' : 'Inspect'}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/60 font-mono">
-                  {loading ? (
-                    <tr>
-                      <td colSpan="5" className="py-12 text-center text-slate-500 font-sans">
-                        <div className="w-6 h-6 border-2 border-rose-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-                        {isBn ? 'সিকিউরিটি লগ লোড হচ্ছে...' : 'Streaming security logs...'}
-                      </td>
-                    </tr>
-                  ) : securityLogs.length === 0 ? (
-                    <tr>
-                      <td colSpan="5" className="py-12 text-center text-slate-500 font-sans">
-                        {isBn ? 'কোনো হুমকি বা সতর্কতা নেই' : 'No threat logs recorded'}
-                      </td>
-                    </tr>
-                  ) : (
-                    securityLogs.map((log) => (
-                      <tr key={log._id} className="hover:bg-slate-850/40 transition">
-                        <td className="px-4 py-3 text-slate-400 text-[11px]">
-                          {new Date(log.timestamp || log.createdAt).toLocaleString()}
-                        </td>
-                        <td className="px-4 py-3 text-rose-300 font-semibold">
-                          {log.eventType}
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-semibold uppercase ${
-                            log.severity === 'critical' || log.severity === 'high'
-                              ? 'bg-rose-950 border border-rose-800 text-rose-300'
-                              : 'bg-amber-950 border border-amber-800 text-amber-300'
-                          }`}>
-                            {log.severity || 'medium'}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-slate-400 text-[10px]">
-                          <div>{log.ipAddress || log.ip}</div>
-                          <div className="truncate max-w-xs text-slate-600">{log.userAgent}</div>
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <button
-                            onClick={() => setInspectedLog(log)}
-                            className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-rose-400 transition"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            )}
-          </div>
-        </div>
-
-        {/* JSON Inspector Modal */}
-        {inspectedLog && (
-          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-2xl w-full p-6 shadow-2xl relative space-y-4">
-              <button
-                onClick={() => setInspectedLog(null)}
-                className="absolute top-4 right-4 text-slate-400 hover:text-slate-200"
-              >
-                <X className="w-5 h-5" />
-              </button>
-
-              <div className="flex items-center gap-2">
-                <Terminal className="w-5 h-5 text-amber-400" />
-                <h3 className="text-base font-bold text-slate-100">
-                  {isBn ? 'লগ ইভেন্ট বিস্তারিত (JSON Telemetry)' : 'Log Event Raw Telemetry'}
-                </h3>
-              </div>
-
-              <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 text-xs font-mono text-emerald-400 overflow-x-auto max-h-[60vh]">
-                <pre>{JSON.stringify(inspectedLog, null, 2)}</pre>
-              </div>
-
-              <div className="flex justify-end pt-2">
-                <button
-                  onClick={() => setInspectedLog(null)}
-                  className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs hover:bg-slate-700"
-                >
-                  {isBn ? 'বন্ধ করুন' : 'Close'}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <button onClick={fetchLogs} className="p-2 rounded-md border border-canvas-border bg-canvas-card hover:bg-canvas-subtle self-start sm:self-auto">
+          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+        </button>
       </div>
+
+      {/* Tabs */}
+      <div className="flex gap-2 border-b border-canvas-border pb-3">
+        <button
+          onClick={() => { setActiveTab('audit'); setPage(1); }}
+          className={`px-4 py-2 rounded-md text-xs font-bold transition flex items-center gap-2 ${
+            activeTab === 'audit'
+              ? 'bg-brand-text text-white'
+              : 'bg-canvas-card border border-canvas-border text-brand-slate hover:text-brand-text'
+          }`}
+        >
+          <Database className="w-3.5 h-3.5" />
+          <span>সিস্টেম অডিট ট্রেইল (Audit Logs)</span>
+        </button>
+        <button
+          onClick={() => { setActiveTab('security'); setPage(1); }}
+          className={`px-4 py-2 rounded-md text-xs font-bold transition flex items-center gap-2 ${
+            activeTab === 'security'
+              ? 'bg-brand-crimson text-white'
+              : 'bg-canvas-card border border-canvas-border text-brand-slate hover:text-brand-text'
+          }`}
+        >
+          <ShieldAlert className="w-3.5 h-3.5" />
+          <span>নিরাপত্তা ও ঝুঁকি লগ (Security Logs)</span>
+        </button>
+      </div>
+
+      {/* Table */}
+      <div className="dossier-card rounded-md overflow-hidden">
+        <div className="overflow-x-auto">
+          {activeTab === 'audit' ? (
+            <table className="w-full text-left text-xs">
+              <thead className="bg-canvas-subtle text-brand-text font-bold border-b border-canvas-border uppercase font-mono text-[10px] tracking-wider">
+                <tr>
+                  <th className="px-4 py-3.5">Timestamp</th>
+                  <th className="px-4 py-3.5">Actor</th>
+                  <th className="px-4 py-3.5">Action</th>
+                  <th className="px-4 py-3.5">Entity</th>
+                  <th className="px-4 py-3.5">IP</th>
+                  <th className="px-4 py-3.5 text-right">JSON</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-canvas-border font-mono">
+                {loading ? (
+                  <tr><td colSpan="6" className="py-12 text-center font-sans text-brand-muted">লোড হচ্ছে...</td></tr>
+                ) : auditLogs.length === 0 ? (
+                  <tr><td colSpan="6" className="py-12 text-center font-sans text-brand-muted">কোনো অডিট লগ রেকর্ড নেই</td></tr>
+                ) : (
+                  auditLogs.map((log) => (
+                    <tr key={log._id} className="hover:bg-canvas-hover transition">
+                      <td className="px-4 py-3 text-brand-slate text-[11px]">{new Date(log.timestamp || log.createdAt).toLocaleString()}</td>
+                      <td className="px-4 py-3">
+                        <span className="font-bold text-brand-ochre">{log.actorType || 'system'}</span>
+                        <span className="text-[10px] text-brand-muted block">{log.actorId ? log.actorId.toString().slice(-8) : 'N/A'}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="px-2 py-0.5 rounded-sm bg-emerald-50 border border-emerald-200 text-brand-pine text-[10px] font-bold">
+                          {log.action}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-brand-text">{log.entity || 'Resource'}</td>
+                      <td className="px-4 py-3 text-brand-muted text-[10px]">{log.ip || log.ipAddress || '127.0.0.1'}</td>
+                      <td className="px-4 py-3 text-right">
+                        <button onClick={() => setInspectedLog(log)} className="p-1.5 rounded-md border border-canvas-border bg-canvas hover:bg-canvas-subtle text-brand-text">
+                          <FileCode className="w-3.5 h-3.5" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          ) : (
+            <table className="w-full text-left text-xs">
+              <thead className="bg-canvas-subtle text-brand-text font-bold border-b border-canvas-border uppercase font-mono text-[10px] tracking-wider">
+                <tr>
+                  <th className="px-4 py-3.5">Timestamp</th>
+                  <th className="px-4 py-3.5">Event Type</th>
+                  <th className="px-4 py-3.5">Severity</th>
+                  <th className="px-4 py-3.5">Origin</th>
+                  <th className="px-4 py-3.5 text-right">Inspect</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-canvas-border font-mono">
+                {loading ? (
+                  <tr><td colSpan="5" className="py-12 text-center font-sans text-brand-muted">লোড হচ্ছে...</td></tr>
+                ) : securityLogs.length === 0 ? (
+                  <tr><td colSpan="5" className="py-12 text-center font-sans text-brand-muted">কোনো নিরাপত্তা সতর্কতা নেই</td></tr>
+                ) : (
+                  securityLogs.map((log) => (
+                    <tr key={log._id} className="hover:bg-canvas-hover transition">
+                      <td className="px-4 py-3 text-brand-slate text-[11px]">{new Date(log.timestamp || log.createdAt).toLocaleString()}</td>
+                      <td className="px-4 py-3 font-bold text-brand-crimson">{log.eventType}</td>
+                      <td className="px-4 py-3">
+                        <span className={`px-2 py-0.5 rounded-sm text-[10px] font-bold uppercase border ${
+                          log.severity === 'critical' || log.severity === 'high'
+                            ? 'bg-red-50 border-red-200 text-brand-crimson'
+                            : 'bg-amber-50 border-amber-200 text-brand-ochre'
+                        }`}>
+                          {log.severity || 'medium'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-brand-muted text-[10px]">
+                        <div>{log.ipAddress || log.ip}</div>
+                        <div className="truncate max-w-xs">{log.userAgent}</div>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <button onClick={() => setInspectedLog(log)} className="p-1.5 rounded-md border border-canvas-border bg-canvas hover:bg-canvas-subtle text-brand-text">
+                          <Eye className="w-3.5 h-3.5" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+
+      {/* JSON Modal */}
+      {inspectedLog && (
+        <div className="fixed inset-0 z-50 bg-black/55 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="dossier-card-elevated rounded-md max-w-2xl w-full p-6 border-t-4 border-t-brand-text relative space-y-4">
+            <button onClick={() => setInspectedLog(null)} className="absolute top-4 right-4 text-brand-muted hover:text-brand-text">
+              <X className="w-5 h-5" />
+            </button>
+            <div className="flex items-center gap-2 font-serif text-base font-bold text-brand-text">
+              <Terminal className="w-4 h-4 text-brand-ochre" />
+              <span>লগ ইভেন্ট বিস্তারিত (JSON Telemetry)</span>
+            </div>
+            <div className="bg-canvas-dark p-4 rounded-md text-xs font-mono text-emerald-300 overflow-x-auto max-h-[60vh]">
+              <pre>{JSON.stringify(inspectedLog, null, 2)}</pre>
+            </div>
+            <div className="flex justify-end pt-2 border-t border-canvas-border">
+              <button onClick={() => setInspectedLog(null)} className="px-4 py-2 rounded-md border border-canvas-border bg-canvas font-semibold">
+                বন্ধ করুন
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { 
-  HardDrive, ShieldCheck, ShieldAlert, ArrowLeft, RefreshCw, 
-  CheckCircle2, AlertTriangle, ExternalLink, FolderCheck, Lock
+import {
+  HardDrive, ArrowLeft, RefreshCw, CheckCircle2,
+  AlertTriangle, ExternalLink, FolderCheck
 } from 'lucide-react';
 import { useLanguage } from '../../components/LanguageContext';
 
@@ -24,9 +24,7 @@ export default function SuperAdminStoragePage() {
   const fetchStorageStatus = async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/v1/super-admin/storage/google-drive/status', {
-        credentials: 'include',
-      });
+      const res = await fetch('/api/v1/super-admin/storage/google-drive/status', { credentials: 'include' });
       if (!res.ok) throw new Error('স্টোরেজ স্থিতি লোড করা যায়নি');
       const data = await res.json();
       setStorageStatus(data.data || data);
@@ -53,20 +51,13 @@ export default function SuperAdminStoragePage() {
       const csrfToken = await getCsrfToken();
       const res = await fetch('/api/v1/super-admin/storage/google-drive/init-folders', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfToken,
-        },
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
         credentials: 'include',
       });
-
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'ফোল্ডার ইনিশিয়ালাইজেশন ব্যর্থ হয়েছে');
 
-      setAlertMsg({ 
-        type: 'success', 
-        text: isBn ? 'গুগল ড্রাইভ অ্যাপ্লিকেশন ফোল্ডারসমূহ সফলভাবে কনফিগার হয়েছে' : 'Application storage folders successfully provisioned' 
-      });
+      setAlertMsg({ type: 'success', text: isBn ? 'গুগল ড্রাইভ অ্যাপ্লিকেশন ফোল্ডারসমূহ সফলভাবে কনফিগার হয়েছে' : 'Storage folders provisioned' });
       fetchStorageStatus();
     } catch (err) {
       setAlertMsg({ type: 'error', text: err.message });
@@ -80,7 +71,7 @@ export default function SuperAdminStoragePage() {
       setActionLoading(true);
       const res = await fetch('/api/v1/super-admin/storage/google-drive/authorize', {
         credentials: 'include',
-        headers: { 'Accept': 'application/json' }
+        headers: { Accept: 'application/json' },
       });
       const data = await res.json();
       const url = data.data?.authUrl || data.authUrl;
@@ -96,131 +87,108 @@ export default function SuperAdminStoragePage() {
   };
 
   return (
-    <div className="min-h-screen bg-canvas-dark text-slate-100 py-10 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto space-y-6">
-        {/* Navigation & Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <Link
-              href="/super-admin/dashboard"
-              className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200 transition"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Link>
-            <div>
-              <h1 className="text-2xl font-bold text-slate-100 flex items-center gap-2">
-                <HardDrive className="w-6 h-6 text-cyan-400" />
-                {isBn ? 'গুগল ড্রাইভ এনক্রিপ্টেড এভিডেন্স স্টোরেজ' : 'Google Drive Evidence Storage Vault'}
-              </h1>
-              <p className="text-xs text-slate-400 mt-1">
-                {isBn 
-                  ? 'মানবাধিকার ডিজিটাল আলামত, প্রমাণপত্র ও ভিডিও আর্কাইভের ক্লাউড রিপোজিটরি স্থিতি।' 
-                  : 'Multi-vault storage architecture: quarantine, verified clean, and public disclosure.'}
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={fetchStorageStatus}
-            className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200 transition self-start sm:self-auto"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          </button>
+    <div className="container mx-auto py-10 px-4 sm:px-6 lg:px-8 max-w-4xl space-y-6 text-xs">
+      <div className="editorial-rule-top pt-4 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div className="space-y-1">
+          <Link href="/super-admin/dashboard" className="inline-flex items-center gap-1.5 text-brand-slate hover:text-brand-text font-semibold mb-1">
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>কমান্ড সেন্টারে ফিরুন</span>
+          </Link>
+          <h1 className="font-serif text-2xl sm:text-3xl font-bold text-brand-text flex items-center gap-2">
+            <HardDrive className="w-6 h-6 text-brand-cobalt" />
+            <span>{isBn ? 'গুগল ড্রাইভ এনক্রিপ্টেড এভিডেন্স স্টোরেজ' : 'Google Drive Evidence Storage Vault'}</span>
+          </h1>
+          <p className="text-brand-slate">মানবাধিকার ডিজিটাল আলামত, প্রমাণপত্র ও ভিডিও আর্কাইভের ক্লাউড রিপোজিটরি স্থিতি।</p>
         </div>
 
-        {alertMsg.text && (
-          <div className={`p-4 rounded-xl border flex items-center gap-3 text-xs ${
-            alertMsg.type === 'error'
-              ? 'bg-rose-950/40 border-rose-900/50 text-rose-300'
-              : 'bg-emerald-950/40 border-emerald-900/50 text-emerald-300'
-          }`}>
-            {alertMsg.type === 'error' ? <AlertTriangle className="w-4 h-4 flex-shrink-0" /> : <CheckCircle2 className="w-4 h-4 flex-shrink-0" />}
-            <span>{alertMsg.text}</span>
-          </div>
-        )}
+        <button onClick={fetchStorageStatus} className="p-2 rounded-md border border-canvas-border bg-canvas-card hover:bg-canvas-subtle self-start sm:self-auto">
+          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+        </button>
+      </div>
 
-        {/* Storage State Card */}
-        <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-800 bg-slate-900/40 shadow-xl space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
-            <div>
-              <span className="text-xs uppercase tracking-wider text-slate-400 block mb-1">
-                {isBn ? 'প্রোভাইডার সংযোগ' : 'Provider Connection'}
-              </span>
-              <div className="flex items-center gap-2">
-                <span className="text-lg font-bold text-slate-100 capitalize">
-                  {storageStatus?.provider || 'Google Drive API'}
-                </span>
-                <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
-                  storageStatus?.isConfigured
-                    ? 'bg-emerald-950/80 border-emerald-800 text-emerald-300'
-                    : 'bg-amber-950/80 border-amber-800 text-amber-300'
-                }`}>
-                  {storageStatus?.isConfigured 
-                    ? (isBn ? 'সক্রিয় ও সংযুক্ত' : 'Configured & Online') 
-                    : (isBn ? 'কনফিগারেশন অপেক্ষমান' : 'Pending Authorization')}
-                </span>
-              </div>
-            </div>
+      {alertMsg.text && (
+        <div className={`p-3.5 rounded-md border flex items-center gap-2 ${
+          alertMsg.type === 'error'
+            ? 'bg-red-50 border-red-200 text-brand-crimson'
+            : 'bg-emerald-50 border-emerald-200 text-brand-pine'
+        }`}>
+          {alertMsg.type === 'error' ? <AlertTriangle className="w-4 h-4 shrink-0" /> : <CheckCircle2 className="w-4 h-4 shrink-0" />}
+          <span>{alertMsg.text}</span>
+        </div>
+      )}
 
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={handleAuthorizeDrive}
-                disabled={actionLoading}
-                className="px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-semibold text-xs flex items-center gap-1.5 transition"
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-                {isBn ? 'ড্রাইভ একাউন্ট অথোরাইজ করুন' : 'Authorize Dedicated Drive'}
-              </button>
-              <button
-                onClick={handleInitFolders}
-                disabled={actionLoading}
-                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs flex items-center gap-1.5 transition"
-              >
-                <FolderCheck className="w-3.5 h-3.5 text-emerald-400" />
-                {isBn ? 'ফোল্ডার ইনিশিয়ালাইজ' : 'Initialize Folders'}
-              </button>
-            </div>
-          </div>
-
-          {/* Secure Multi-Vault Folder Architecture */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-slate-200 flex items-center gap-2">
-              <HardDrive className="w-4 h-4 text-cyan-400" />
-              {isBn ? 'এনক্রিপ্টেড ফোল্ডার ভল্ট ম্যাপিং' : 'Vault Folder Hierarchy'}
-            </h3>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-mono">
-              <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800">
-                <span className="text-slate-400 font-sans block mb-1 font-medium">{isBn ? 'রুট ফোল্ডার (Root Folder ID)' : 'Root Storage Folder ID'}</span>
-                <span className="text-slate-200 break-all">{storageStatus?.folders?.root || 'None'}</span>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-slate-950/80 border border-amber-900/30">
-                <span className="text-amber-400 font-sans block mb-1 font-medium">{isBn ? 'কোয়ারেন্টাইন ভল্ট (Quarantine Vault)' : 'Quarantine Vault (Malware Scanning)'}</span>
-                <span className="text-slate-200 break-all">{storageStatus?.folders?.quarantine || 'None'}</span>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-slate-950/80 border border-emerald-900/30">
-                <span className="text-emerald-400 font-sans block mb-1 font-medium">{isBn ? 'ভেরিফাইড ক্লিন ভল্ট (Clean Vault)' : 'Verified Clean Evidence Vault'}</span>
-                <span className="text-slate-200 break-all">{storageStatus?.folders?.clean || 'None'}</span>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-slate-950/80 border border-teal-900/30">
-                <span className="text-teal-400 font-sans block mb-1 font-medium">{isBn ? 'পাবলিক ডিসক্লোজার ভল্ট (Public Vault)' : 'Public Disclosure Evidence Vault'}</span>
-                <span className="text-slate-200 break-all">{storageStatus?.folders?.public || 'None'}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="p-4 rounded-2xl bg-cyan-950/20 border border-cyan-900/30 text-cyan-300/80 text-xs space-y-1">
-            <span className="font-semibold block text-cyan-300">
-              {isBn ? 'সুরক্ষা ও নিরাপত্তা আর্কিটেকচার:' : 'Evidence Security Guarantee:'}
+      {/* Storage Card */}
+      <div className="dossier-card-elevated p-6 sm:p-8 rounded-md border-t-4 border-t-brand-cobalt space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-canvas-border">
+          <div>
+            <span className="font-mono text-[10px] uppercase tracking-wider text-brand-muted block mb-1">
+              Provider Connection
             </span>
-            <p>
-              {isBn 
-                ? 'নাগরিকদের আপলোড করা প্রতিটি ফাইল সরাসরি কোয়ারেন্টাইন ফোল্ডারে যায় এবং স্বয়ংক্রিয় ম্যালওয়্যার ও SHA-256 চেকার পাস করার পর ক্লিন ভোল্টে স্থানান্তরিত হয়।' 
-                : 'Every evidence file is initially isolated in quarantine, verified by automated malware scanning and SHA-256 hashes, before caseworkers can access it.'}
-            </p>
+            <div className="flex items-center gap-2.5">
+              <span className="font-serif text-lg font-bold text-brand-text capitalize">
+                {storageStatus?.provider || 'Google Drive API'}
+              </span>
+              <span className={`px-2.5 py-0.5 rounded-sm font-mono text-[10px] font-bold border ${
+                storageStatus?.isConfigured
+                  ? 'bg-emerald-50 border-emerald-200 text-brand-pine'
+                  : 'bg-amber-50 border-amber-200 text-brand-ochre'
+              }`}>
+                {storageStatus?.isConfigured ? 'CONFIGURED & ONLINE' : 'PENDING AUTHORIZATION'}
+              </span>
+            </div>
           </div>
+
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={handleAuthorizeDrive}
+              disabled={actionLoading}
+              className="px-4 py-2 rounded-md bg-brand-text hover:bg-black text-white font-bold flex items-center gap-1.5 transition"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              <span>ড্রাইভ একাউন্ট অথোরাইজ করুন</span>
+            </button>
+            <button
+              onClick={handleInitFolders}
+              disabled={actionLoading}
+              className="px-4 py-2 rounded-md border border-canvas-border bg-canvas hover:bg-canvas-subtle text-brand-text font-semibold flex items-center gap-1.5 transition"
+            >
+              <FolderCheck className="w-3.5 h-3.5 text-brand-pine" />
+              <span>ফোল্ডার ইনিশিয়ালাইজ</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <h3 className="font-serif text-base font-bold text-brand-text flex items-center gap-2">
+            <HardDrive className="w-4 h-4 text-brand-cobalt" />
+            <span>এনক্রিপ্টেড ফোল্ডার ভল্ট ম্যাপিং</span>
+          </h3>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-mono">
+            <div className="p-4 rounded-md bg-canvas border border-canvas-border">
+              <span className="text-brand-text font-sans font-bold block mb-1">রুট ফোল্ডার (Root Folder ID)</span>
+              <span className="text-brand-slate break-all">{storageStatus?.folders?.root || 'None'}</span>
+            </div>
+            <div className="p-4 rounded-md bg-amber-50/60 border border-amber-200">
+              <span className="text-brand-ochre font-sans font-bold block mb-1">কোয়ারেন্টাইন ভল্ট (Quarantine)</span>
+              <span className="text-brand-slate break-all">{storageStatus?.folders?.quarantine || 'None'}</span>
+            </div>
+            <div className="p-4 rounded-md bg-emerald-50/60 border border-emerald-200">
+              <span className="text-brand-pine font-sans font-bold block mb-1">ভেরিফাইড ক্লিন ভল্ট (Clean)</span>
+              <span className="text-brand-slate break-all">{storageStatus?.folders?.clean || 'None'}</span>
+            </div>
+            <div className="p-4 rounded-md bg-blue-50/60 border border-blue-200">
+              <span className="text-brand-cobalt font-sans font-bold block mb-1">পাবলিক ডিসক্লোজার ভল্ট (Public)</span>
+              <span className="text-brand-slate break-all">{storageStatus?.folders?.public || 'None'}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-4 rounded-md bg-canvas-subtle border border-canvas-border text-brand-slate space-y-1">
+          <span className="font-bold block text-brand-text">সুরক্ষা ও নিরাপত্তা আর্কিটেকচার:</span>
+          <p className="leading-relaxed">
+            নাগরিকদের আপলোড করা প্রতিটি ফাইল সরাসরি কোয়ারেন্টাইন ফোল্ডারে যায় এবং স্বয়ংক্রিয় ম্যালওয়্যার ও SHA-256 চেকার পাস করার পর ক্লিন ভোল্টে স্থানান্তরিত হয়।
+          </p>
         </div>
       </div>
     </div>

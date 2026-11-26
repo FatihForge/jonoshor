@@ -3,98 +3,116 @@
 import React from 'react';
 import Link from 'next/link';
 import { useLanguage } from './LanguageContext';
-import { ShieldCheck, Lock, ExternalLink, Heart } from 'lucide-react';
+import { ShieldCheck, Lock, ExternalLink } from 'lucide-react';
 
 export default function Footer() {
-  const { t } = useLanguage();
+  const { lang, t } = useLanguage();
+  const isBn = lang === 'bn';
 
   return (
-    <footer className="bg-canvas-subtle border-t border-canvas-border mt-24 text-brand-slate text-sm">
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
-          {/* Brand Info */}
-          <div className="md:col-span-1 space-y-3">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-brand-emerald/20 border border-brand-emerald/40 flex items-center justify-center text-brand-emerald font-bold">
-                জন
+    <footer className="bg-[#F4F8FF] dark:bg-[#070B14] border-t border-blue-100 dark:border-slate-800/80 mt-20 text-slate-600 dark:text-slate-400 text-sm transition-colors">
+      <div className="container mx-auto max-w-7xl px-4 py-14">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-10 pb-10 border-b border-slate-200/80 dark:border-slate-800">
+          {/* Brand Column */}
+          <div className="md:col-span-5 space-y-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-lg bg-brand-blue text-white flex items-center justify-center shadow-md shadow-blue-600/20">
+                <ShieldCheck className="w-5 h-5" />
               </div>
-              <span className="font-bold text-lg text-brand-text">{t.siteTitle}</span>
+              <div>
+                <span className="font-bold text-xl text-brand-navy dark:text-white block leading-none">
+                  {t.siteTitle}
+                </span>
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-brand-blue dark:text-blue-400">
+                  JonoShor Human Rights Portal
+                </span>
+              </div>
             </div>
-            <p className="text-xs text-brand-slate leading-relaxed">
-              স্বাধীন নাগরিক উদ্যোগ — বাংলাদেশের মানবাধিকার লঙ্ঘন, নির্যাতন ও নিপীড়নের তথ্য সংরক্ষণ ও জনস্বার্থে উন্মুক্ত করার নিরপেক্ষ প্ল্যাটফর্ম।
+
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-md">
+              {isBn
+                ? 'বাংলাদেশের নাগরিকদের মৌলিক অধিকার লঙ্ঘন, নির্যাতন ও প্রাতিষ্ঠানিক অনিয়মের তথ্য নির্ভরযোগ্যভাবে সংরক্ষণ, যাচাই এবং জনস্বার্থে উন্মুক্ত করার স্বাধীন নাগরিক প্ল্যাটফর্ম।'
+                : 'An independent platform helping Bangladeshi citizens securely document, verify, and preserve human rights records with zero-leakage privacy.'}
             </p>
-            <div className="flex items-center gap-2 text-xs text-brand-emerald font-medium pt-1">
+
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-slate-900 border border-blue-100 dark:border-slate-800 text-xs text-brand-blue dark:text-blue-400 font-semibold shadow-sm">
               <Lock className="w-3.5 h-3.5" />
-              <span>জিরো-নলেজ পরিচয় নিরাপত্তা ব্যবস্থা</span>
+              <span>{isBn ? 'অভিযোগ ≠ অপরাধ | পরিচয় সর্বদা সুরক্ষিত' : 'Identity Always Protected'}</span>
             </div>
           </div>
 
           {/* Quick Links */}
-          <div>
-            <h4 className="font-semibold text-brand-text text-xs uppercase tracking-wider mb-3">জনস্বার্থ সেবা</h4>
-            <ul className="space-y-2 text-xs">
+          <div className="md:col-span-2 space-y-3">
+            <h4 className="font-bold text-brand-navy dark:text-white text-xs uppercase tracking-wider">
+              {isBn ? 'সেবাসমূহ' : 'Services'}
+            </h4>
+            <ul className="space-y-2.5 text-xs">
               <li>
-                <Link href="/reports" className="hover:text-brand-emerald transition-colors">
-                  যাচাইকৃত রিপোর্ট ডিরেক্টরি
+                <Link href="/reports" className="hover:text-brand-blue dark:hover:text-blue-400 transition-colors">
+                  {isBn ? 'যাচাইকৃত রিপোর্ট' : 'Verified Reports'}
                 </Link>
               </li>
               <li>
-                <Link href="/complaints/new" className="hover:text-brand-emerald transition-colors">
-                  নাগরিক অভিযোগ দাখিল
+                <Link href="/complaints/new" className="hover:text-brand-blue dark:hover:text-blue-400 transition-colors">
+                  {isBn ? 'অভিযোগ দাখিল' : 'Submit Complaint'}
                 </Link>
               </li>
               <li>
-                <Link href="/statistics" className="hover:text-brand-emerald transition-colors">
-                  লাইভ পরিসংখ্যান ও প্রবণতা
+                <Link href="/statistics" className="hover:text-brand-blue dark:hover:text-blue-400 transition-colors">
+                  {isBn ? 'পরিসংখ্যান ও বিশ্লেষণ' : 'Live Statistics'}
                 </Link>
               </li>
               <li>
-                <Link href="/join-us" className="hover:text-brand-emerald transition-colors">
-                  আইনজীবী ও স্বেচ্ছাসেবক নিবন্ধন
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Legal & Safety */}
-          <div>
-            <h4 className="font-semibold text-brand-text text-xs uppercase tracking-wider mb-3">নীতিমালা ও সুরক্ষা</h4>
-            <ul className="space-y-2 text-xs">
-              <li>
-                <Link href="/safety" className="hover:text-brand-emerald transition-colors">
-                  হুইসেলব্লোয়ার ও তথ্যদাতার নিরাপত্তা
-                </Link>
-              </li>
-              <li>
-                <Link href="/how-it-works" className="hover:text-brand-emerald transition-colors">
-                  ৫-ধাপের নিরপেক্ষ যাচাই পদ্ধতি
-                </Link>
-              </li>
-              <li>
-                <Link href="/privacy" className="hover:text-brand-emerald transition-colors">
-                  গোপনীয়তা ও ডেটা সংরক্ষণ পলিসি
-                </Link>
-              </li>
-              <li>
-                <Link href="/terms" className="hover:text-brand-emerald transition-colors">
-                  ব্যবহারের শর্তাবলী ও আইনি দায়মুক্তি
+                <Link href="/join-us" className="hover:text-brand-blue dark:hover:text-blue-400 transition-colors">
+                  {isBn ? 'আইনজীবী ও স্বেচ্ছাসেবক' : 'Join Legal Panel'}
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Institutional Integrity & Swagger */}
-          <div>
-            <h4 className="font-semibold text-brand-text text-xs uppercase tracking-wider mb-3">স্বচ্ছতা ও ওপেন ডাটা</h4>
-            <ul className="space-y-2 text-xs">
+          {/* Governance */}
+          <div className="md:col-span-3 space-y-3">
+            <h4 className="font-bold text-brand-navy dark:text-white text-xs uppercase tracking-wider">
+              {isBn ? 'নিরাপত্তা ও নীতিমালা' : 'Safety & Policy'}
+            </h4>
+            <ul className="space-y-2.5 text-xs">
               <li>
-                <Link href="/about" className="hover:text-brand-emerald transition-colors">
-                  আমাদের লক্ষ্য ও মূলনীতি
+                <Link href="/safety" className="hover:text-brand-blue dark:hover:text-blue-400 transition-colors">
+                  {isBn ? 'তথ্যদাতার নিরাপত্তা গাইড' : 'Whistleblower Safety'}
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className="hover:text-brand-emerald transition-colors">
-                  যোগাযোগ ও তথ্য অনুসন্ধান
+                <Link href="/how-it-works" className="hover:text-brand-blue dark:hover:text-blue-400 transition-colors">
+                  {isBn ? '৫-ধাপের যাচাই পদ্ধতি' : 'Verification Method'}
+                </Link>
+              </li>
+              <li>
+                <Link href="/privacy" className="hover:text-brand-blue dark:hover:text-blue-400 transition-colors">
+                  {isBn ? 'গোপনীয়তা নীতিমালা' : 'Privacy Policy'}
+                </Link>
+              </li>
+              <li>
+                <Link href="/terms" className="hover:text-brand-blue dark:hover:text-blue-400 transition-colors">
+                  {isBn ? 'শর্তাবলী ও দায়মুক্তি' : 'Terms & Disclaimers'}
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Transparency */}
+          <div className="md:col-span-2 space-y-3">
+            <h4 className="font-bold text-brand-navy dark:text-white text-xs uppercase tracking-wider">
+              {isBn ? 'স্বচ্ছতা' : 'Transparency'}
+            </h4>
+            <ul className="space-y-2.5 text-xs">
+              <li>
+                <Link href="/about" className="hover:text-brand-blue dark:hover:text-blue-400 transition-colors">
+                  {isBn ? 'আমাদের লক্ষ্য' : 'Our Mission'}
+                </Link>
+              </li>
+              <li>
+                <Link href="/contact" className="hover:text-brand-blue dark:hover:text-blue-400 transition-colors">
+                  {isBn ? 'যোগাযোগ' : 'Contact Us'}
                 </Link>
               </li>
               <li>
@@ -102,30 +120,26 @@ export default function Footer() {
                   href="http://localhost:5000/api-docs"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-brand-emerald hover:underline"
+                  className="inline-flex items-center gap-1 text-brand-blue dark:text-blue-400 font-semibold hover:underline"
                 >
-                  <span>ইন্টারেক্টিভ Swagger API</span>
+                  <span>Swagger API</span>
                   <ExternalLink className="w-3 h-3" />
                 </a>
-              </li>
-              <li className="pt-2 text-[11px] text-brand-slate">
-                API Base: <code className="text-brand-emerald">/api/v1</code>
               </li>
             </ul>
           </div>
         </div>
 
-        {/* Bottom Legal Notice */}
-        <div className="border-t border-canvas-border pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-xs">
-          <div className="text-center md:text-left text-brand-slate">
-            © ২০২৬ জনস্বর নাগরিক উদ্যোগ (JonoShor Platform). All rights reserved. <br />
-            <span className="text-brand-slate/80 text-[11px]">
-              জনস্বর কোনো বিচারিক আদালত বা তদন্তকারী সংস্থা নয়। প্রকাশিত তথ্য শুধুমাত্র মানবাধিকার পরিস্থিতি উন্নয়ন ও নাগরিক সচেতনতার উদ্দেশ্যে সংকলিত।
+        {/* Bottom Copyright */}
+        <div className="pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500 dark:text-slate-500">
+          <div className="text-center md:text-left">
+            © ২০২৬ জনস্বর (JonoShor Platform). All rights reserved.{' '}
+            <span className="hidden sm:inline">
+              • জনস্বর কোনো বিচারিক আদালত নয়; যাচাইকৃত প্রতিবেদন মানবাধিকার সচেতনতার দলিল।
             </span>
           </div>
-          <div className="flex items-center gap-2 text-brand-slate/60 text-xs">
-            <span>নির্মিত মানবাধিকার সুরক্ষার দৃঢ় অঙ্গীকারে</span>
-            <Heart className="w-3.5 h-3.5 text-brand-crimson fill-brand-crimson" />
+          <div className="font-mono text-[11px] font-semibold text-brand-blue dark:text-blue-400">
+            64 DISTRICTS • BANGLADESH
           </div>
         </div>
       </div>

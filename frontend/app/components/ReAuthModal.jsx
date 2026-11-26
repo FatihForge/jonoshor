@@ -49,7 +49,7 @@ export default function ReAuthModal({ isOpen, onClose, onSuccess, title }) {
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.message || (isBn ? 'পুনঃপ্রমাণীকরণ ব্যর্থ হয়েছে' : 'Re-authentication failed'));
+        throw new Error(data.message || data.error?.message || (isBn ? 'পুনঃপ্রমাণীকরণ ব্যর্থ হয়েছে' : 'Re-authentication failed'));
       }
 
       const token = data.data?.reAuthToken || data.reAuthToken || data.token;
@@ -57,7 +57,6 @@ export default function ReAuthModal({ isOpen, onClose, onSuccess, title }) {
         throw new Error('Re-Auth token not found in response');
       }
 
-      // Reset and trigger callback
       setPassword('');
       setTotpCode('');
       onSuccess(token);
@@ -69,62 +68,62 @@ export default function ReAuthModal({ isOpen, onClose, onSuccess, title }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-      <div className="bg-slate-900 border border-amber-900/40 rounded-2xl max-w-md w-full p-6 shadow-2xl relative space-y-4">
+    <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="dossier-card-elevated rounded-2xl max-w-md w-full p-6 border-t-4 border-t-brand-blue relative space-y-4">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-slate-400 hover:text-slate-200"
+          className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 dark:hover:text-white"
         >
           <X className="w-5 h-5" />
         </button>
 
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400">
-            <ShieldAlert className="w-6 h-6" />
+        <div className="flex items-start gap-3">
+          <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-600 dark:text-amber-400">
+            <ShieldAlert className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-slate-100">
+            <h3 className="text-base font-bold text-brand-navy dark:text-white">
               {title || (isBn ? 'সংবেদনশীল অ্যাকশন: পুনঃপ্রমাণীকরণ' : 'Critical Action: Re-Authentication')}
             </h3>
-            <p className="text-xs text-slate-400">
-              {isBn 
-                ? 'সিস্টেমের গুরুত্বপূর্ণ নিরাপত্তা পরিবর্তন নিশ্চিত করতে আপনার ক্রেডেনশিয়াল প্রদান করুন।' 
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              {isBn
+                ? 'সিস্টেমের গুরুত্বপূর্ণ নিরাপত্তা পরিবর্তন নিশ্চিত করতে আপনার ক্রেডেনশিয়াল প্রদান করুন।'
                 : 'Confirm elevated super-admin privileges to execute this mutation.'}
             </p>
           </div>
         </div>
 
         {error && (
-          <div className="p-3 rounded-xl bg-rose-950/40 border border-rose-900/50 text-rose-300 text-xs flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+          <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-xs flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4 pt-1">
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">
+            <label className="block text-xs font-semibold text-brand-navy dark:text-slate-200 mb-1">
               {isBn ? 'সুপার অ্যাডমিন পাসওয়ার্ড *' : 'Super Admin Password *'}
             </label>
             <div className="relative">
-              <Lock className="w-4 h-4 absolute left-3 top-2.5 text-slate-500" />
+              <Lock className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
               <input
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••••••"
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-amber-500"
+                className="editorial-input pl-9 pr-3 py-2 text-xs"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">
+            <label className="block text-xs font-semibold text-brand-navy dark:text-slate-200 mb-1">
               {isBn ? '৬-ডিজিটের ২এফএ অথেনটিকেটর কোড *' : '6-Digit TOTP 2FA Code *'}
             </label>
             <div className="relative">
-              <KeyRound className="w-4 h-4 absolute left-3 top-2.5 text-slate-500" />
+              <KeyRound className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
               <input
                 type="text"
                 required
@@ -132,25 +131,25 @@ export default function ReAuthModal({ isOpen, onClose, onSuccess, title }) {
                 value={totpCode}
                 onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ''))}
                 placeholder="000000"
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-9 pr-3 py-2 text-xs font-mono tracking-widest text-slate-200 focus:outline-none focus:border-amber-500"
+                className="editorial-input pl-9 pr-3 py-2 text-xs font-mono tracking-widest"
               />
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs hover:bg-slate-700 transition"
+              className="px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800"
             >
               {isBn ? 'বাতিল' : 'Cancel'}
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-5 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-slate-950 font-semibold text-xs transition flex items-center gap-1.5 disabled:opacity-50"
+              className="px-5 py-2 rounded-full bg-brand-blue hover:bg-brand-blueDark text-white font-bold text-xs transition flex items-center gap-1.5 disabled:opacity-50"
             >
-              {loading && <div className="w-3 h-3 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />}
+              {loading && <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />}
               {isBn ? 'যাচাই ও অনুমতি প্রদান' : 'Verify & Elevate'}
             </button>
           </div>

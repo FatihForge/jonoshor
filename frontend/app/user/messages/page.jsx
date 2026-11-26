@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { MessageSquare, Send, ArrowLeft, AlertCircle, ShieldCheck } from 'lucide-react';
+import { MessageSquare, Send, ArrowLeft } from 'lucide-react';
 
 export default function UserMessagesPage() {
   const [conversations, setConversations] = useState([]);
@@ -11,7 +11,6 @@ export default function UserMessagesPage() {
   const [replyBody, setReplyBody] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetch('/api/v1/user/messages', { credentials: 'include' })
@@ -19,11 +18,9 @@ export default function UserMessagesPage() {
       .then((d) => {
         const list = d.data || [];
         setConversations(list);
-        if (list.length > 0) {
-          setActiveConvId(list[0].conversationId);
-        }
+        if (list.length > 0) setActiveConvId(list[0].conversationId);
       })
-      .catch((err) => setError(err.message))
+      .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 
@@ -47,10 +44,7 @@ export default function UserMessagesPage() {
 
       const res = await fetch(`/api/v1/user/messages/${activeConvId}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfData.csrfToken || '',
-        },
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfData.csrfToken || '' },
         body: JSON.stringify({ body: replyBody }),
       });
 
@@ -59,97 +53,83 @@ export default function UserMessagesPage() {
 
       setMessages([...messages, data.data]);
       setReplyBody('');
-    } catch (err) {
-      setError(err.message);
+    } catch {
+      // handled silently
     } finally {
       setSending(false);
     }
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-5xl space-y-6 text-xs">
-      <div>
-        <Link
-          href="/user/dashboard"
-          className="inline-flex items-center gap-1.5 text-brand-slate hover:text-brand-text transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>ড্যাশবোর্ডে ফিরুন</span>
-        </Link>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[600px]">
-        {/* Conversations List */}
-        <div className="glass-panel p-4 rounded-2xl border border-canvas-border flex flex-col space-y-3">
-          <div className="font-bold text-sm text-brand-text flex items-center gap-2 pb-2 border-b border-canvas-border">
-            <MessageSquare className="w-4 h-4 text-brand-blue" />
-            <span>বার্তা থ্রেড</span>
-          </div>
-
-          <div className="flex-1 overflow-y-auto space-y-2">
-            {conversations.length > 0 ? (
-              conversations.map((conv) => (
-                <button
-                  key={conv.conversationId}
-                  onClick={() => setActiveConvId(conv.conversationId)}
-                  className={`w-full p-3 rounded-xl text-left transition-colors border ${
-                    activeConvId === conv.conversationId
-                      ? 'bg-canvas-card border-brand-blue/40 text-brand-text'
-                      : 'border-canvas-border/40 text-brand-slate hover:bg-canvas-card'
-                  }`}
-                >
-                  <div className="font-semibold truncate">{conv.conversationId}</div>
-                  <div className="text-[11px] text-brand-slate/80 truncate mt-1">{conv.lastMessage}</div>
-                </button>
-              ))
-            ) : (
-              <div className="text-center py-10 text-brand-slate">কোনো মেসেজ নেই</div>
-            )}
-          </div>
+    <div className="bg-[#F8FAFF] dark:bg-canvas-dark min-h-screen py-8">
+      <div className="container mx-auto px-4 max-w-5xl space-y-6 text-xs">
+        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
+          <Link href="/user/dashboard" className="inline-flex items-center gap-1.5 text-brand-blue dark:text-blue-400 font-bold hover:underline">
+            <ArrowLeft className="w-4 h-4" />
+            <span>ড্যাশবোর্ডে ফিরুন</span>
+          </Link>
+          <span className="font-mono text-[10px] uppercase tracking-wider text-slate-400">
+            Encrypted Caseworker Thread
+          </span>
         </div>
 
-        {/* Message Thread */}
-        <div className="md:col-span-2 glass-panel p-4 rounded-2xl border border-canvas-border flex flex-col justify-between">
-          <div className="flex-1 overflow-y-auto p-2 space-y-3">
-            {messages.map((m, i) => (
-              <div
-                key={i}
-                className={`flex flex-col ${m.senderType === 'user' ? 'items-end' : 'items-start'}`}
-              >
-                <div
-                  className={`max-w-md p-3 rounded-2xl leading-relaxed ${
-                    m.senderType === 'user'
-                      ? 'bg-brand-emerald/20 text-brand-text border border-brand-emerald/30'
-                      : 'bg-canvas-card text-brand-text border border-canvas-border'
-                  }`}
-                >
-                  <p>{m.body}</p>
-                  <span className="text-[10px] text-brand-slate mt-1 block text-right">
-                    {new Date(m.createdAt).toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                </div>
-              </div>
-            ))}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[580px]">
+          <div className="dossier-card p-4 rounded-2xl flex flex-col space-y-3">
+            <div className="font-bold text-sm text-brand-navy dark:text-white flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
+              <MessageSquare className="w-4 h-4 text-brand-blue" />
+              <span>বার্তা থ্রেড</span>
+            </div>
+
+            <div className="flex-1 overflow-y-auto space-y-2">
+              {loading ? (
+                <div className="text-center py-10 text-slate-400">লোড হচ্ছে...</div>
+              ) : conversations.length > 0 ? (
+                conversations.map((conv) => (
+                  <button
+                    key={conv.conversationId}
+                    onClick={() => setActiveConvId(conv.conversationId)}
+                    className={`w-full p-3 rounded-xl text-left transition-colors border ${
+                      activeConvId === conv.conversationId
+                        ? 'bg-brand-blue text-white border-brand-blue'
+                        : 'bg-slate-50 dark:bg-slate-900 border-slate-100 dark:border-slate-800 text-brand-navy dark:text-slate-200 hover:bg-blue-50/50'
+                    }`}
+                  >
+                    <div className="font-mono font-semibold truncate">{conv.conversationId}</div>
+                    <div className="text-[11px] opacity-80 truncate mt-1">{conv.lastMessage}</div>
+                  </button>
+                ))
+              ) : (
+                <div className="text-center py-10 text-slate-400">কোনো মেসেজ নেই</div>
+              )}
+            </div>
           </div>
 
-          {/* Reply Form */}
-          <form onSubmit={handleSendMessage} className="pt-3 border-t border-canvas-border flex gap-2">
-            <input
-              type="text"
-              value={replyBody}
-              onChange={(e) => setReplyBody(e.target.value)}
-              placeholder="তদন্ত কর্মকর্তাকে উত্তর লিখুন (অপরিবর্তনযোগ্য)..."
-              className="flex-1 px-3.5 py-2.5 bg-canvas-card border border-canvas-border rounded-xl text-brand-text focus:outline-none focus:border-brand-blue"
-            />
-            <button
-              type="submit"
-              disabled={sending || !replyBody.trim()}
-              className="px-4 py-2.5 rounded-xl bg-brand-blue hover:bg-blue-600 text-white font-bold flex items-center gap-1.5 disabled:opacity-50"
-            >
-              <Send className="w-4 h-4" />
-              <span>পাঠান</span>
-            </button>
-          </form>
+          <div className="md:col-span-2 dossier-card p-4 rounded-2xl flex flex-col justify-between">
+            <div className="flex-1 overflow-y-auto p-2 space-y-3">
+              {messages.map((m, i) => (
+                <div key={i} className={`flex flex-col ${m.senderType === 'user' ? 'items-end' : 'items-start'}`}>
+                  <div className={`max-w-md p-3.5 rounded-2xl leading-relaxed border ${
+                    m.senderType === 'user'
+                      ? 'bg-brand-blue text-white border-brand-blue'
+                      : 'bg-slate-50 dark:bg-slate-900 text-brand-navy dark:text-slate-200 border-slate-100 dark:border-slate-800'
+                  }`}>
+                    <p>{m.body}</p>
+                    <span className={`text-[10px] font-mono mt-1 block text-right ${m.senderType === 'user' ? 'text-blue-100' : 'text-slate-400'}`}>
+                      {new Date(m.createdAt).toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <form onSubmit={handleSendMessage} className="pt-3 border-t border-slate-100 dark:border-slate-800 flex gap-2">
+              <input type="text" value={replyBody} onChange={(e) => setReplyBody(e.target.value)} placeholder="তদন্ত কর্মকর্তাকে উত্তর লিখুন (অপরিবর্তনযোগ্য)..." className="editorial-input flex-1 px-4 py-2.5 rounded-full" />
+              <button type="submit" disabled={sending || !replyBody.trim()} className="px-5 py-2.5 rounded-full bg-brand-blue hover:bg-brand-blueDark text-white font-bold flex items-center gap-1.5 disabled:opacity-50">
+                <Send className="w-4 h-4" />
+                <span>পাঠান</span>
+              </button>
+            </form>
+          </div>
         </div>
       </div>
     </div>

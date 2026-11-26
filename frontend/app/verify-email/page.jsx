@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ShieldCheck, Mail, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Mail, CheckCircle2, AlertCircle } from 'lucide-react';
 
 function VerifyEmailContent() {
   const router = useRouter();
@@ -32,17 +32,12 @@ function VerifyEmailContent() {
 
       const res = await fetch('/api/v1/auth/verify-email', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfData.csrfToken || '',
-        },
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfData.csrfToken || '' },
         body: JSON.stringify({ email, code }),
       });
 
       const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data?.error?.message || 'ভেরিফিকেশন কোড সঠিক নয়।');
-      }
+      if (!res.ok) throw new Error(data?.error?.message || 'ভেরিফিকেশন কোড সঠিক নয়।');
 
       setMessage('ইমেইল সফলভাবে ভেরিফাই হয়েছে! লগইন পেজে নিয়ে যাওয়া হচ্ছে...');
       setTimeout(() => router.push('/login'), 2000);
@@ -68,17 +63,12 @@ function VerifyEmailContent() {
 
       const res = await fetch('/api/v1/auth/resend-verification', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfData.csrfToken || '',
-        },
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfData.csrfToken || '' },
         body: JSON.stringify({ email }),
       });
 
       const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data?.error?.message || 'কোড পাঠানো সম্ভব হয়নি।');
-      }
+      if (!res.ok) throw new Error(data?.error?.message || 'কোড পাঠানো সম্ভব হয়নি।');
 
       setMessage('নতুন ৬-সংখ্যার কোড আপনার ইমেইলে পাঠানো হয়েছে।');
     } catch (err) {
@@ -89,76 +79,58 @@ function VerifyEmailContent() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-16 max-w-md space-y-6">
-      <div className="text-center space-y-2">
-        <div className="w-12 h-12 rounded-2xl bg-brand-emerald/10 border border-brand-emerald/30 text-brand-emerald flex items-center justify-center mx-auto mb-3">
-          <Mail className="w-6 h-6" />
+    <div className="bg-[#F8FAFF] dark:bg-canvas-dark min-h-[85vh] py-14">
+      <div className="container mx-auto px-4 max-w-md space-y-6">
+        <div className="text-center space-y-1.5">
+          <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-brand-blue dark:text-blue-400">
+            IDENTITY VERIFICATION
+          </span>
+          <h1 className="text-2xl font-extrabold text-brand-navy dark:text-white">ইমেইল ভেরিফিকেশন</h1>
+          <p className="text-xs text-slate-600 dark:text-slate-400">
+            আপনার ইনবক্সে প্রেরিত ৬-সংখ্যার ভেরিফিকেশন কোডটি প্রবেশ করান।
+          </p>
         </div>
-        <h1 className="text-2xl font-bold text-brand-text">ইমেইল ভেরিফিকেশন</h1>
-        <p className="text-xs text-brand-slate">
-          আপনার ইনবক্সে প্রেরিত ৬-সংখ্যার ভেরিফিকেশন কোডটি প্রবেশ করান
-        </p>
-      </div>
 
-      <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-canvas-border space-y-5 text-xs">
-        {message && (
-          <div className="p-3.5 rounded-xl bg-brand-emerald/10 border border-brand-emerald/30 text-brand-emerald flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 shrink-0" />
-            <span>{message}</span>
+        <div className="dossier-card-elevated p-6 sm:p-8 rounded-3xl space-y-5 text-xs">
+          {message && (
+            <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 shrink-0" />
+              <span>{message}</span>
+            </div>
+          )}
+
+          {error && (
+            <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleVerify} className="space-y-4">
+            <div>
+              <label className="block text-brand-navy dark:text-slate-200 font-semibold mb-1.5">ইমেইল ঠিকানা</label>
+              <div className="relative">
+                <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@example.com" className="editorial-input pl-9 pr-3.5 py-2.5" />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-brand-navy dark:text-slate-200 font-semibold mb-1.5">৬-সংখ্যার কোড (OTP)</label>
+              <input type="text" required maxLength={6} value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} placeholder="000000" className="editorial-input px-3.5 py-2.5 text-center font-mono text-lg tracking-widest font-bold" />
+            </div>
+
+            <button type="submit" disabled={loading} className="w-full py-3 px-4 rounded-full bg-brand-blue hover:bg-brand-blueDark text-white font-bold text-xs shadow-md transition-all disabled:opacity-50">
+              {loading ? <span>যাচাই হচ্ছে...</span> : <span>ইমেইল নিশ্চিত করুন</span>}
+            </button>
+          </form>
+
+          <div className="pt-2 text-center text-slate-600 dark:text-slate-400 text-xs border-t border-slate-100 dark:border-slate-800">
+            কোড পাননি?{' '}
+            <button type="button" disabled={resending} onClick={handleResend} className="text-brand-blue dark:text-blue-400 font-bold hover:underline disabled:opacity-50">
+              {resending ? 'পাঠানো হচ্ছে...' : 'পুনরায় কোড পাঠান'}
+            </button>
           </div>
-        )}
-
-        {error && (
-          <div className="p-3.5 rounded-xl bg-brand-crimson/10 border border-brand-crimson/30 text-brand-crimson flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>{error}</span>
-          </div>
-        )}
-
-        <form onSubmit={handleVerify} className="space-y-4">
-          <div>
-            <label className="block text-brand-text font-medium mb-1.5">ইমেইল ঠিকানা</label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-canvas-card border border-canvas-border rounded-xl text-brand-text focus:outline-none focus:border-brand-emerald"
-            />
-          </div>
-
-          <div>
-            <label className="block text-brand-text font-medium mb-1.5">৬-সংখ্যার কোড</label>
-            <input
-              type="text"
-              required
-              maxLength={6}
-              value={code}
-              onChange={(e) => setCode(e.target.value.trim())}
-              placeholder="যেমন: 492815"
-              className="w-full text-center tracking-widest text-lg font-bold py-2.5 bg-canvas-card border border-canvas-border rounded-xl text-brand-emerald focus:outline-none focus:border-brand-emerald"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 px-4 rounded-xl bg-brand-emerald hover:bg-brand-emeraldDark text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-brand-emerald/20 transition-all disabled:opacity-50"
-          >
-            {loading ? <span>যাচাই হচ্ছে...</span> : <span>ইমেইল নিশ্চিত করুন</span>}
-          </button>
-        </form>
-
-        <div className="pt-2 text-center text-brand-slate text-xs">
-          কোড পাননি?{' '}
-          <button
-            type="button"
-            disabled={resending}
-            onClick={handleResend}
-            className="text-brand-emerald font-semibold hover:underline disabled:opacity-50"
-          >
-            {resending ? 'পাঠানো হচ্ছে...' : 'পুনরায় কোড পাঠান (Resend)'}
-          </button>
         </div>
       </div>
     </div>
@@ -167,11 +139,7 @@ function VerifyEmailContent() {
 
 export default function VerifyEmailPage() {
   return (
-    <Suspense fallback={
-      <div className="container mx-auto px-4 py-16 max-w-md text-center text-slate-400 text-xs">
-        Loading...
-      </div>
-    }>
+    <Suspense fallback={<div className="container mx-auto px-4 py-16 max-w-md text-center text-xs text-slate-500">লোড হচ্ছে...</div>}>
       <VerifyEmailContent />
     </Suspense>
   );

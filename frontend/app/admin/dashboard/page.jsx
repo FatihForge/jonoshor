@@ -3,88 +3,134 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
-  ShieldCheck,
-  FileText,
-  UploadCloud,
-  Users,
-  Mail,
-  Clock,
-  CheckCircle2,
-  AlertTriangle,
-  ArrowRight,
+  FileText, FileCheck, Users, Mail, ArrowRight, UserCheck,
 } from 'lucide-react';
 
 export default function AdminDashboardPage() {
-  const [metrics, setMetrics] = useState(null);
+  const [counts, setCounts] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch('/api/v1/admin/dashboard', { credentials: 'include' })
       .then((r) => r.json())
-      .then((d) => setMetrics(d.data || null))
+      .then((d) => setCounts(d.data?.counts || null))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 
+  const modules = [
+    {
+      href: '/admin/complaints',
+      icon: FileText,
+      code: '01 / TRIAGE',
+      title: 'অভিযোগ যাচাই পাইপলাইন',
+      desc: 'নাগরিকদের দাখিলকৃত অভিযোগ পর্যালোচনা, স্বার্থের সংঘাত (COI) ঘোষণা, সত্যতা যাচাই ও পাবলিক রিপোর্ট প্রকাশনা।',
+    },
+    {
+      href: '/admin/evidence',
+      icon: FileCheck,
+      code: '02 / FORENSICS',
+      title: 'ডিজিটাল আলামত ও প্রমাণপত্র',
+      desc: 'ম্যালওয়্যার স্ক্যানকৃত ফাইলসমূহের ফরেনসিক পর্যালোচনা, রেডঅ্যাকশন নোট এবং পাবলিক ডিসক্লোজার অনুমোদন।',
+    },
+    {
+      href: '/admin/join-us',
+      icon: UserCheck,
+      code: '03 / PANEL',
+      title: 'স্বেচ্ছাসেবক ও আইনজীবী আবেদন',
+      desc: 'আইনজীবী, সাংবাদিক ও চিকিৎসকদের আবেদন যাচাই, অভ্যন্তরীণ নোট সংযোজন ও CSV এক্সপোর্ট।',
+    },
+    {
+      href: '/admin/users',
+      icon: Users,
+      code: '04 / CITIZENS',
+      title: 'নাগরিক ব্যবহারকারী পরিচালনা',
+      desc: 'নিবন্ধিত নাগরিক অ্যাকাউন্টের নিরাপত্তা স্থিতি ও সাসপেনশন নিয়ন্ত্রণ।',
+    },
+    {
+      href: '/admin/contact',
+      icon: Mail,
+      code: '05 / INBOX',
+      title: 'যোগাযোগ ও অনুসন্ধান ইনবক্স',
+      desc: 'জনসাধারণ ও গণমাধ্যমের পাঠানো প্রশ্ন, ফিডব্যাক ও সহায়তা অনুরোধ ব্যবস্থাপনা।',
+    },
+  ];
+
   return (
-    <div className="container mx-auto px-4 py-10 max-w-6xl space-y-8 text-xs">
-      <div className="flex justify-between items-center border-b border-canvas-border pb-4">
-        <div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-brand-amber/10 text-brand-amber border border-brand-amber/30 text-[10px] font-bold uppercase mb-1">
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>অ্যাডমিন রিভিউ কনসোল</span>
+    <div className="bg-[#F8FAFF] dark:bg-canvas-dark min-h-screen py-10">
+      <div className="container mx-auto px-4 max-w-6xl space-y-8 text-xs">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 border-b border-slate-200 dark:border-slate-800 pb-6">
+          <div>
+            <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-brand-blue dark:text-blue-400 block">
+              CASEWORKER REVIEW WORKBENCH
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-brand-navy dark:text-white mt-1">
+              অ্যাডমিন যাচাই ও কেস ম্যানেজমেন্ট কনসোল
+            </h1>
+            <p className="text-slate-600 dark:text-slate-400 mt-1">
+              মানবাধিকার অভিযোগের সত্যতা নিরীক্ষা, আলামত অনুমোদন ও জনস্বার্থ রিপোর্ট প্রকাশনা কেন্দ্র।
+            </p>
           </div>
-          <h1 className="text-2xl font-bold text-brand-text">অভিযোগ যাচাই ও কেস ম্যানেজমেন্ট</h1>
+
+          <Link href="/admin/complaints" className="px-5 py-2.5 rounded-full bg-brand-blue hover:bg-brand-blueDark text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-blue-600/20">
+            <span>রিভিউ কিউ খুলুন</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
         </div>
 
-        <Link
-          href="/admin/complaints"
-          className="px-4 py-2 rounded-xl bg-brand-amber hover:bg-amber-600 text-canvas font-bold text-xs"
-        >
-          রিভিউ কিউ খুলুন
-        </Link>
-      </div>
-
-      {/* Grid of Modules */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        <Link
-          href="/admin/complaints"
-          className="glass-panel p-6 rounded-2xl border border-canvas-border hover:border-brand-amber/50 transition-all space-y-3"
-        >
-          <div className="w-10 h-10 rounded-xl bg-brand-amber/10 border border-brand-amber/30 text-brand-amber flex items-center justify-center">
-            <FileText className="w-5 h-5" />
+        {/* KPI Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="dossier-card p-4 rounded-2xl space-y-1">
+            <span className="font-mono text-[10px] uppercase text-slate-400 block">Total Filed</span>
+            <div className="font-mono text-2xl font-extrabold text-brand-navy dark:text-white">{loading ? '—' : (counts?.total ?? 0)}</div>
+            <span className="text-[11px] text-slate-500">মোট অভিযোগ</span>
           </div>
-          <h2 className="text-base font-bold text-brand-text">অভিযোগ যাচাই পাইপলাইন</h2>
-          <p className="text-brand-slate leading-relaxed">
-            নাগরিকদের দাখিলকৃত নতুন অভিযোগ পর্যালোচনা, স্বার্থের সংঘাত ঘোষণা ও সত্যতা যাচাই প্রতিবেদন তৈরি।
-          </p>
-        </Link>
-
-        <Link
-          href="/admin/join-us"
-          className="glass-panel p-6 rounded-2xl border border-canvas-border hover:border-brand-emerald/50 transition-all space-y-3"
-        >
-          <div className="w-10 h-10 rounded-xl bg-brand-emerald/10 border border-brand-emerald/30 text-brand-emerald flex items-center justify-center">
-            <Users className="w-5 h-5" />
+          <div className="dossier-card p-4 rounded-2xl space-y-1">
+            <span className="font-mono text-[10px] uppercase text-amber-600 block">Submitted</span>
+            <div className="font-mono text-2xl font-extrabold text-amber-600">{loading ? '—' : (counts?.submitted ?? 0)}</div>
+            <span className="text-[11px] text-slate-500">নতুন জমা</span>
           </div>
-          <h2 className="text-base font-bold text-brand-text">Join Us আবেদনসমূহ</h2>
-          <p className="text-brand-slate leading-relaxed">
-            স্বেচ্ছাসেবী আইনজীবী, সাংবাদিক ও চিকিৎসকদের আবেদন পর্যালোচনা, নোট সংযোজন ও অনুমোদন।
-          </p>
-        </Link>
-
-        <Link
-          href="/admin/contact"
-          className="glass-panel p-6 rounded-2xl border border-canvas-border hover:border-brand-blue/50 transition-all space-y-3"
-        >
-          <div className="w-10 h-10 rounded-xl bg-brand-blue/10 border border-brand-blue/30 text-brand-blue flex items-center justify-center">
-            <Mail className="w-5 h-5" />
+          <div className="dossier-card p-4 rounded-2xl space-y-1">
+            <span className="font-mono text-[10px] uppercase text-brand-blue block">In Review</span>
+            <div className="font-mono text-2xl font-extrabold text-brand-blue">{loading ? '—' : (counts?.pendingReview ?? 0)}</div>
+            <span className="text-[11px] text-slate-500">পর্যালোচনাধীন</span>
           </div>
-          <h2 className="text-base font-bold text-brand-text">যোগাযোগ ইনবক্স</h2>
-          <p className="text-brand-slate leading-relaxed">
-            নাগরিকদের পাঠানো অনুসন্ধান বার্তা, ফিডব্যাক ও সহায়তা অনুরোধ ব্যবস্থাপনা।
-          </p>
-        </Link>
+          <div className="dossier-card p-4 rounded-2xl space-y-1">
+            <span className="font-mono text-[10px] uppercase text-emerald-600 block">Verified</span>
+            <div className="font-mono text-2xl font-extrabold text-emerald-600">{loading ? '—' : (counts?.verified ?? 0)}</div>
+            <span className="text-[11px] text-slate-500">সত্যতা যাচাইকৃত</span>
+          </div>
+          <div className="dossier-card p-4 rounded-2xl space-y-1 col-span-2 lg:col-span-1">
+            <span className="font-mono text-[10px] uppercase text-rose-600 block">Published</span>
+            <div className="font-mono text-2xl font-extrabold text-rose-600">{loading ? '—' : (counts?.published ?? 0)}</div>
+            <span className="text-[11px] text-slate-500">জনস্বার্থে প্রকাশিত</span>
+          </div>
+        </div>
+
+        {/* Modules Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {modules.map((m) => {
+            const Icon = m.icon;
+            return (
+              <Link key={m.href} href={m.href} className="dossier-card p-6 rounded-2xl hover:border-brand-blue transition-all flex flex-col justify-between space-y-4 group">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="w-11 h-11 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-brand-blue dark:text-blue-400 flex items-center justify-center">
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <span className="font-mono text-[10px] font-bold text-slate-400 uppercase">{m.code}</span>
+                  </div>
+                  <h2 className="text-base font-bold text-brand-navy dark:text-white group-hover:text-brand-blue transition-colors">{m.title}</h2>
+                  <p className="text-slate-600 dark:text-slate-400 leading-relaxed text-xs">{m.desc}</p>
+                </div>
+                <div className="pt-2 flex items-center gap-1 font-bold text-brand-blue dark:text-blue-400 text-[11px]">
+                  <span>মডিউল খুলুন</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </div>
+              </Link>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
