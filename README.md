@@ -7,7 +7,7 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
 [![Security](https://img.shields.io/badge/Auth-Argon2id_%2B_TOTP_2FA-red?style=for-the-badge&logo=shield)](https://github.com/)
 [![Tests](https://img.shields.io/badge/Automated_Tests-224_Passing-success?style=for-the-badge&logo=jest)](https://github.com/)
-[![License](https://img.shields.io/badge/License-All_Rights_Reserved_(Portfolio_Review_Only)-blue?style=for-the-badge)](LICENSE)
+[![License](https://img.shields.io/badge/License-Proprietary_%7C_Open_to_Partnership-blue?style=for-the-badge)](LICENSE)
 
 > **JonoShor (জনস্বর)** is a mission-critical, enterprise-grade civic accountability and secure whistleblowing platform designed for Bangladesh. It enables citizens to safely report human rights abuses, harassment, corruption, and systemic misconduct while maintaining zero-knowledge identity confidentiality. Incidents undergo a multi-tiered forensic verification lifecycle before being published into verifiable public records.
 
@@ -23,7 +23,7 @@
 - [Project Structure](#-project-structure)
 - [Local Development Setup](#-local-development-setup)
 - [Automated Testing & QA](#-automated-testing--qa)
-- [Intellectual Property & Portfolio License](#-intellectual-property--portfolio-license)
+- [Licensing, Partnership & Acquisition](#-licensing-partnership--acquisition)
 - [Author](#-author)
 
 ---
@@ -239,17 +239,20 @@ Ran all test suites.
 
 ---
 
-## ⚖️ Intellectual Property & Portfolio License
+## ⚖️ Licensing, Partnership & Acquisition
 
 **Copyright © 2026 Alvi S. All Rights Reserved.**
 
-This repository and its source code, architecture, schema designs, visual design, and conceptual workflow are the proprietary intellectual property of **Alvi S**.
+This platform, including its software architecture, implementation, data models, and system concepts, represents original work created by **Alvi S**.
 
-### Terms of Access
-- **Permitted Use**: You are granted permission to inspect, review, clone, and run this repository **strictly for evaluation, code review, academic assessment, and employment/internship hiring consideration**.
-- **Prohibited Use**: No individual, enterprise, organization, or third party may commercially deploy, host, redistribute, sub-license, fork for commercial production, or rebrand any portion of this platform without prior explicit written permission from the copyright holder.
+### Ownership & Usage Terms
+- **No Unauthorized Replication or Use**: No individual, organization, or entity is permitted to freely copy, reproduce, clone, host, redistribute, or deploy this project or its components without explicit written permission from the copyright holder.
+- **Open for Collaboration & Partnership**: If you are passionate about civic accountability, human rights technology, or platform development and wish to work together, collaboration proposals are warmly welcomed.
+- **Acquisition & Commercial Inquiries**: Parties interested in acquiring, purchasing, or licensing this platform for commercial, institutional, or governmental operations are invited to get in touch directly to discuss terms.
 
-For inquiries, permissions, or collaborative opportunities, please reach out via [sfna5900@gmail.com](mailto:sfna5900@gmail.com).
+### Inquiries & Proposals
+For any partnership proposals, acquisition discussions, or licensing questions, please reach out via:
+- **Email**: [sfna5900@gmail.com](mailto:sfna5900@gmail.com)
 
 ---
 
