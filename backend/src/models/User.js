@@ -42,6 +42,14 @@ const userSchema = new mongoose.Schema(
       default: false,
       index: true,
     },
+    emailVerificationCode: {
+      type: String,
+      select: false,
+    },
+    emailVerificationExpires: {
+      type: Date,
+      select: false,
+    },
     mobileVerified: {
       type: Boolean,
       default: false,

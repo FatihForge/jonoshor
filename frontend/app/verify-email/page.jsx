@@ -12,9 +12,11 @@ function VerifyEmailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const emailParam = searchParams.get('email') || '';
+  const codeParam = searchParams.get('code') || '';
+  const tokenParam = searchParams.get('token') || '';
 
   const [email, setEmail] = useState(emailParam);
-  const [code, setCode] = useState('');
+  const [code, setCode] = useState(codeParam);
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const [message, setMessage] = useState(null);
@@ -22,10 +24,10 @@ function VerifyEmailContent() {
 
   useEffect(() => {
     if (emailParam) setEmail(emailParam);
-  }, [emailParam]);
+    if (codeParam) setCode(codeParam);
+  }, [emailParam, codeParam]);
 
-  const handleVerify = async (e) => {
-    e.preventDefault();
+  const verifyAccount = async (targetEmail, targetCode, targetToken) => {
     setLoading(true);
     setError(null);
     setMessage(null);
@@ -34,10 +36,15 @@ function VerifyEmailContent() {
       const csrfRes = await fetch('/api/v1/csrf-token');
       const csrfData = await csrfRes.json();
 
+      const payload = {};
+      if (targetEmail) payload.email = targetEmail;
+      if (targetCode) payload.code = targetCode;
+      if (targetToken) payload.token = targetToken;
+
       const res = await fetch('/api/v1/auth/verify-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfData.csrfToken || '' },
-        body: JSON.stringify({ email, code }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
@@ -51,6 +58,18 @@ function VerifyEmailContent() {
       setLoading(false);
     }
   };
+
+  const handleVerify = async (e) => {
+    e.preventDefault();
+    await verifyAccount(email, code, tokenParam);
+  };
+
+  // If user arrives directly from verification link with email and code/token pre-filled
+  useEffect(() => {
+    if (emailParam && (codeParam || tokenParam) && !message && !error && !loading) {
+      verifyAccount(emailParam, codeParam, tokenParam);
+    }
+  }, [emailParam, codeParam, tokenParam]);
 
   const handleResend = async () => {
     if (!email) {

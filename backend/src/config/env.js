@@ -88,9 +88,9 @@ export const ENV = {
   CSRF_SECRET: process.env.CSRF_SECRET || DEFAULT_DEV_SECRETS.CSRF_SECRET,
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
   
-  FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:5173',
-  EMAIL_VERIFICATION_URL: process.env.EMAIL_VERIFICATION_URL || 'http://localhost:5173/verify-email',
-  PASSWORD_RESET_URL: process.env.PASSWORD_RESET_URL || 'http://localhost:5173/reset-password',
+  FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:3000',
+  EMAIL_VERIFICATION_URL: process.env.EMAIL_VERIFICATION_URL || 'http://localhost:3000/verify-email',
+  PASSWORD_RESET_URL: process.env.PASSWORD_RESET_URL || 'http://localhost:3000/reset-password',
 };
 
 export function validateProductionSecrets() {

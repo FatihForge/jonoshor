@@ -21,6 +21,12 @@ export const userRepository = {
     return await query.exec();
   },
 
+  async findByEmailWithVerification(email) {
+    return await User.findOne({ email: email.toLowerCase() })
+      .select('+emailVerificationCode +emailVerificationExpires')
+      .exec();
+  },
+
   async findByAuthProviderId(provider, providerId) {
     return await User.findOne({ authProvider: provider, authProviderId: providerId }).exec();
   },

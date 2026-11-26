@@ -50,9 +50,17 @@ export const loginValidator = [
 ];
 
 export const verifyEmailValidator = [
-  body('token')
-    .notEmpty()
-    .withMessage('Verification token is required'),
+  body().custom((value, { req }) => {
+    const { token, email, code } = req.body || {};
+    if (token) return true;
+    if (email && code) {
+      if (!/^\d{6}$/.test(String(code).trim())) {
+        throw new Error('ভেরিফিকেশন কোডটি অবশ্যই ৬-সংখ্যার হতে হবে (Verification code must be a 6-digit number)');
+      }
+      return true;
+    }
+    throw new Error('Either token or email and 6-digit code is required');
+  }),
   validate,
 ];
 

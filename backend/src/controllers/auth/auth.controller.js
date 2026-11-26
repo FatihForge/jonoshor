@@ -35,8 +35,8 @@ export const authController = {
 
   async verifyEmail(req, res, next) {
     try {
-      const { token } = req.body;
-      const result = await authService.verifyEmail(token);
+      const { token, email, code } = req.body;
+      const result = await authService.verifyEmail({ token, email, code });
       return sendSuccess(res, result);
     } catch (err) {
       next(err);

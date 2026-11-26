@@ -172,4 +172,42 @@ describe('Phase 5 — Authentication Foundation Tests', () => {
     assert.equal(res.status, 200);
     assert.equal(res.body.success, true);
   });
+
+  test('9. Email verification with 6-digit OTP code activates account', async () => {
+    const otpUser = {
+      fullName: 'করিম চৌধুরী',
+      email: `karim_${Date.now()}@jonoshor-test.org`,
+      password: 'SecurePassword123!',
+      mobile: '01812345678',
+      languagePreference: 'bn',
+    };
+
+    const regRes = await request(app)
+      .post('/api/v1/auth/register')
+      .send(otpUser);
+
+    assert.equal(regRes.status, 201);
+    assert.equal(regRes.body.success, true);
+    assert.ok(regRes.body.data.verificationCode);
+    assert.match(regRes.body.data.verificationCode, /^\d{6}$/);
+
+    const code = regRes.body.data.verificationCode;
+
+    // Invalid code test
+    const failRes = await request(app)
+      .post('/api/v1/auth/verify-email')
+      .send({ email: otpUser.email, code: '000000' });
+    assert.equal(failRes.status, 400);
+
+    // Valid code test
+    const verifyRes = await request(app)
+      .post('/api/v1/auth/verify-email')
+      .send({ email: otpUser.email, code });
+
+    assert.equal(verifyRes.status, 200);
+    assert.equal(verifyRes.body.success, true);
+
+    const userInDb = await User.findOne({ email: otpUser.email.toLowerCase() });
+    assert.equal(userInDb.emailVerified, true);
+  });
 });

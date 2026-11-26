@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { userRepository } from '../../repositories/user.repository.js';
 import { reporterRepository } from '../../repositories/reporter.repository.js';
@@ -36,6 +37,11 @@ export const authService = {
     }
 
     const passwordHash = await hashPassword(password);
+
+    // Generate secure 6-digit verification code & 24h expiration
+    const verificationCode = crypto.randomInt(100000, 1000000).toString();
+    const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
     const user = await userRepository.create({
       fullName,
       email,
@@ -43,6 +49,8 @@ export const authService = {
       mobile,
       languagePreference,
       emailVerified: false,
+      emailVerificationCode: verificationCode,
+      emailVerificationExpires: verificationExpires,
     });
 
     // Check if an existing non-user reporter exists with this email or mobile
@@ -59,11 +67,12 @@ export const authService = {
       { expiresIn: '24h' }
     );
 
-    // Send verification email asynchronously
+    // Send verification email asynchronously with both 6-digit code and token
     await emailService.sendVerificationEmail({
       email: user.email,
       fullName: user.fullName,
       token: verificationToken,
+      code: verificationCode,
     });
 
     return {
@@ -74,7 +83,7 @@ export const authService = {
         emailVerified: user.emailVerified,
         languagePreference: user.languagePreference,
       },
-      ...((ENV.NODE_ENV === 'development' || ENV.NODE_ENV === 'test') ? { verificationToken } : {}),
+      ...((ENV.NODE_ENV === 'development' || ENV.NODE_ENV === 'test') ? { verificationToken, verificationCode } : {}),
     };
   },
 
@@ -87,9 +96,18 @@ export const authService = {
     if (!user || user.emailVerified) {
       return {
         success: true,
-        message: 'যদি এই ইমেইলে কোনো অযাচাইকৃত অ্যাকাউন্ট থাকে, তবে ভেরিফিকেশন লিঙ্ক পাঠানো হয়েছে।',
+        message: 'যদি এই ইমেইলে কোনো অযাচাইকৃত অ্যাকাউন্ট থাকে, তবে ভেরিফিকেশন কোড পাঠানো হয়েছে।',
       };
     }
+
+    // Generate new 6-digit code
+    const verificationCode = crypto.randomInt(100000, 1000000).toString();
+    const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    await userRepository.updateById(user._id, {
+      emailVerificationCode: verificationCode,
+      emailVerificationExpires: verificationExpires,
+    });
 
     const verificationToken = jwt.sign(
       { userId: user._id, type: 'email_verification' },
@@ -101,26 +119,26 @@ export const authService = {
       email: user.email,
       fullName: user.fullName,
       token: verificationToken,
+      code: verificationCode,
     });
 
     return {
       success: true,
-      message: 'নতুন যাচাইকরণ লিঙ্ক পাঠানো হয়েছে। অনুগ্রহ করে ইনবক্স চেক করুন।',
-      ...((ENV.NODE_ENV === 'development' || ENV.NODE_ENV === 'test') ? { verificationToken } : {}),
+      message: 'নতুন ৬-সংখ্যার যাচাইকরণ কোড পাঠানো হয়েছে। অনুগ্রহ করে ইনবক্স চেক করুন।',
+      ...((ENV.NODE_ENV === 'development' || ENV.NODE_ENV === 'test') ? { verificationToken, verificationCode } : {}),
     };
   },
 
   /**
-   * Verify email via token
+   * Verify email via 6-digit code OR token
    */
-  async verifyEmail(token) {
-    try {
-      const decoded = jwt.verify(token, authConfig.jwt.accessTokenSecret);
-      if (decoded.type !== 'email_verification') {
-        throw new ValidationError('Invalid verification token');
-      }
+  async verifyEmail({ token, email, code } = {}) {
+    // Mode 1: 6-digit OTP code verification
+    if (email && code) {
+      const cleanEmail = String(email).trim().toLowerCase();
+      const cleanCode = String(code).trim();
+      const user = await userRepository.findByEmailWithVerification(cleanEmail);
 
-      const user = await userRepository.findById(decoded.userId);
       if (!user) {
         throw new NotFoundError('User not found');
       }
@@ -129,14 +147,54 @@ export const authService = {
         return { message: 'Email already verified', alreadyVerified: true };
       }
 
-      await userRepository.updateById(user._id, { emailVerified: true });
-      return { message: 'Email successfully verified', alreadyVerified: false };
-    } catch (err) {
-      if (err.name === 'TokenExpiredError') {
-        throw new ValidationError('Email verification token has expired. Please request a new one.');
+      if (!user.emailVerificationCode || user.emailVerificationCode !== cleanCode) {
+        throw new ValidationError('ভেরিফিকেশন কোডটি সঠিক নয়। (Invalid verification code)');
       }
-      throw err;
+
+      if (user.emailVerificationExpires && user.emailVerificationExpires < new Date()) {
+        throw new ValidationError('ভেরিফিকেশন কোডের মেয়াদ শেষ হয়ে গেছে। দয়া করে নতুন কোড নিন। (Verification code has expired)');
+      }
+
+      await userRepository.updateById(user._id, {
+        emailVerified: true,
+        $unset: { emailVerificationCode: 1, emailVerificationExpires: 1 },
+      });
+
+      return { message: 'Email successfully verified', alreadyVerified: false };
     }
+
+    // Mode 2: JWT token verification (direct link fallback)
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, authConfig.jwt.accessTokenSecret);
+        if (decoded.type !== 'email_verification') {
+          throw new ValidationError('Invalid verification token');
+        }
+
+        const user = await userRepository.findById(decoded.userId);
+        if (!user) {
+          throw new NotFoundError('User not found');
+        }
+
+        if (user.emailVerified) {
+          return { message: 'Email already verified', alreadyVerified: true };
+        }
+
+        await userRepository.updateById(user._id, {
+          emailVerified: true,
+          $unset: { emailVerificationCode: 1, emailVerificationExpires: 1 },
+        });
+
+        return { message: 'Email successfully verified', alreadyVerified: false };
+      } catch (err) {
+        if (err.name === 'TokenExpiredError') {
+          throw new ValidationError('Email verification token has expired. Please request a new one.');
+        }
+        throw err;
+      }
+    }
+
+    throw new ValidationError('Either email and 6-digit code or verification token is required');
   },
 
   /**
