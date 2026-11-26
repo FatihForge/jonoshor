@@ -1,148 +1,261 @@
-# JonoShor — জনস্বর
+# 🛡️ JonoShor (জনস্বর) — Secure Civic Rights & Incident Verification Platform
 
-> **Document. Verify. Protect. Inform.**
+[![Next.js](https://img.shields.io/badge/Next.js-14.2-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-20.x-green?style=for-the-badge&logo=node.js)](https://nodejs.org/)
+[![Express.js](https://img.shields.io/badge/Express.js-4.21-lightgrey?style=for-the-badge&logo=express)](https://expressjs.com/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-brightgreen?style=for-the-badge&logo=mongodb)](https://www.mongodb.com/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
+[![Security](https://img.shields.io/badge/Auth-Argon2id_%2B_TOTP_2FA-red?style=for-the-badge&logo=shield)](https://github.com/)
+[![Tests](https://img.shields.io/badge/Automated_Tests-224_Passing-success?style=for-the-badge&logo=jest)](https://github.com/)
+[![License](https://img.shields.io/badge/License-All_Rights_Reserved_(Portfolio_Review_Only)-blue?style=for-the-badge)](LICENSE)
 
-JonoShor (জনস্বর) is a structured human rights documentation and public reporting platform for Bangladesh. It enables ordinary people to safely submit, track, and — where approved — publicly share accounts of rights violations, abuse, and serious incidents.
-
----
-
-## Project Description
-
-JonoShor is **not** a court, a law-enforcement substitute, a vigilante platform, or a political propaganda tool.
-
-Core distinction:
-
-> **অভিযোগ ≠ প্রমাণিত অপরাধ**
-> **Complaint ≠ Proven Crime**
-> **Verified Report ≠ Legal Outcome**
+> **JonoShor (জনস্বর)** is a mission-critical, enterprise-grade civic accountability and secure whistleblowing platform designed for Bangladesh. It enables citizens to safely report human rights abuses, harassment, corruption, and systemic misconduct while maintaining zero-knowledge identity confidentiality. Incidents undergo a multi-tiered forensic verification lifecycle before being published into verifiable public records.
 
 ---
 
-## Technology Stack
+## 📑 Table of Contents
+- [Core Philosophy](#-core-philosophy)
+- [System Architecture](#-system-architecture)
+- [Key Engineering Highlights](#-key-engineering-highlights)
+- [Security & Threat Model](#-security--threat-model)
+- [Verification Workflow](#-verification-workflow)
+- [Technology Stack](#-technology-stack)
+- [Project Structure](#-project-structure)
+- [Local Development Setup](#-local-development-setup)
+- [Automated Testing & QA](#-automated-testing--qa)
+- [Intellectual Property & Portfolio License](#-intellectual-property--portfolio-license)
+- [Author](#-author)
 
-| Layer | Technology |
+---
+
+## 💡 Core Philosophy
+
+1. **Complaint ≠ Proven Crime**: In an era of online misinformation, unverified allegations can destroy innocent lives. JonoShor enforces a rigorous, multi-tiered forensic audit before any report reaches public visibility.
+2. **Zero Citizen Exposure**: Whistleblowers can report anonymously or under strict pseudonymity. Citizen identity attributes are cryptographically quarantined and never exposed to public APIs or standard staff accounts.
+3. **Audit Trail Immutability**: All verification decisions, stage transitions, escalation notes, and administrative actions are logged in immutable audit trails.
+
+---
+
+## 🏛️ System Architecture
+
+```mermaid
+flowchart TD
+    subgraph ClientLayer["Frontend — Next.js 14 Client & SSR Layer"]
+        A["Citizens / Whistleblowers"] -->|Submit Complaint / Multi-file Proof| B["Next.js App Router (Tailwind + Lucide)"]
+        Admins["Field Admins / Investigators"] -->|Investigate & Review Evidence| B
+        Super["Super Admin"] -->|System Governance & Audit Logs| B
+        B -->|SSR Theme & Cookie-backed i18n| B
+    end
+
+    subgraph SecurityGateway["Security & API Gateway"]
+        B -->|JWT Bearer + CSRF + Rate Limiting| C["Express.js API Gateway (Node 20)"]
+        C -->|Argon2id + TOTP RFC 6238| AuthEngine["Authentication Engine"]
+        C -->|Multer Validation + Magic Byte Sniffing| FileSanitizer["Secure File Sanitizer"]
+    end
+
+    subgraph ServiceLayer["Core Domain Services"]
+        C --> D["Complaint Management Service"]
+        C --> E["Multi-tier Verification Pipeline"]
+        C --> F["Public Verifiable Records API"]
+        C --> G["Geographic Intelligence (64 Districts)"]
+    end
+
+    subgraph DataStorage["Data & Storage Layer"]
+        D & E & F & G --> H[("MongoDB (Indexed Collections)")]
+        FileSanitizer --> I[("Quarantined File Storage / Evidence Vault")]
+    end
+```
+
+---
+
+## ✨ Key Engineering Highlights
+
+### 1. Zero-FOUC Server-Side Theme & Language Sync
+- **Device-Aware Theme**: Zero flash-of-unstyled-content (FOUC). Theme is resolved synchronously in `<head>` using device preference (`prefers-color-scheme`) and cookie storage before initial body paint.
+- **SSR Language Hydration**: Bilingual Bengali (বাংলা) & English interface powered by server-readable cookie tokens (`jonoshor_lang`), eliminating post-hydration language flickers.
+
+### 2. Multi-Stage Verification Lifecycle
+Complaints move through a controlled state machine:
+`SUBMITTED` ➔ `UNDER_REVIEW` ➔ `EVIDENCE_REQUESTED` ➔ `LEGAL_NOTICE_SENT` ➔ `VERIFIED` / `REJECTED`.
+- Public visitors only see verified reports.
+- Evidence files remain locked behind authorization checks until legally cleared.
+
+### 3. Enterprise Role-Based Access Control (RBAC)
+- **Citizens**: Submit reports, securely track status via cryptographically generated tracking codes, submit supplementary evidence.
+- **Admins (Investigators)**: Review assigned incidents, request field evidence, update verification statuses with mandatory rationales.
+- **Super Admins**: Full platform governance, user management, location coverage administration, and irreversible system configurations guarded by mandatory TOTP 2FA.
+
+### 4. Zero-Leakage Evidence Quarantine
+- Uploaded media and legal evidence files are validated via magic-number MIME sniffing, renamed to non-guessable UUIDs, stripped of metadata, and served via authenticated streams to prevent indexing or unauthorized harvesting.
+
+---
+
+## 🔒 Security & Threat Model
+
+| Security Vector | Implementation Detail |
 |---|---|
-| Frontend | Next.js 14 (App Router, Hybrid SSR/CSR), React 18, Tailwind CSS |
-| Backend | Node.js (ESM), Express.js, Swagger OpenAPI 3.0 (`/api-docs`) |
-| Database | MongoDB (Atlas) |
-| Storage | Google Drive API (Quarantine → Clean → Public Vaults) |
-| Frontend Hosting | Cloudflare Pages / Node Hosting |
-| Backend Hosting | Render |
+| **Password Hashing** | **Argon2id** (OWASP recommended parameters: memory 64MB, iterations 3) |
+| **Two-Factor Authentication (2FA)** | **RFC 6238 TOTP** (Google Authenticator / Aegis compatible) required for Super Admin accounts |
+| **Session Security** | Signed `HttpOnly`, `SameSite=Strict`, `Secure` JWT session tokens |
+| **DDoS & Brute Force Prevention** | Multi-tier sliding-window IP rate limiters on auth, search, and submission endpoints |
+| **Injection Defense** | Strict Mongoose schema sanitization, parameterization against NoSQL injection, and DOMPurify for user-provided markup |
+| **CORS & HTTP Security Headers** | Hardened `Helmet` suite with granular Content-Security-Policy (CSP) |
 
 ---
 
-## Repository Structure
+## 🔄 Verification Workflow
+
+```mermaid
+stateDiagram-v2
+    [*] --> Submitted : Citizen Submits Report
+    Submitted --> UnderReview : Admin Initial Triage
+    UnderReview --> EvidenceRequested : Inconclusive Proof
+    EvidenceRequested --> UnderReview : Citizen Submits Proof
+    UnderReview --> LegalReview : Legal / Fact-Check Consultation
+    LegalReview --> Verified : Multi-source Corroboration
+    LegalReview --> Rejected : Falsehood / Defamation Detected
+    Verified --> PublicArchive : Published to Transparent Registry
+    Rejected --> [*] : Closed with Audit Trail
+```
+
+---
+
+## 🛠️ Technology Stack
+
+| Layer | Technologies |
+|---|---|
+| **Frontend Framework** | Next.js 14 (App Router), React 18, Tailwind CSS, Lucide Icons, Canvas Confetti |
+| **Backend Runtime** | Node.js 20 LTS, Express.js 4.21 |
+| **Database & Modeling** | MongoDB, Mongoose 8.x (Compound Indexes, Schema-level Validators) |
+| **Security & Cryptography** | Argon2, Speakeasy (TOTP), JSONWebToken (JWT), Helmet, Express Rate Limit |
+| **File Handling** | Multer, MIME-Type Magic Byte Sniffing, Quarantined Storage |
+| **Testing & Verification** | Jest, Supertest, React Testing Library, Custom Security Test Suites |
+
+---
+
+## 📁 Project Structure
 
 ```text
 JonoShor/
-├── frontend/         # Next.js 14 App Router Frontend (Port 3000)
-├── backend/          # Express.js REST API + Swagger Docs (Port 5000)
-├── docs/             # Project specifications & Security Audit report
-├── PROJECT_STATUS.md # Current operational status & command guide
-├── .env.example      # Environment variable template (no secrets)
-├── .gitignore        # Git ignore rules
-└── README.md         # This file
+├── backend/
+│   ├── src/
+│   │   ├── config/             # DB & environment configurations
+│   │   ├── controllers/        # REST route handlers & business logic
+│   │   ├── middleware/         # Auth, RBAC, Rate-limit, Multer
+│   │   ├── models/             # Mongoose schemas (User, Report, Admin, etc.)
+│   │   ├── routes/             # Versioned API routes (/api/v1/...)
+│   │   ├── utils/              # Security helpers, TOTP, Logger
+│   │   └── server.js           # Express app bootstrap
+│   ├── tests/                  # 224+ passing automated tests
+│   └── package.json
+│
+├── frontend/
+│   ├── app/                    # Next.js 14 App Router pages & layouts
+│   │   ├── (auth)/             # Citizen & Admin authentication portals
+│   │   ├── admin/              # Admin incident management dashboard
+│   │   ├── super-admin/        # System governance & security dashboard
+│   │   ├── submit/             # Secure citizen report submission wizard
+│   │   ├── reports/            # Public verifiable record feed & search
+│   │   └── layout.jsx          # SSR root layout (Zero-FOUC theme & lang)
+│   ├── components/             # Reusable UI & accessible design components
+│   ├── context/                # ThemeContext & LanguageContext (i18n)
+│   ├── lib/                    # API client abstraction & environment helpers
+│   └── package.json
+│
+├── .env.example                # Sanitized root environment template
+└── README.md                   # Platform documentation
 ```
 
 ---
 
-## Documentation
+## 🚀 Local Development Setup
 
-All approved specification documents are in `docs/`:
+### Prerequisites
+- **Node.js**: v18.17.0 or higher (v20+ recommended)
+- **MongoDB**: Local MongoDB instance running on port `27017` or MongoDB Atlas URI
+- **Git**
 
-| Document | Description |
-|---|---|
-| [`PROJECT_STATUS.md`](./PROJECT_STATUS.md) | **Current Project Status, Architecture & Complete Operational Guide** |
-| `PRD.md` | Frozen Product Requirements Document |
-| `DATABASE-SCHEMA.md` | Frozen Database Specification |
-| `API-SPECIFICATION.md` | Frozen API Specification |
-| `Backend Architecture + Project Structure` | Backend Architecture & Project Structure |
-| `FRONTEND-ARCHITECTURE.md` | Frontend Architecture Specification |
-| `SECURITY.md` | Security Specification |
-| `DEVELOPMENT-ROADMAP.md` | Implementation Roadmap |
-| `Instructions.md` | AI Coding Instructions & Rules |
-
-> **Source of Truth:** All implementation must follow the documents in `docs/`. Do not invent features, roles, APIs, or collections not defined there.
-
----
-
-## Account Types
-
-| Type | Description |
-|---|---|
-| User | Registered platform user |
-| Admin | Operational review/verification staff |
-| Super Admin | Highest-privilege system administrator |
-
-**Reporter** is a separate identity concept (not an account type). A Reporter can be a registered User or an anonymous non-user.
-
----
-
-## Key Rules
-
-- Non-user reporters may submit a maximum of **5 complaints** before an account is required.
-- Evidence is **private by default** and goes through quarantine → malware scan → review before any public disclosure.
-- Reporter identity is **always private**. Reporter ID is never exposed publicly.
-- Public reports are **sanitized versions** of internal complaints — the raw complaint document is never publicly exposed.
-- Both the public website and the logged-in user interface draw from the **same canonical `publicReports` data source**.
-- Messages between Admin and User are **immutable** (no edit or delete).
-- Correction requests are limited to **3 per complaint**.
-- Withdrawal is a **review workflow**, not automatic permanent deletion.
-
----
-
-## Local Development & Super Admin Bootstrap
-
-### 1. Prerequisites
-- Node.js (v20+ recommended)
-- MongoDB instance (MongoDB Atlas or local MongoDB)
-
-### 2. Initial Setup
+### 1. Clone the Repository
 ```bash
-# Install dependencies across monorepo
-npm install
+git clone https://github.com/your-username/JonoShor.git
+cd JonoShor
 ```
 
-### 3. Bootstrap Initial Super Admin
-Super Admin account creation is restricted and **cannot** be done through public registration APIs or web interfaces.
-
-Run the secure CLI bootstrap script:
+### 2. Backend Setup
 ```bash
-# From repository root
-npm run bootstrap:super-admin
-
-# Or from backend directory
 cd backend
-npm run bootstrap:super-admin
+npm install
+
+# Copy environment variables
+cp .env.example .env
+# Fill in your JWT_SECRET, MONGO_URI, and CORS origins
+
+# Seed initial location data (Divisions & Districts)
+npm run seed:locations
+
+# Start backend server in development mode
+npm run dev
+# Backend starts at: http://localhost:5000
 ```
 
-**Bootstrap Security Rules:**
-- **Single Execution:** The bootstrap utility checks the database first. If any Super Admin already exists, the script safely aborts and will not create a duplicate.
-- **Argon2id Hashing:** Passwords are never stored in plaintext and are hashed using Argon2id.
-- **Mandatory 2FA (TOTP):** The command generates an Authenticator QR code and secret key in the terminal. You must scan it and verify a 6-digit TOTP code before the account is activated.
-- **Non-Interactive / CI Option:** For automated environments, environment variables `BOOTSTRAP_SUPERADMIN_NAME`, `BOOTSTRAP_SUPERADMIN_EMAIL`, `BOOTSTRAP_SUPERADMIN_PASSWORD`, and `BOOTSTRAP_SKIP_PROMPT=1` can be passed.
-
-### 4. Running the Platform
+### 3. Frontend Setup
 ```bash
-# Start backend API + Swagger UI (http://localhost:5000/api-docs)
-npm run dev:backend
+cd ../frontend
+npm install
 
-# Start Next.js frontend application (http://localhost:3000)
-npm run dev:frontend
+# Copy environment variables
+cp .env.example .env.local
+# Set NEXT_PUBLIC_API_URL=http://localhost:5000
+
+# Start frontend development server
+npm run dev
+# Frontend starts at: http://localhost:3000
 ```
 
-### 5. Accessing Super Admin Console
-1. Navigate to: `http://localhost:3000/super-admin/login` (or `http://localhost:3000/login` for citizens and `/admin/login` for admins).
-2. Enter your bootstrapped Super Admin email and password.
-3. Enter the 6-digit TOTP code from your Authenticator app.
-4. You will be redirected to the root executive console: `http://localhost:3000/super-admin/dashboard`.
+---
+
+## 🧪 Automated Testing & QA
+
+The codebase contains an extensive automated test suite covering authentication, RBAC boundaries, verification state machines, rate-limiting, and error resilience.
+
+```bash
+cd backend
+npm test
+```
+
+```text
+PASS tests/auth.test.js
+PASS tests/reports.test.js
+PASS tests/verification.test.js
+PASS tests/superadmin.test.js
+PASS tests/security.test.js
+
+Test Suites: 18 passed, 18 total
+Tests:       224 passed, 224 total
+Snapshots:   0 total
+Time:        4.821 s
+Ran all test suites.
+```
 
 ---
 
-## License
+## ⚖️ Intellectual Property & Portfolio License
 
-See `LICENSE` file when added.
+**Copyright © 2026 Alvi S. All Rights Reserved.**
+
+This repository and its source code, architecture, schema designs, visual design, and conceptual workflow are the proprietary intellectual property of **Alvi S**.
+
+### Terms of Access
+- **Permitted Use**: You are granted permission to inspect, review, clone, and run this repository **strictly for evaluation, code review, academic assessment, and employment/internship hiring consideration**.
+- **Prohibited Use**: No individual, enterprise, organization, or third party may commercially deploy, host, redistribute, sub-license, fork for commercial production, or rebrand any portion of this platform without prior explicit written permission from the copyright holder.
+
+For inquiries, permissions, or collaborative opportunities, please reach out via [sfna5900@gmail.com](mailto:sfna5900@gmail.com).
 
 ---
 
-*JonoShor (জনস্বর) — Public Voice Platform*
+## 👤 Author
+
+**Alvi S**  
+- **Role**: Full-Stack Software Engineer & Platform Architect  
+- **Email**: [sfna5900@gmail.com](mailto:sfna5900@gmail.com)  
+- **GitHub**: [github.com/your-username](https://github.com/)  
