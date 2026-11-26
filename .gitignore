@@ -29,6 +29,7 @@ pnpm-debug.log*
 # ============================================================
 dist/
 build/
+.next/
 .output/
 .vite/
 *.tsbuildinfo
@@ -87,6 +88,7 @@ temp/
 !.eslintrc.json
 !.prettierrc.json
 !tsconfig.json
+!jsconfig.json
 
 # ============================================================
 # Misc

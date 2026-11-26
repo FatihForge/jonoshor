@@ -1,0 +1,40 @@
+import React from 'react';
+
+export const metadata = {
+  title: 'ব্যবহারের শর্তাবলী ও আইনি দায়মুক্তি',
+  description: 'জনস্বর ব্যবহারের আইনি শর্তাবলী ও দায়মুক্তি দলিল।',
+};
+
+export default function TermsPage() {
+  return (
+    <div className="container mx-auto px-4 py-12 max-w-3xl space-y-8 text-sm text-brand-slate leading-relaxed">
+      <div className="space-y-2">
+        <h1 className="text-3xl font-extrabold text-brand-text">ব্যবহারের শর্তাবলী ও আইনি দায়মুক্তি</h1>
+        <p className="text-xs text-brand-slate">সর্বশেষ হালনাগাদ: নভেম্বর ২০২৬</p>
+      </div>
+
+      <div className="glass-panel p-8 rounded-2xl border border-canvas-border space-y-6">
+        <section className="space-y-3">
+          <h2 className="text-base font-bold text-brand-text">১. প্ল্যাটফর্মের আইনি অবস্থান</h2>
+          <p>
+            জনস্বর কোনো আদালত, ট্রাইব্যুনাল বা আইনি কর্তৃপক্ষ নয়। এই প্ল্যাটফর্মে প্রকাশিত কোনো প্রতিবেদন কাউকে অপরাধী হিসেবে চূড়ান্ত রায় প্রদান করে না। এটি শুধুমাত্র নাগরিক সাক্ষ্য ও সংগৃহীত প্রমাণের ভিত্তিতে একটি মানবাধিকার তথ্য রেকর্ড।
+          </p>
+        </section>
+
+        <section className="space-y-3">
+          <h2 className="text-base font-bold text-brand-text">২. মিথ্যা বা বিদ্বেষমূলক তথ্যের দায়</h2>
+          <p>
+            কোনো ব্যক্তি বা গোষ্ঠীকে অন্যায়ভাবে হেয় প্রতিপন্ন করার উদ্দেশ্যে ইচ্ছাকৃত বানোয়াট তথ্য বা জাল প্রমাণ জমা দিলে তার অভিযোগ সরাসরি বাতিল করা হবে এবং প্ল্যাটফর্ম থেকে তার বিরুদ্ধে প্রতিরোধমূলক ব্যবস্থা নেওয়া হবে।
+          </p>
+        </section>
+
+        <section className="space-y-3">
+          <h2 className="text-base font-bold text-brand-text">৩. আইনি সহায়তা ও সীমাবদ্ধতা</h2>
+          <p>
+            জনস্বর ভুক্তভোগীদের সাথে স্বেচ্ছাসেবী আইনজীবীদের যোগাযোগের সুযোগ করে দেয়, তবে আদালত কক্ষে মামলা জেতার কোনো বাণিজ্যিক গ্যারান্টি প্ল্যাটফর্ম প্রদান করে না।
+          </p>
+        </section>
+      </div>
+    </div>
+  );
+}
