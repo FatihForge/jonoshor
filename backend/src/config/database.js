@@ -3,8 +3,8 @@ import dns from 'dns';
 import { ENV } from './env.js';
 import { logger } from './logging.js';
 
-// Configure public DNS resolvers for MongoDB Atlas SRV lookup (resolves querySrv in containerized environments)
-if (ENV.MONGODB_URI.startsWith('mongodb+srv://')) {
+// Configure public DNS resolvers when enabled (defaults to system DNS in production)
+if (ENV.MONGODB_DNS_FALLBACK && ENV.MONGODB_URI.startsWith('mongodb+srv://')) {
   try {
     dns.setServers(['8.8.8.8', '1.1.1.1']);
     logger.info('Applied DNS fallback resolver (8.8.8.8, 1.1.1.1) for MongoDB Atlas SRV lookup');

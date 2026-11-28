@@ -20,10 +20,9 @@ async function startServer() {
       logger.warn(`Database connection failed: ${dbErr.message}. Starting server in offline-database mode.`);
     }
 
-    const hostUrl = process.env.RENDER_EXTERNAL_URL || (ENV.NODE_ENV === 'production' ? '' : `http://localhost:${ENV.PORT}`);
     server = app.listen(ENV.PORT, () => {
       logger.info(`JonoShor Backend Server running on port ${ENV.PORT} [${ENV.NODE_ENV}]`);
-      logger.info(`Health check available at ${hostUrl ? `${hostUrl}/api/v1/health` : '/api/v1/health'}`);
+      logger.info(`Health check available at http://localhost:${ENV.PORT}/api/v1/health`);
     });
 
     const handleShutdown = async (signal) => {
