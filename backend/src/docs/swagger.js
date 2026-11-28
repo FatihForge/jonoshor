@@ -29,6 +29,9 @@ It provides safe citizen grievance submission, tamper-proof audit trails, multi-
     },
   },
   servers: [
+    ...(process.env.RENDER_EXTERNAL_URL
+      ? [{ url: process.env.RENDER_EXTERNAL_URL, description: 'Live Render Production Server' }]
+      : []),
     {
       url: 'http://localhost:5000',
       description: 'Local Development Server',
