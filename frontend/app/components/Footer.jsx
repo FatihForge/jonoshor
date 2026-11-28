@@ -99,10 +99,10 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Transparency */}
+          {/* Transparency & Links */}
           <div className="md:col-span-2 space-y-3">
             <h4 className="font-bold text-brand-navy dark:text-white text-xs uppercase tracking-wider">
-              {isBn ? 'স্বচ্ছতা' : 'Transparency'}
+              {isBn ? 'স্বচ্ছতা ও লিংক' : 'Transparency & Links'}
             </h4>
             <ul className="space-y-2.5 text-xs">
               <li>
@@ -117,12 +117,23 @@ export default function Footer() {
               </li>
               <li>
                 <a
-                  href="/api-docs"
+                  href="https://github.com/FatihForge"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-brand-blue dark:text-blue-400 font-semibold hover:underline"
+                  className="inline-flex items-center gap-1 hover:text-brand-blue dark:hover:text-blue-400 transition-colors"
                 >
-                  <span>Swagger API</span>
+                  <span>GitHub</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://fatihforge.pages.dev/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 hover:text-brand-blue dark:hover:text-blue-400 transition-colors"
+                >
+                  <span>Portfolio</span>
                   <ExternalLink className="w-3 h-3" />
                 </a>
               </li>
@@ -133,7 +144,16 @@ export default function Footer() {
         {/* Bottom Copyright */}
         <div className="pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500 dark:text-slate-500">
           <div className="text-center md:text-left">
-            © ২০২৬ জনস্বর (JonoShor Platform). All rights reserved.{' '}
+            © ২০২৬{' '}
+            <a
+              href="https://fatihforge.pages.dev/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-brand-navy dark:text-slate-300 hover:text-brand-blue dark:hover:text-blue-400 transition-colors"
+            >
+              FatihForge
+            </a>
+            . All rights reserved.{' '}
             <span className="hidden sm:inline">
               • জনস্বর কোনো বিচারিক আদালত নয়; যাচাইকৃত প্রতিবেদন মানবাধিকার সচেতনতার দলিল।
             </span>
