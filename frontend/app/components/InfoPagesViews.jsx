@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { CheckCircle2, ShieldAlert, AlertOctagon } from 'lucide-react';
+import { CheckCircle2, ShieldAlert, AlertOctagon, ExternalLink } from 'lucide-react';
 import { useLanguage } from './LanguageContext';
 
 export function AboutView() {
@@ -91,6 +91,52 @@ export function AboutView() {
               <div className="flex items-start gap-2.5">
                 <CheckCircle2 className="w-4 h-4 text-brand-blue shrink-0 mt-0.5" />
                 <span>{isBn ? 'আমরা কোনো বিচারবহির্ভূত সামাজিক ট্রায়াল বা ক্যাঙ্গারু কোর্ট সমর্থন করি না।' : 'We reject defamation, mob trials, or extrajudicial accusations.'}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <h2 className="text-xl font-bold text-brand-navy dark:text-white">
+              {isBn ? '৪. প্রযুক্তিগত রূপরেখা ও উদ্ভাবন' : '4. Engineering & Platform Stewardship'}
+            </h2>
+            <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-blue-100 dark:border-slate-800/80 space-y-3">
+              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                {isBn
+                  ? 'জনস্বর প্ল্যাটফর্মের সামগ্রিক সিস্টেম আর্কিটেকচার, ডেটাবেস ডিজাইন এবং সিকিউরিটি ইঞ্জিনিয়ারিং সম্পূর্ণ স্বাধীনভাবে উদ্ভাবিত ও বাস্তবায়ন করেছে'
+                  : 'The comprehensive system architecture, database design, and security engineering of JonoShor were independently conceptualized and developed by'}{' '}
+                <a
+                  href="https://fatihforge.pages.dev/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-bold text-brand-blue dark:text-blue-400 hover:underline inline-flex items-center gap-1"
+                >
+                  <span>FatihForge</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>{' '}
+                {isBn
+                  ? '—একটি নিরপেক্ষ ও অলাভজনক সিভিক-টেক (Civic Technology) উদ্যোগ হিসেবে।'
+                  : '—as an independent civic technology initiative.'}
+              </p>
+              <div className="flex flex-wrap items-center gap-4 text-xs font-medium text-slate-500 dark:text-slate-400 pt-1">
+                <a
+                  href="https://fatihforge.pages.dev/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 hover:text-brand-blue dark:hover:text-blue-400 transition-colors"
+                >
+                  <span>Portfolio: fatihforge.pages.dev</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+                <span>•</span>
+                <a
+                  href="https://github.com/FatihForge"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 hover:text-brand-blue dark:hover:text-blue-400 transition-colors"
+                >
+                  <span>GitHub: @FatihForge</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
               </div>
             </div>
           </div>
