@@ -1,7 +1,9 @@
-export const BACKEND_URL =
+const rawBackendUrl =
   process.env.INTERNAL_BACKEND_URL ||
   process.env.NEXT_PUBLIC_API_URL ||
   'http://localhost:5000';
+
+export const BACKEND_URL = rawBackendUrl.replace(/\/+$/, '');
 
 export function apiUrl(path = '') {
   const cleanPath = path.startsWith('/') ? path : `/${path}`;

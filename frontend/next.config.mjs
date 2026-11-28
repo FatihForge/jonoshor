@@ -3,7 +3,8 @@ const nextConfig = {
   reactStrictMode: true,
   // Proxy backend API routes and swagger docs in both development and production SSR/CSR
   async rewrites() {
-    const backendUrl = process.env.INTERNAL_BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+    const rawBackendUrl = process.env.INTERNAL_BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+    const backendUrl = rawBackendUrl.replace(/\/+$/, '');
     return [
       {
         source: '/api/v1/:path*',
